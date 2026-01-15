@@ -69,6 +69,9 @@ firebase_options.dart
 *.env
 secrets/
 credentials.json
+**/serviceAccountKey.json
+**/service-account*.json
+**/firebase-adminsdk*.json
 
 # Generated files (build_runner, freezed, json_serializable, drift)
 *.g.dart
@@ -92,3 +95,8 @@ logs/
 # OS files
 Thumbs.db
 ehthumbs.db
+.claude/settings.local.json
+
+# Node modules
+node_modules/
+**/node_modules/

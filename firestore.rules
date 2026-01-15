@@ -1,0 +1,97 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ============================================
+    // FUNCIONES HELPER
+    // ============================================
+
+    // Verifica si el usuario esta autenticado
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Verifica si el usuario es el propietario del documento
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // Verifica que los campos requeridos existan en el request
+    function hasRequiredFields(fields) {
+      return request.resource.data.keys().hasAll(fields);
+    }
+
+    // ============================================
+    // CATALOGO DE EJERCICIOS (solo lectura)
+    // ============================================
+
+    // Grupos musculares - lectura para usuarios autenticados
+    match /muscle_groups/{groupId} {
+      allow read: if isAuthenticated();
+      allow write: if false; // Solo administradores via Admin SDK
+    }
+
+    // Ejercicios - lectura para usuarios autenticados
+    match /exercises/{exerciseId} {
+      allow read: if isAuthenticated();
+      allow write: if false; // Solo administradores via Admin SDK
+    }
+
+    // ============================================
+    // DATOS DE USUARIO
+    // ============================================
+
+    // Perfil de usuario
+    match /users/{userId} {
+      // Solo el propietario puede leer/escribir su perfil
+      allow read: if isOwner(userId);
+
+      // Crear perfil: debe ser el propietario y tener campos minimos
+      allow create: if isOwner(userId)
+                    && hasRequiredFields(['uid', 'email', 'createdAt']);
+
+      // Actualizar perfil: debe ser propietario, no puede cambiar uid
+      allow update: if isOwner(userId)
+                    && request.resource.data.uid == resource.data.uid;
+
+      // No permitir eliminar perfil (soft delete si es necesario)
+      allow delete: if false;
+
+      // ----------------------------------------
+      // Subcoleccion: weight_logs (historial de pesos)
+      // ----------------------------------------
+      match /weight_logs/{logId} {
+        // Solo el propietario puede leer sus registros
+        allow read: if isOwner(userId);
+
+        // Crear registro: validar campos requeridos
+        allow create: if isOwner(userId)
+                      && hasRequiredFields(['exerciseId', 'weight', 'performedAt', 'createdAt'])
+                      && request.resource.data.weight > 0;
+
+        // Actualizar registro: solo notas y syncedAt
+        allow update: if isOwner(userId)
+                      && request.resource.data.exerciseId == resource.data.exerciseId
+                      && request.resource.data.createdAt == resource.data.createdAt;
+
+        // Permitir eliminar registros propios
+        allow delete: if isOwner(userId);
+      }
+
+      // ----------------------------------------
+      // Subcoleccion: settings (configuracion de usuario)
+      // ----------------------------------------
+      match /settings/{settingId} {
+        allow read, write: if isOwner(userId);
+      }
+    }
+
+    // ============================================
+    // REGLA POR DEFECTO: denegar todo lo demas
+    // ============================================
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

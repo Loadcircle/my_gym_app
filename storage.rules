@@ -1,0 +1,17 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Imágenes y videos de ejercicios - lectura pública, escritura solo admin
+    match /exercises/{allPaths=**} {
+      allow read: if true;
+      allow write: if false; // Solo desde consola/admin
+    }
+
+    // Archivos de usuario (si se necesitan en el futuro)
+    match /users/{userId}/{allPaths=**} {
+      allow read: if request.auth != null && request.auth.uid == userId;
+      allow write: if request.auth != null && request.auth.uid == userId;
+    }
+  }
+}
