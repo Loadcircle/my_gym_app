@@ -1,20 +1,22 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/constants/app_constants.dart';
+import '../../../auth/providers/auth_provider.dart';
 
 /// Pantalla principal con lista de ejercicios por grupo muscular.
 /// TODO: Implementar carga desde Firestore y filtros.
-class ExercisesScreen extends StatefulWidget {
+class ExercisesScreen extends ConsumerStatefulWidget {
   const ExercisesScreen({super.key});
 
   @override
-  State<ExercisesScreen> createState() => _ExercisesScreenState();
+  ConsumerState<ExercisesScreen> createState() => _ExercisesScreenState();
 }
 
-class _ExercisesScreenState extends State<ExercisesScreen> {
+class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
   String _selectedMuscleGroup = 'Todos';
   final List<String> _muscleGroups = [
     'Todos',
@@ -75,6 +77,47 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
         .toList();
   }
 
+  Future<void> _showLogoutDialog() async {
+    final shouldLogout = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Cerrar Sesion'),
+        content: const Text('Estas seguro que deseas cerrar sesion?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancelar'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: TextButton.styleFrom(
+              foregroundColor: AppColors.error,
+            ),
+            child: const Text('Cerrar Sesion'),
+          ),
+        ],
+      ),
+    );
+
+    if (shouldLogout == true && mounted) {
+      try {
+        await ref.read(authStateProvider.notifier).signOut();
+        if (mounted) {
+          context.go(RouteNames.login);
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Error al cerrar sesion: $e'),
+              backgroundColor: AppColors.error,
+            ),
+          );
+        }
+      }
+    }
+  }
+
   Color _getMuscleGroupColor(String muscleGroup) {
     switch (muscleGroup) {
       case 'Pecho':
@@ -108,10 +151,7 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
           ),
           IconButton(
             icon: const Icon(Icons.logout),
-            onPressed: () {
-              // TODO: Implementar logout
-              context.go(RouteNames.login);
-            },
+            onPressed: () => _showLogoutDialog(),
             tooltip: 'Cerrar sesion',
           ),
         ],

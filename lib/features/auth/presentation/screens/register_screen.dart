@@ -1,26 +1,30 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/constants/app_constants.dart';
+import '../../../../core/utils/validators.dart';
+import '../../../../shared/widgets/google_sign_in_button.dart';
+import '../../providers/auth_provider.dart';
+import '../../providers/auth_state.dart';
 
 /// Pantalla de registro.
-/// TODO: Implementar registro con Firebase Auth.
-class RegisterScreen extends StatefulWidget {
+/// Permite al usuario crear una cuenta con email y contrasena.
+class RegisterScreen extends ConsumerStatefulWidget {
   const RegisterScreen({super.key});
 
   @override
-  State<RegisterScreen> createState() => _RegisterScreenState();
+  ConsumerState<RegisterScreen> createState() => _RegisterScreenState();
 }
 
-class _RegisterScreenState extends State<RegisterScreen> {
+class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
-  bool _isLoading = false;
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
 
@@ -36,36 +40,69 @@ class _RegisterScreenState extends State<RegisterScreen> {
   Future<void> _handleRegister() async {
     if (!_formKey.currentState!.validate()) return;
 
-    setState(() => _isLoading = true);
+    // Limpiar errores previos
+    ref.read(authStateProvider.notifier).clearError();
 
     try {
-      // TODO: Implementar registro con Firebase Auth
-      await Future.delayed(const Duration(seconds: 1));
+      await ref.read(authStateProvider.notifier).signUp(
+        email: _emailController.text.trim(),
+        password: _passwordController.text,
+        displayName: _nameController.text.trim(),
+      );
 
       if (mounted) {
         context.go(RouteNames.exercises);
       }
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
-        );
-      }
-    } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
+      // El error ya se maneja en el provider y se muestra via el listener
     }
+  }
+
+  Future<void> _handleGoogleSignIn() async {
+    // Limpiar errores previos
+    ref.read(authStateProvider.notifier).clearError();
+
+    try {
+      final success = await ref.read(authStateProvider.notifier).signInWithGoogle();
+
+      // Si el usuario cancelo, no hacemos nada
+      if (!success) return;
+
+      if (mounted) {
+        context.go(RouteNames.exercises);
+      }
+    } catch (e) {
+      // El error ya se maneja en el provider y se muestra via el listener
+    }
+  }
+
+  void _showErrorSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: AppColors.error,
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
+    final authState = ref.watch(authStateProvider);
+
+    // Escuchar errores para mostrar snackbar
+    ref.listen<AuthState>(authStateProvider, (previous, next) {
+      if (next.errorMessage != null && next.errorMessage != previous?.errorMessage) {
+        _showErrorSnackBar(next.errorMessage!);
+      }
+    });
+
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.go(RouteNames.login),
+          onPressed: authState.isLoading ? null : () => context.go(RouteNames.login),
         ),
       ),
       body: SafeArea(
@@ -97,16 +134,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   controller: _nameController,
                   textInputAction: TextInputAction.next,
                   textCapitalization: TextCapitalization.words,
+                  enabled: !authState.isLoading,
                   decoration: const InputDecoration(
                     labelText: 'Nombre',
+                    hintText: 'Tu nombre',
                     prefixIcon: Icon(Icons.person_outlined),
                   ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Ingresa tu nombre';
-                    }
-                    return null;
-                  },
+                  validator: Validators.validateName,
                 ),
                 const SizedBox(height: 16),
 
@@ -115,19 +149,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   controller: _emailController,
                   keyboardType: TextInputType.emailAddress,
                   textInputAction: TextInputAction.next,
+                  enabled: !authState.isLoading,
                   decoration: const InputDecoration(
                     labelText: 'Email',
+                    hintText: 'tu@email.com',
                     prefixIcon: Icon(Icons.email_outlined),
                   ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Ingresa tu email';
-                    }
-                    if (!value.contains('@')) {
-                      return 'Email invalido';
-                    }
-                    return null;
-                  },
+                  validator: Validators.validateEmail,
                 ),
                 const SizedBox(height: 16),
 
@@ -136,6 +164,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   controller: _passwordController,
                   obscureText: _obscurePassword,
                   textInputAction: TextInputAction.next,
+                  enabled: !authState.isLoading,
                   decoration: InputDecoration(
                     labelText: 'Contrasena',
                     prefixIcon: const Icon(Icons.lock_outlined),
@@ -150,15 +179,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       },
                     ),
                   ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Ingresa una contrasena';
-                    }
-                    if (value.length < AppConstants.minPasswordLength) {
-                      return 'Minimo ${AppConstants.minPasswordLength} caracteres';
-                    }
-                    return null;
-                  },
+                  validator: Validators.validatePassword,
                 ),
                 const SizedBox(height: 16),
 
@@ -167,6 +188,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   controller: _confirmPasswordController,
                   obscureText: _obscureConfirmPassword,
                   textInputAction: TextInputAction.done,
+                  enabled: !authState.isLoading,
                   decoration: InputDecoration(
                     labelText: 'Confirmar Contrasena',
                     prefixIcon: const Icon(Icons.lock_outlined),
@@ -182,23 +204,18 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       },
                     ),
                   ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Confirma tu contrasena';
-                    }
-                    if (value != _passwordController.text) {
-                      return 'Las contrasenas no coinciden';
-                    }
-                    return null;
-                  },
+                  validator: (value) => Validators.validateConfirmPassword(
+                    value,
+                    _passwordController.text,
+                  ),
                   onFieldSubmitted: (_) => _handleRegister(),
                 ),
                 const SizedBox(height: 32),
 
                 // Register button
                 ElevatedButton(
-                  onPressed: _isLoading ? null : _handleRegister,
-                  child: _isLoading
+                  onPressed: authState.isLoading ? null : _handleRegister,
+                  child: authState.isLoading
                       ? const SizedBox(
                           height: 20,
                           width: 20,
@@ -208,6 +225,31 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           ),
                         )
                       : const Text('Registrarse'),
+                ),
+                const SizedBox(height: 24),
+
+                // Divisor "o continua con"
+                Row(
+                  children: [
+                    const Expanded(child: Divider(color: AppColors.textSecondary)),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Text(
+                        'o continua con',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: AppColors.textSecondary,
+                            ),
+                      ),
+                    ),
+                    const Expanded(child: Divider(color: AppColors.textSecondary)),
+                  ],
+                ),
+                const SizedBox(height: 24),
+
+                // Boton de Google
+                GoogleSignInButton(
+                  onPressed: authState.isLoading ? null : _handleGoogleSignIn,
+                  isLoading: authState.isLoading,
                 ),
                 const SizedBox(height: 16),
 
@@ -222,7 +264,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           ),
                     ),
                     TextButton(
-                      onPressed: () => context.go(RouteNames.login),
+                      onPressed: authState.isLoading
+                          ? null
+                          : () => context.go(RouteNames.login),
                       child: const Text('Inicia Sesion'),
                     ),
                   ],

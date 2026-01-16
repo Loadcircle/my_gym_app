@@ -36,6 +36,9 @@ dependencies:
   firebase_storage: ^11.2.3
   firebase_crashlytics: ^3.3.3
 
+  # Google Sign-In
+  google_sign_in: ^6.1.0
+
   # Networking (for external APIs if needed)
   dio: ^5.2.1
 
