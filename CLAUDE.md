@@ -2,67 +2,273 @@
 
 ## Descripción
 
-App móvil de gimnasio para registrar pesos por ejercicio/máquina y ver guías (imagen + video + instrucciones).
+App móvil de gimnasio para registrar pesos por ejercicio/máquina y ver guías (imagen + video + instrucciones). Implementa arquitectura offline-first con sincronización automática.
+
+## Estado del Proyecto
+
+**MVP: ~90% Completo**
+
+| Fase | Estado | Descripción |
+|------|--------|-------------|
+| Fase 1: Setup | ✅ Completa | Proyecto Flutter, Firebase, arquitectura base |
+| Fase 2: Auth | ✅ Completa | Email/password, Google Sign-In, recuperación |
+| Fase 3: Ejercicios | ✅ Completa | Lista, detalle, filtros, registro de peso |
+| Fase 3.1: Offline + Media | ✅ Completa | Drift cache, sync queue, video player |
+| Fase 4: Pulido | ⏳ Pendiente | Tests, optimizaciones, deploy |
 
 ## Flow Principal (MVP)
 
 ```
-Login → Lista ejercicios por músculo → Detalle ejercicio → Registrar peso → Historial
+Splash → Login/Register → Lista ejercicios (filtro por músculo) → Detalle ejercicio → Registrar peso → Historial
 ```
 
 ## Stack Tecnológico
 
-| Categoría | Tecnología |
-|-----------|------------|
-| Framework | Flutter |
-| Estado | Riverpod |
-| Navegación | go_router |
-| Modelos | freezed + json_serializable |
-| DB Local | Drift (SQLite) |
-| Auth | Firebase Auth |
-| DB Cloud | Firestore |
-| Media | Firebase Storage |
-| Monitoreo | Firebase Crashlytics |
-| CI/CD | GitHub Actions |
+| Categoría | Tecnología | Versión |
+|-----------|------------|---------|
+| Framework | Flutter | SDK >=3.0.0 |
+| Estado | flutter_riverpod | ^2.3.6 |
+| Navegación | go_router | ^7.1.1 |
+| Modelos | freezed + json_serializable | ^2.3.4 / ^6.6.2 |
+| DB Local | Drift (SQLite) | ^2.8.0 |
+| Auth | Firebase Auth | ^4.6.3 |
+| DB Cloud | Cloud Firestore | ^4.8.0 |
+| Media | Firebase Storage | ^11.2.3 |
+| Monitoreo | Firebase Crashlytics | ^3.3.3 |
+| HTTP | dio | ^5.2.1 |
+| Cache Imágenes | cached_network_image | ^3.2.3 |
+| Video | video_player | ^2.6.1 |
+| Conectividad | connectivity_plus | ^4.0.1 |
 
-## Arquitectura
+## Arquitectura de Carpetas
 
 ```
 lib/
-├── core/           # Utilidades, constantes, tema
-├── data/           # Repositorios, datasources, modelos Drift
-├── domain/         # Entidades, casos de uso (si aplica)
-├── features/       # Módulos por feature (auth, exercises, history)
-│   └── [feature]/
-│       ├── data/
-│       ├── presentation/
-│       └── providers/
-└── shared/         # Widgets compartidos
+├── main.dart                              # Entry point, inicializa Firebase
+├── core/
+│   ├── config/
+│   │   └── app_config.dart                # Configuración por entorno (dev/prod)
+│   ├── constants/
+│   │   ├── app_constants.dart             # Constantes globales, nombres de colecciones
+│   │   └── storage_constants.dart         # URLs default de Firebase Storage
+│   ├── router/
+│   │   ├── app_router.dart                # Configuración go_router con protección
+│   │   └── route_names.dart               # Nombres de rutas centralizados
+│   ├── services/
+│   │   ├── connectivity_service.dart      # Monitoreo de conexión a internet
+│   │   └── sync_service.dart              # Sincronización offline-first
+│   ├── theme/
+│   │   ├── app_colors.dart                # Paleta de colores (tema oscuro)
+│   │   ├── app_text_styles.dart           # Estilos tipográficos
+│   │   └── app_theme.dart                 # ThemeData Material 3
+│   └── utils/
+│       ├── logger.dart                    # Utilidad de logging
+│       └── validators.dart                # Validadores de formularios
+├── data/
+│   ├── local/
+│   │   ├── database.dart                  # Clase AppDatabase (Drift)
+│   │   ├── database.g.dart                # Código generado
+│   │   ├── tables/
+│   │   │   ├── exercises_table.dart       # Tabla de ejercicios
+│   │   │   ├── weight_records_table.dart  # Tabla de registros
+│   │   │   └── sync_queue_table.dart      # Cola de sincronización
+│   │   └── daos/
+│   │       ├── exercises_dao.dart         # DAO ejercicios
+│   │       ├── weight_records_dao.dart    # DAO registros
+│   │       └── sync_queue_dao.dart        # DAO cola sync
+│   └── repositories/
+│       ├── offline_exercises_repository.dart      # Repo offline-first ejercicios
+│       └── offline_weight_records_repository.dart # Repo offline-first registros
+├── features/
+│   ├── auth/
+│   │   ├── data/
+│   │   │   ├── auth_repository.dart       # Firebase Auth + Google Sign-In
+│   │   │   └── models/
+│   │   │       └── user_model.dart        # Modelo de usuario (Freezed)
+│   │   ├── presentation/screens/
+│   │   │   ├── splash_screen.dart         # Splash con verificación de auth
+│   │   │   ├── login_screen.dart          # Login email + Google
+│   │   │   ├── register_screen.dart       # Registro + Google
+│   │   │   └── forgot_password_screen.dart
+│   │   └── providers/
+│   │       ├── auth_provider.dart         # AuthNotifier + providers
+│   │       └── auth_state.dart            # Estado de auth (Freezed)
+│   ├── exercises/
+│   │   ├── data/
+│   │   │   ├── models/
+│   │   │   │   ├── exercise_model.dart    # Modelo ejercicio (Freezed)
+│   │   │   │   └── weight_record_model.dart # Modelo registro (Freezed)
+│   │   │   └── repositories/
+│   │   │       ├── exercises_repository.dart      # Repo Firestore directo
+│   │   │       └── weight_records_repository.dart # Repo Firestore directo
+│   │   ├── presentation/screens/
+│   │   │   ├── exercises_screen.dart      # Lista con filtro por músculo
+│   │   │   └── exercise_detail_screen.dart # Detalle con media y registro
+│   │   └── providers/
+│   │       ├── exercises_provider.dart    # Providers de ejercicios
+│   │       └── weight_records_provider.dart # Providers de registros
+│   └── history/
+│       └── presentation/screens/
+│           └── history_screen.dart        # Historial agrupado por fecha
+└── shared/widgets/
+    ├── loading_indicator.dart             # Indicador de carga
+    ├── error_view.dart                    # Vista de error con retry
+    ├── empty_state.dart                   # Vista estado vacío
+    ├── google_sign_in_button.dart         # Botón Google con logo
+    ├── exercise_image.dart                # Imagen con cache
+    └── exercise_video_player.dart         # Video player con fullscreen
 ```
 
-## Principios de Desarrollo
+## Modelos de Datos
 
-- **Offline-first**: El historial se guarda localmente con Drift y sincroniza con Firestore cuando hay conexión
-- **Iteraciones pequeñas**: MVP funcional primero, features adicionales después
-- **Sin over-engineering**: No microservicios, no Kubernetes, mantener simple
-- **URLs seguras**: Videos e imágenes se consumen desde Firebase Storage con URLs firmadas
+### UserModel (Freezed)
+```dart
+| Campo          | Tipo      | Descripción                |
+|----------------|-----------|----------------------------|
+| uid            | String    | ID de Firebase Auth        |
+| email          | String    | Email del usuario          |
+| displayName    | String?   | Nombre para mostrar        |
+| photoUrl       | String?   | URL foto de perfil         |
+| createdAt      | DateTime? | Fecha de creación          |
+| emailVerified  | bool      | Si verificó email          |
+```
 
-## Features Futuras (post-MVP)
+### ExerciseModel (Freezed)
+```dart
+| Campo        | Tipo    | Descripción                    |
+|--------------|---------|--------------------------------|
+| id           | String  | ID documento Firestore         |
+| name         | String  | Nombre del ejercicio           |
+| muscleGroup  | String  | Grupo muscular                 |
+| description  | String  | Descripción                    |
+| instructions | String  | Instrucciones (separadas \n)   |
+| imageUrl     | String? | URL imagen Firebase Storage    |
+| videoUrl     | String? | URL video Firebase Storage     |
+| order        | int     | Orden dentro del grupo         |
+```
 
-> No implementar aún, pero la arquitectura debe permitir agregarlas sin reescribir:
+### WeightRecordModel (Freezed)
+```dart
+| Campo      | Tipo     | Descripción              |
+|------------|----------|--------------------------|
+| id         | String   | ID del documento         |
+| exerciseId | String   | ID del ejercicio         |
+| userId     | String   | UID del usuario          |
+| weight     | double   | Peso en kg               |
+| reps       | int      | Repeticiones             |
+| sets       | int      | Series                   |
+| notes      | String?  | Notas opcionales         |
+| date       | DateTime | Fecha del registro       |
+```
 
-- Rutinas personalizadas
-- Gráficos de progresión
-- Recordatorios/notificaciones
-- Compartir progreso
+## Base de Datos Local (Drift)
+
+### Tablas
+
+| Tabla | Propósito |
+|-------|-----------|
+| `Exercises` | Cache de ejercicios de Firestore |
+| `WeightRecords` | Registros de peso con flag `isSynced` |
+| `SyncQueue` | Cola de operaciones pendientes de sync |
+
+### Patrón Offline-First
+
+```
+LECTURA:
+  1. Retorna datos de Drift (inmediato)
+  2. Sincroniza con Firestore en background
+  3. Actualiza Drift si hay cambios
+
+ESCRITURA:
+  1. Guarda en Drift (siempre)
+  2. Intenta sync con Firestore
+  3. Si falla → encola en SyncQueue
+  4. Al recuperar conexión → procesa cola
+```
+
+## Providers (Riverpod)
+
+### Auth
+| Provider | Tipo | Descripción |
+|----------|------|-------------|
+| `authStateProvider` | StateNotifierProvider | Estado principal de auth |
+| `isAuthenticatedProvider` | Provider<bool> | Si está autenticado |
+| `currentUserProvider` | Provider<UserModel?> | Usuario actual |
+
+### Exercises
+| Provider | Tipo | Descripción |
+|----------|------|-------------|
+| `exercisesProvider` | FutureProvider | Todos los ejercicios |
+| `exercisesByMuscleGroupProvider` | FutureProvider.family | Por grupo muscular |
+| `exerciseByIdProvider` | FutureProvider.family | Por ID |
+| `offlineExercisesRepositoryProvider` | Provider | Repo offline-first |
+
+### Weight Records
+| Provider | Tipo | Descripción |
+|----------|------|-------------|
+| `lastWeightRecordProvider` | FutureProvider.family | Último registro por ejercicio |
+| `exerciseHistoryProvider` | FutureProvider.family | Historial por ejercicio |
+| `allHistoryProvider` | FutureProvider | Todo el historial |
+| `weightRecordNotifierProvider` | StateNotifierProvider | Para guardar registros |
+| `offlineWeightRecordsRepositoryProvider` | Provider | Repo offline-first |
+
+### Core
+| Provider | Tipo | Descripción |
+|----------|------|-------------|
+| `appDatabaseProvider` | Provider | Base de datos Drift |
+| `syncServiceProvider` | Provider | Servicio de sync |
+| `pendingSyncCountProvider` | StreamProvider | Operaciones pendientes |
+| `isConnectedProvider` | StreamProvider | Estado de conexión |
+
+## Navegación (go_router)
+
+| Ruta | Path | Protegida |
+|------|------|-----------|
+| splash | `/` | No |
+| login | `/login` | No |
+| register | `/register` | No |
+| forgotPassword | `/forgot-password` | No |
+| exercises | `/exercises` | Sí |
+| exerciseDetail | `/exercise/:exerciseId` | Sí |
+| history | `/history` | Sí |
+
+## Firebase
+
+### Proyecto
+- **Project ID**: `my-gym-app-fd1db`
+- **Storage Bucket**: `my-gym-app-fd1db.firebasestorage.app`
+- **Android Package**: `com.example.my_gym_app`
+
+### Colecciones Firestore
+| Colección | Descripción |
+|-----------|-------------|
+| `exercises` | Catálogo de ejercicios |
+| `weightRecords` | Registros de peso de usuarios |
+| `users/{userId}` | Datos de usuario (futuro) |
+
+### Estructura Storage
+```
+/exercises/
+  /images/      # Imágenes de ejercicios
+  /videos/      # Videos de ejercicios
+  /default/     # Media por defecto
+/users/{userId}/ # Archivos de usuario (futuro)
+```
+
+### Auth Habilitado
+- Email/Password
+- Google Sign-In (con account linking)
+- Recuperación de contraseña
 
 ## Convenciones de Código
 
-- Nombres de archivos: `snake_case.dart`
+- Archivos: `snake_case.dart`
 - Clases: `PascalCase`
 - Variables/funciones: `camelCase`
 - Providers: sufijo `Provider` (ej: `exercisesProvider`)
-- Modelos Freezed: sufijo según tipo (ej: `ExerciseModel`, `ExerciseEntity`)
+- Modelos Freezed: sufijo `Model` (ej: `ExerciseModel`)
+- Repositorios: sufijo `Repository`
+- DAOs: sufijo `Dao`
 
 ## Comandos Útiles
 
@@ -76,6 +282,39 @@ dart run build_runner watch --delete-conflicting-outputs
 # Correr tests
 flutter test
 
-# Build APK
+# Build APK debug
+flutter build apk --debug
+
+# Build APK release
 flutter build apk --release
+
+# Limpiar y regenerar
+flutter clean && flutter pub get && dart run build_runner build --delete-conflicting-outputs
+
+# Deploy Firebase rules
+firebase deploy --only firestore:rules,storage:rules --project my-gym-app-fd1db
 ```
+
+## Notas Importantes
+
+### Problemas Conocidos
+1. **`.firebaserc` vacío**: Usar `--project my-gym-app-fd1db` en comandos Firebase CLI
+2. **iOS no configurado**: Falta `GoogleService-Info.plist`
+3. **Discrepancia índices**: `firestore.indexes.json` usa `muscleGroupId`, código usa `muscleGroup`
+
+### Principios de Desarrollo
+- **Offline-first**: Siempre funcional sin conexión
+- **Iteraciones pequeñas**: MVP primero, features después
+- **Sin over-engineering**: Mantener simple
+- **Tema oscuro**: UI optimizada para uso en gimnasio
+
+## Features Futuras (Post-MVP)
+
+> No implementar aún, arquitectura preparada para:
+
+- [ ] Rutinas personalizadas (splits)
+- [ ] Gráficos de progresión
+- [ ] Notificaciones/recordatorios
+- [ ] Compartir progreso
+- [ ] Soporte iOS
+- [ ] Tests unitarios y de integración
