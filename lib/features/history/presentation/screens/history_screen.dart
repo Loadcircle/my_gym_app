@@ -1,78 +1,111 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/constants/app_constants.dart';
+import '../../../exercises/data/models/weight_record_model.dart';
+import '../../../exercises/providers/exercises_provider.dart';
+import '../../../exercises/providers/weight_records_provider.dart';
 
 /// Pantalla de historial de entrenamientos.
-/// Muestra registros por fecha y ejercicio.
-/// TODO: Cargar desde Drift (local) y sincronizar con Firestore.
-class HistoryScreen extends StatelessWidget {
+/// Muestra registros reales desde Firestore, agrupados por fecha.
+class HistoryScreen extends ConsumerWidget {
   const HistoryScreen({super.key});
 
-  // Datos de ejemplo (placeholder)
-  static final List<Map<String, dynamic>> _historyData = [
-    {
-      'date': DateTime.now(),
-      'exercises': [
-        {'name': 'Press de Banca', 'weight': 65.0, 'sets': 3, 'reps': 10},
-        {'name': 'Press Inclinado', 'weight': 55.0, 'sets': 3, 'reps': 12},
-      ],
-    },
-    {
-      'date': DateTime.now().subtract(const Duration(days: 1)),
-      'exercises': [
-        {'name': 'Sentadillas', 'weight': 80.0, 'sets': 4, 'reps': 8},
-        {'name': 'Peso Muerto', 'weight': 90.0, 'sets': 3, 'reps': 6},
-      ],
-    },
-    {
-      'date': DateTime.now().subtract(const Duration(days: 3)),
-      'exercises': [
-        {'name': 'Press de Banca', 'weight': 62.5, 'sets': 3, 'reps': 10},
-      ],
-    },
-  ];
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final historyAsync = ref.watch(allHistoryProvider);
+    final exercisesAsync = ref.watch(exercisesProvider);
+
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      appBar: AppBar(
+        title: const Text('Historial'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: () {
+              ref.invalidate(allHistoryProvider);
+            },
+          ),
+        ],
+      ),
+      body: historyAsync.when(
+        loading: () => const Center(
+          child: CircularProgressIndicator(color: AppColors.primary),
+        ),
+        error: (error, stack) => _buildErrorState(context, error, ref),
+        data: (records) {
+          if (records.isEmpty) {
+            return _buildEmptyState(context);
+          }
+
+          // Agrupar registros por fecha
+          final groupedByDate = _groupByDate(records);
+          final sortedDates = groupedByDate.keys.toList()
+            ..sort((a, b) => b.compareTo(a)); // Mas reciente primero
+
+          // Mapa de ejercicios por ID
+          final exercisesMap = exercisesAsync.whenData((exercises) {
+            return {for (var e in exercises) e.id: e};
+          });
+
+          return ListView.builder(
+            padding: const EdgeInsets.all(AppConstants.defaultPadding),
+            itemCount: sortedDates.length,
+            itemBuilder: (context, index) {
+              final date = sortedDates[index];
+              final dayRecords = groupedByDate[date]!;
+
+              return _DayHistoryCard(
+                dateLabel: _formatDate(date),
+                records: dayRecords,
+                exercisesMap: exercisesMap.valueOrNull ?? {},
+              );
+            },
+          );
+        },
+      ),
+    );
+  }
+
+  Map<DateTime, List<WeightRecordModel>> _groupByDate(
+      List<WeightRecordModel> records) {
+    final Map<DateTime, List<WeightRecordModel>> grouped = {};
+
+    for (final record in records) {
+      final dateOnly = DateTime(
+        record.date.year,
+        record.date.month,
+        record.date.day,
+      );
+      grouped.putIfAbsent(dateOnly, () => []);
+      grouped[dateOnly]!.add(record);
+    }
+
+    // Ordenar cada grupo por hora descendente
+    for (final records in grouped.values) {
+      records.sort((a, b) => b.date.compareTo(a.date));
+    }
+
+    return grouped;
+  }
 
   String _formatDate(DateTime date) {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final yesterday = today.subtract(const Duration(days: 1));
-    final dateOnly = DateTime(date.year, date.month, date.day);
+    final daysAgo = now.difference(date).inDays;
 
-    if (dateOnly == today) {
+    if (date == today) {
       return 'Hoy';
-    } else if (dateOnly == yesterday) {
+    } else if (date == yesterday) {
       return 'Ayer';
+    } else if (daysAgo < 7) {
+      return 'Hace $daysAgo dias';
     } else {
       return '${date.day}/${date.month}/${date.year}';
     }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: const Text('Historial'),
-      ),
-      body: _historyData.isEmpty
-          ? _buildEmptyState(context)
-          : ListView.builder(
-              padding: const EdgeInsets.all(AppConstants.defaultPadding),
-              itemCount: _historyData.length,
-              itemBuilder: (context, index) {
-                final dayData = _historyData[index];
-                final date = dayData['date'] as DateTime;
-                final exercises =
-                    dayData['exercises'] as List<Map<String, dynamic>>;
-
-                return _DayHistoryCard(
-                  dateLabel: _formatDate(date),
-                  exercises: exercises,
-                );
-              },
-            ),
-    );
   }
 
   Widget _buildEmptyState(BuildContext context) {
@@ -103,15 +136,57 @@ class HistoryScreen extends StatelessWidget {
       ),
     );
   }
+
+  Widget _buildErrorState(
+      BuildContext context, Object error, WidgetRef ref) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Icon(
+            Icons.error_outline,
+            size: 64,
+            color: AppColors.error,
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'Error al cargar historial',
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  color: AppColors.textSecondary,
+                ),
+          ),
+          const SizedBox(height: 8),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 32),
+            child: Text(
+              error.toString(),
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: AppColors.textHint,
+                  ),
+              textAlign: TextAlign.center,
+            ),
+          ),
+          const SizedBox(height: 24),
+          ElevatedButton.icon(
+            onPressed: () => ref.invalidate(allHistoryProvider),
+            icon: const Icon(Icons.refresh),
+            label: const Text('Reintentar'),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 class _DayHistoryCard extends StatelessWidget {
   final String dateLabel;
-  final List<Map<String, dynamic>> exercises;
+  final List<WeightRecordModel> records;
+  final Map<String, dynamic> exercisesMap;
 
   const _DayHistoryCard({
     required this.dateLabel,
-    required this.exercises,
+    required this.records,
+    required this.exercisesMap,
   });
 
   @override
@@ -138,12 +213,33 @@ class _DayHistoryCard extends StatelessWidget {
                         fontWeight: FontWeight.w600,
                       ),
                 ),
+                const Spacer(),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    '${records.length} registro${records.length > 1 ? 's' : ''}',
+                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                          color: AppColors.primary,
+                        ),
+                  ),
+                ),
               ],
             ),
             const Divider(height: 24),
 
             // Ejercicios del dia
-            ...exercises.map((exercise) {
+            ...records.map((record) {
+              final exercise = exercisesMap[record.exerciseId];
+              final exerciseName = exercise?.name ?? 'Ejercicio desconocido';
+              final muscleGroup = exercise?.muscleGroup ?? '';
+
               return Padding(
                 padding: const EdgeInsets.only(bottom: 12),
                 child: Row(
@@ -170,18 +266,36 @@ class _DayHistoryCard extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            exercise['name'] as String,
+                            exerciseName,
                             style:
                                 Theme.of(context).textTheme.bodyLarge?.copyWith(
                                       fontWeight: FontWeight.w500,
                                     ),
                           ),
-                          Text(
-                            '${exercise['sets']} series x ${exercise['reps']} reps',
-                            style:
-                                Theme.of(context).textTheme.bodySmall?.copyWith(
+                          Row(
+                            children: [
+                              Text(
+                                '${record.sets} series x ${record.reps} reps',
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodySmall
+                                    ?.copyWith(
                                       color: AppColors.textSecondary,
                                     ),
+                              ),
+                              if (muscleGroup.isNotEmpty) ...[
+                                const SizedBox(width: 8),
+                                Text(
+                                  '• $muscleGroup',
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodySmall
+                                      ?.copyWith(
+                                        color: AppColors.textHint,
+                                      ),
+                                ),
+                              ],
+                            ],
                           ),
                         ],
                       ),
@@ -198,7 +312,7 @@ class _DayHistoryCard extends StatelessWidget {
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Text(
-                        '${exercise['weight']} kg',
+                        '${record.weight} kg',
                         style: Theme.of(context).textTheme.labelLarge?.copyWith(
                               color: AppColors.primary,
                               fontWeight: FontWeight.w600,

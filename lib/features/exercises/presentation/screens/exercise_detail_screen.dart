@@ -1,13 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/constants/app_constants.dart';
+import '../../../../core/constants/storage_constants.dart';
+import '../../../../shared/widgets/exercise_image.dart';
+import '../../../../shared/widgets/exercise_video_player.dart';
+import '../../data/models/exercise_model.dart';
+import '../../data/models/weight_record_model.dart';
+import '../../providers/exercises_provider.dart';
+import '../../providers/weight_records_provider.dart';
 
 /// Pantalla de detalle de ejercicio.
 /// Muestra imagen, video, instrucciones y permite registrar peso.
-/// TODO: Cargar datos reales desde Firestore + Storage.
-class ExerciseDetailScreen extends StatefulWidget {
+class ExerciseDetailScreen extends ConsumerStatefulWidget {
   final String exerciseId;
 
   const ExerciseDetailScreen({
@@ -16,42 +23,15 @@ class ExerciseDetailScreen extends StatefulWidget {
   });
 
   @override
-  State<ExerciseDetailScreen> createState() => _ExerciseDetailScreenState();
+  ConsumerState<ExerciseDetailScreen> createState() => _ExerciseDetailScreenState();
 }
 
-class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
+class _ExerciseDetailScreenState extends ConsumerState<ExerciseDetailScreen> {
   final _weightController = TextEditingController();
   final _setsController = TextEditingController(text: '3');
   final _repsController = TextEditingController(text: '10');
   bool _isSaving = false;
-
-  // Datos de ejemplo (placeholder)
-  final Map<String, dynamic> _exerciseData = {
-    'name': 'Press de Banca',
-    'muscleGroup': 'Pecho',
-    'description':
-        'El press de banca es un ejercicio basico para desarrollar el pecho, triceps y deltoides anteriores.',
-    'instructions': [
-      'Acuestate en el banco con los pies firmes en el suelo.',
-      'Agarra la barra con las manos ligeramente mas anchas que los hombros.',
-      'Baja la barra controladamente hasta tocar el pecho.',
-      'Empuja la barra hacia arriba hasta extender los brazos.',
-      'Repite el movimiento manteniendo la espalda en contacto con el banco.',
-    ],
-    'lastWeight': 60.0,
-    'imageUrl': null,
-    'videoUrl': null,
-  };
-
-  @override
-  void initState() {
-    super.initState();
-    // Prellenar con ultimo peso registrado
-    final lastWeight = _exerciseData['lastWeight'] as double?;
-    if (lastWeight != null) {
-      _weightController.text = lastWeight.toString();
-    }
-  }
+  bool _hasPrefilledWeight = false;
 
   @override
   void dispose() {
@@ -59,6 +39,15 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
     _setsController.dispose();
     _repsController.dispose();
     super.dispose();
+  }
+
+  void _prefillLastWeight(WeightRecordModel? lastRecord) {
+    if (!_hasPrefilledWeight && lastRecord != null) {
+      _weightController.text = lastRecord.weight.toString();
+      _setsController.text = lastRecord.sets.toString();
+      _repsController.text = lastRecord.reps.toString();
+      _hasPrefilledWeight = true;
+    }
   }
 
   Future<void> _saveWorkout() async {
@@ -78,24 +67,37 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
       return;
     }
 
+    final sets = int.tryParse(_setsController.text.trim()) ?? 1;
+    final reps = int.tryParse(_repsController.text.trim()) ?? 1;
+
     setState(() => _isSaving = true);
 
     try {
-      // TODO: Guardar en Drift (local) y sincronizar con Firestore
-      await Future.delayed(const Duration(seconds: 1));
+      final record = await ref.read(weightRecordNotifierProvider.notifier).saveRecord(
+        exerciseId: widget.exerciseId,
+        weight: weight,
+        sets: sets,
+        reps: reps,
+      );
 
-      if (mounted) {
+      if (record != null && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Guardado: $weight kg'),
+            content: Text('Guardado: $weight kg x $sets series x $reps reps'),
             backgroundColor: AppColors.success,
           ),
         );
+        // Refrescar el ultimo registro
+        ref.invalidate(lastWeightRecordProvider(widget.exerciseId));
+        ref.invalidate(exerciseHistoryProvider(widget.exerciseId));
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
+          SnackBar(
+            content: Text('Error: $e'),
+            backgroundColor: AppColors.error,
+          ),
         );
       }
     } finally {
@@ -105,9 +107,85 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
     }
   }
 
+  Color _getMuscleGroupColor(String muscleGroup) {
+    switch (muscleGroup) {
+      case 'Pecho':
+        return AppColors.muscleChest;
+      case 'Espalda':
+        return AppColors.muscleBack;
+      case 'Piernas':
+        return AppColors.muscleLegs;
+      case 'Hombros':
+        return AppColors.muscleShoulders;
+      case 'Brazos':
+        return AppColors.muscleArms;
+      case 'Core':
+        return AppColors.muscleCore;
+      default:
+        return AppColors.primary;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    final instructions = _exerciseData['instructions'] as List<String>;
+    final exerciseAsync = ref.watch(exerciseByIdProvider(widget.exerciseId));
+    final lastRecordAsync = ref.watch(lastWeightRecordProvider(widget.exerciseId));
+    final historyAsync = ref.watch(exerciseHistoryProvider(widget.exerciseId));
+
+    return exerciseAsync.when(
+      loading: () => const Scaffold(
+        backgroundColor: AppColors.background,
+        body: Center(
+          child: CircularProgressIndicator(color: AppColors.primary),
+        ),
+      ),
+      error: (error, stack) => Scaffold(
+        backgroundColor: AppColors.background,
+        appBar: AppBar(),
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.error_outline, size: 64, color: AppColors.error),
+              const SizedBox(height: 16),
+              Text('Error al cargar ejercicio',
+                  style: Theme.of(context).textTheme.titleMedium),
+              const SizedBox(height: 8),
+              Text(error.toString(),
+                  style: Theme.of(context).textTheme.bodySmall),
+            ],
+          ),
+        ),
+      ),
+      data: (exercise) {
+        if (exercise == null) {
+          return Scaffold(
+            backgroundColor: AppColors.background,
+            appBar: AppBar(),
+            body: const Center(child: Text('Ejercicio no encontrado')),
+          );
+        }
+
+        // Prellenar peso del ultimo registro
+        lastRecordAsync.whenData((lastRecord) {
+          _prefillLastWeight(lastRecord);
+        });
+
+        return _buildContent(context, exercise, lastRecordAsync, historyAsync);
+      },
+    );
+  }
+
+  Widget _buildContent(
+    BuildContext context,
+    ExerciseModel exercise,
+    AsyncValue<WeightRecordModel?> lastRecordAsync,
+    AsyncValue<List<WeightRecordModel>> historyAsync,
+  ) {
+    final muscleColor = _getMuscleGroupColor(exercise.muscleGroup);
+    final instructions = exercise.instructions.isNotEmpty
+        ? exercise.instructions.split('\n')
+        : <String>[];
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -119,16 +197,15 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
             pinned: true,
             backgroundColor: AppColors.background,
             flexibleSpace: FlexibleSpaceBar(
-              background: Container(
-                color: AppColors.surfaceVariant,
-                child: const Center(
-                  child: Icon(
-                    Icons.fitness_center,
-                    size: 80,
-                    color: AppColors.primary,
-                  ),
-                ),
-              ),
+              background: StorageConstants.shouldShowImage(exercise.imageUrl)
+                  ? ExerciseImage(
+                      imageUrl: StorageConstants.getExerciseImageUrl(
+                          exercise.imageUrl),
+                      fit: BoxFit.cover,
+                      placeholder: _buildImagePlaceholder(),
+                      errorWidget: _buildImagePlaceholder(),
+                    )
+                  : _buildImagePlaceholder(),
             ),
           ),
 
@@ -141,7 +218,7 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
                 children: [
                   // Titulo y grupo muscular
                   Text(
-                    _exerciseData['name'] as String,
+                    exercise.name,
                     style: Theme.of(context).textTheme.headlineSmall,
                   ),
                   const SizedBox(height: 8),
@@ -151,224 +228,106 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
                       vertical: 4,
                     ),
                     decoration: BoxDecoration(
-                      color: AppColors.muscleChest.withOpacity(0.2),
+                      color: muscleColor.withOpacity(0.2),
                       borderRadius: BorderRadius.circular(16),
                     ),
                     child: Text(
-                      _exerciseData['muscleGroup'] as String,
+                      exercise.muscleGroup,
                       style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                            color: AppColors.muscleChest,
+                            color: muscleColor,
                             fontWeight: FontWeight.w600,
                           ),
                     ),
                   ),
                   const SizedBox(height: 24),
 
-                  // Descripcion
-                  Text(
-                    _exerciseData['description'] as String,
-                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                          color: AppColors.textSecondary,
-                        ),
+                  // Ultimo peso registrado
+                  lastRecordAsync.when(
+                    loading: () => const SizedBox.shrink(),
+                    error: (_, __) => const SizedBox.shrink(),
+                    data: (lastRecord) => lastRecord != null
+                        ? _buildLastWeightCard(lastRecord)
+                        : const SizedBox.shrink(),
                   ),
-                  const SizedBox(height: 24),
 
-                  // Video placeholder
-                  Container(
-                    height: 200,
-                    decoration: BoxDecoration(
-                      color: AppColors.surfaceVariant,
-                      borderRadius:
-                          BorderRadius.circular(AppConstants.cardBorderRadius),
-                    ),
-                    child: Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: const [
-                          Icon(
-                            Icons.play_circle_outline,
-                            size: 64,
+                  // Descripcion
+                  if (exercise.description.isNotEmpty) ...[
+                    Text(
+                      exercise.description,
+                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                             color: AppColors.textSecondary,
                           ),
-                          SizedBox(height: 8),
-                          Text(
-                            'Video del ejercicio',
-                            style: TextStyle(color: AppColors.textSecondary),
-                          ),
-                        ],
-                      ),
                     ),
-                  ),
-                  const SizedBox(height: 24),
+                    const SizedBox(height: 24),
+                  ],
+
+                  // Video del ejercicio
+                  if (StorageConstants.shouldShowVideo(exercise.videoUrl))
+                    ExerciseVideoPlayer(
+                      videoUrl: StorageConstants.getExerciseVideoUrl(
+                          exercise.videoUrl),
+                      height: 200,
+                      showControls: true,
+                    ),
+                  if (StorageConstants.shouldShowVideo(exercise.videoUrl))
+                    const SizedBox(height: 24),
 
                   // Instrucciones
-                  Text(
-                    'Instrucciones',
-                    style: Theme.of(context).textTheme.titleLarge,
-                  ),
-                  const SizedBox(height: 12),
-                  ...instructions.asMap().entries.map((entry) {
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 12),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Container(
-                            width: 24,
-                            height: 24,
-                            decoration: const BoxDecoration(
-                              color: AppColors.primary,
-                              shape: BoxShape.circle,
-                            ),
-                            child: Center(
-                              child: Text(
-                                '${entry.key + 1}',
-                                style: const TextStyle(
-                                  color: AppColors.textPrimary,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 12,
+                  if (instructions.isNotEmpty) ...[
+                    Text(
+                      'Instrucciones',
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
+                    const SizedBox(height: 12),
+                    ...instructions.asMap().entries.map((entry) {
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Container(
+                              width: 24,
+                              height: 24,
+                              decoration: const BoxDecoration(
+                                color: AppColors.primary,
+                                shape: BoxShape.circle,
+                              ),
+                              child: Center(
+                                child: Text(
+                                  '${entry.key + 1}',
+                                  style: const TextStyle(
+                                    color: AppColors.textPrimary,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 12,
+                                  ),
                                 ),
                               ),
                             ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Text(
-                              entry.value,
-                              style: Theme.of(context).textTheme.bodyMedium,
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                entry.value,
+                                style: Theme.of(context).textTheme.bodyMedium,
+                              ),
                             ),
-                          ),
-                        ],
-                      ),
-                    );
-                  }),
-                  const SizedBox(height: 32),
+                          ],
+                        ),
+                      );
+                    }),
+                    const SizedBox(height: 32),
+                  ],
 
                   // Registro de peso
-                  Container(
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      color: AppColors.cardBackground,
-                      borderRadius:
-                          BorderRadius.circular(AppConstants.cardBorderRadius),
-                      border: Border.all(color: AppColors.border),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Registrar Peso',
-                          style: Theme.of(context).textTheme.titleLarge,
-                        ),
-                        const SizedBox(height: 16),
+                  _buildWeightInputCard(),
+                  const SizedBox(height: 24),
 
-                        // Campo de peso
-                        Row(
-                          children: [
-                            Expanded(
-                              flex: 2,
-                              child: TextField(
-                                controller: _weightController,
-                                keyboardType:
-                                    const TextInputType.numberWithOptions(
-                                  decimal: true,
-                                ),
-                                style: AppTextStyles.weightValue,
-                                textAlign: TextAlign.center,
-                                decoration: const InputDecoration(
-                                  hintText: '0',
-                                  border: InputBorder.none,
-                                  filled: false,
-                                ),
-                              ),
-                            ),
-                            const Text(
-                              'kg',
-                              style: AppTextStyles.weightUnit,
-                            ),
-                          ],
-                        ),
-                        const Divider(color: AppColors.divider),
-                        const SizedBox(height: 16),
-
-                        // Series y repeticiones
-                        Row(
-                          children: [
-                            Expanded(
-                              child: Column(
-                                children: [
-                                  const Text(
-                                    'Series',
-                                    style: TextStyle(
-                                      color: AppColors.textSecondary,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 8),
-                                  TextField(
-                                    controller: _setsController,
-                                    keyboardType: TextInputType.number,
-                                    textAlign: TextAlign.center,
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .headlineSmall,
-                                    decoration: const InputDecoration(
-                                      contentPadding: EdgeInsets.symmetric(
-                                        horizontal: 12,
-                                        vertical: 8,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: Column(
-                                children: [
-                                  const Text(
-                                    'Reps',
-                                    style: TextStyle(
-                                      color: AppColors.textSecondary,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 8),
-                                  TextField(
-                                    controller: _repsController,
-                                    keyboardType: TextInputType.number,
-                                    textAlign: TextAlign.center,
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .headlineSmall,
-                                    decoration: const InputDecoration(
-                                      contentPadding: EdgeInsets.symmetric(
-                                        horizontal: 12,
-                                        vertical: 8,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 24),
-
-                        // Boton guardar
-                        ElevatedButton(
-                          onPressed: _isSaving ? null : _saveWorkout,
-                          child: _isSaving
-                              ? const SizedBox(
-                                  height: 20,
-                                  width: 20,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    color: AppColors.textPrimary,
-                                  ),
-                                )
-                              : const Text('Guardar'),
-                        ),
-                      ],
-                    ),
+                  // Historial reciente
+                  historyAsync.when(
+                    loading: () => const SizedBox.shrink(),
+                    error: (_, __) => const SizedBox.shrink(),
+                    data: (history) => history.isNotEmpty
+                        ? _buildRecentHistory(history.take(5).toList())
+                        : const SizedBox.shrink(),
                   ),
                   const SizedBox(height: 32),
                 ],
@@ -378,5 +337,243 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
         ],
       ),
     );
+  }
+
+  Widget _buildImagePlaceholder() {
+    return Container(
+      color: AppColors.surfaceVariant,
+      child: const Center(
+        child: Icon(
+          Icons.fitness_center,
+          size: 80,
+          color: AppColors.primary,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLastWeightCard(WeightRecordModel lastRecord) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 24),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.primary.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(AppConstants.cardBorderRadius),
+        border: Border.all(color: AppColors.primary.withOpacity(0.3)),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.history, color: AppColors.primary),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Ultimo registro',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: AppColors.textSecondary,
+                      ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  '${lastRecord.weight} kg x ${lastRecord.sets} series x ${lastRecord.reps} reps',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        color: AppColors.primary,
+                        fontWeight: FontWeight.bold,
+                      ),
+                ),
+              ],
+            ),
+          ),
+          Text(
+            _formatDate(lastRecord.date),
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: AppColors.textHint,
+                ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildWeightInputCard() {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: AppColors.cardBackground,
+        borderRadius: BorderRadius.circular(AppConstants.cardBorderRadius),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Registrar Peso',
+            style: Theme.of(context).textTheme.titleLarge,
+          ),
+          const SizedBox(height: 16),
+
+          // Campo de peso
+          Row(
+            children: [
+              Expanded(
+                flex: 2,
+                child: TextField(
+                  controller: _weightController,
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
+                  style: AppTextStyles.weightValue,
+                  textAlign: TextAlign.center,
+                  decoration: const InputDecoration(
+                    hintText: '0',
+                    border: InputBorder.none,
+                    filled: false,
+                  ),
+                ),
+              ),
+              const Text(
+                'kg',
+                style: AppTextStyles.weightUnit,
+              ),
+            ],
+          ),
+          const Divider(color: AppColors.divider),
+          const SizedBox(height: 16),
+
+          // Series y repeticiones
+          Row(
+            children: [
+              Expanded(
+                child: Column(
+                  children: [
+                    const Text(
+                      'Series',
+                      style: TextStyle(color: AppColors.textSecondary),
+                    ),
+                    const SizedBox(height: 8),
+                    TextField(
+                      controller: _setsController,
+                      keyboardType: TextInputType.number,
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.headlineSmall,
+                      decoration: const InputDecoration(
+                        contentPadding: EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  children: [
+                    const Text(
+                      'Reps',
+                      style: TextStyle(color: AppColors.textSecondary),
+                    ),
+                    const SizedBox(height: 8),
+                    TextField(
+                      controller: _repsController,
+                      keyboardType: TextInputType.number,
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.headlineSmall,
+                      decoration: const InputDecoration(
+                        contentPadding: EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 24),
+
+          // Boton guardar
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: _isSaving ? null : _saveWorkout,
+              child: _isSaving
+                  ? const SizedBox(
+                      height: 20,
+                      width: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: AppColors.textPrimary,
+                      ),
+                    )
+                  : const Text('Guardar'),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRecentHistory(List<WeightRecordModel> history) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Historial Reciente',
+          style: Theme.of(context).textTheme.titleLarge,
+        ),
+        const SizedBox(height: 12),
+        ...history.map((record) => Container(
+              margin: const EdgeInsets.only(bottom: 8),
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: AppColors.surfaceVariant,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    '${record.weight} kg',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                  ),
+                  Text(
+                    '${record.sets}x${record.reps}',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: AppColors.textSecondary,
+                        ),
+                  ),
+                  Text(
+                    _formatDate(record.date),
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: AppColors.textHint,
+                        ),
+                  ),
+                ],
+              ),
+            )),
+      ],
+    );
+  }
+
+  String _formatDate(DateTime date) {
+    final now = DateTime.now();
+    final diff = now.difference(date);
+
+    if (diff.inDays == 0) {
+      return 'Hoy';
+    } else if (diff.inDays == 1) {
+      return 'Ayer';
+    } else if (diff.inDays < 7) {
+      return 'Hace ${diff.inDays} dias';
+    } else {
+      return '${date.day}/${date.month}/${date.year}';
+    }
   }
 }

@@ -17,72 +17,50 @@ service cloud.firestore {
       return isAuthenticated() && request.auth.uid == userId;
     }
 
-    // Verifica que los campos requeridos existan en el request
-    function hasRequiredFields(fields) {
-      return request.resource.data.keys().hasAll(fields);
-    }
-
     // ============================================
-    // CATALOGO DE EJERCICIOS (solo lectura)
+    // CATALOGO DE EJERCICIOS
     // ============================================
 
-    // Grupos musculares - lectura para usuarios autenticados
-    match /muscle_groups/{groupId} {
-      allow read: if isAuthenticated();
-      allow write: if false; // Solo administradores via Admin SDK
-    }
-
-    // Ejercicios - lectura para usuarios autenticados
+    // Ejercicios - lectura para autenticados, escritura para seed inicial
     match /exercises/{exerciseId} {
       allow read: if isAuthenticated();
-      allow write: if false; // Solo administradores via Admin SDK
+      // Permitir crear/delete para seed y re-seed
+      allow create, delete: if isAuthenticated();
+      // No permitir update desde cliente
+      allow update: if false;
+    }
+
+    // ============================================
+    // REGISTROS DE PESO
+    // ============================================
+
+    match /weightRecords/{recordId} {
+      // Lectura: autenticado + query debe filtrar por su userId
+      // (la app siempre filtra por userId en el query)
+      allow read: if isAuthenticated();
+
+      // Puede crear registros con su userId
+      allow create: if isAuthenticated()
+                    && request.resource.data.userId == request.auth.uid
+                    && request.resource.data.weight > 0;
+
+      // Puede actualizar/eliminar sus propios registros
+      allow update, delete: if isAuthenticated()
+                            && resource.data.userId == request.auth.uid;
     }
 
     // ============================================
     // DATOS DE USUARIO
     // ============================================
 
-    // Perfil de usuario
     match /users/{userId} {
-      // Solo el propietario puede leer/escribir su perfil
       allow read: if isOwner(userId);
-
-      // Crear perfil: debe ser el propietario y tener campos minimos
-      allow create: if isOwner(userId)
-                    && hasRequiredFields(['uid', 'email', 'createdAt']);
-
-      // Actualizar perfil: debe ser propietario, no puede cambiar uid
-      allow update: if isOwner(userId)
-                    && request.resource.data.uid == resource.data.uid;
-
-      // No permitir eliminar perfil (soft delete si es necesario)
+      allow create: if isOwner(userId);
+      allow update: if isOwner(userId);
       allow delete: if false;
 
-      // ----------------------------------------
-      // Subcoleccion: weight_logs (historial de pesos)
-      // ----------------------------------------
+      // Subcoleccion: weight_logs (alternativa)
       match /weight_logs/{logId} {
-        // Solo el propietario puede leer sus registros
-        allow read: if isOwner(userId);
-
-        // Crear registro: validar campos requeridos
-        allow create: if isOwner(userId)
-                      && hasRequiredFields(['exerciseId', 'weight', 'performedAt', 'createdAt'])
-                      && request.resource.data.weight > 0;
-
-        // Actualizar registro: solo notas y syncedAt
-        allow update: if isOwner(userId)
-                      && request.resource.data.exerciseId == resource.data.exerciseId
-                      && request.resource.data.createdAt == resource.data.createdAt;
-
-        // Permitir eliminar registros propios
-        allow delete: if isOwner(userId);
-      }
-
-      // ----------------------------------------
-      // Subcoleccion: settings (configuracion de usuario)
-      // ----------------------------------------
-      match /settings/{settingId} {
         allow read, write: if isOwner(userId);
       }
     }

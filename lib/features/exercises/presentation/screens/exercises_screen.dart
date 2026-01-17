@@ -6,9 +6,10 @@ import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../auth/providers/auth_provider.dart';
+import '../../data/models/exercise_model.dart';
+import '../../providers/exercises_provider.dart';
 
 /// Pantalla principal con lista de ejercicios por grupo muscular.
-/// TODO: Implementar carga desde Firestore y filtros.
 class ExercisesScreen extends ConsumerStatefulWidget {
   const ExercisesScreen({super.key});
 
@@ -27,55 +28,6 @@ class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
     'Brazos',
     'Core',
   ];
-
-  // Ejercicios de ejemplo (placeholder)
-  final List<Map<String, dynamic>> _exercises = [
-    {
-      'id': '1',
-      'name': 'Press de Banca',
-      'muscleGroup': 'Pecho',
-      'imageUrl': null,
-    },
-    {
-      'id': '2',
-      'name': 'Sentadillas',
-      'muscleGroup': 'Piernas',
-      'imageUrl': null,
-    },
-    {
-      'id': '3',
-      'name': 'Peso Muerto',
-      'muscleGroup': 'Espalda',
-      'imageUrl': null,
-    },
-    {
-      'id': '4',
-      'name': 'Press Militar',
-      'muscleGroup': 'Hombros',
-      'imageUrl': null,
-    },
-    {
-      'id': '5',
-      'name': 'Curl de Biceps',
-      'muscleGroup': 'Brazos',
-      'imageUrl': null,
-    },
-    {
-      'id': '6',
-      'name': 'Plancha',
-      'muscleGroup': 'Core',
-      'imageUrl': null,
-    },
-  ];
-
-  List<Map<String, dynamic>> get _filteredExercises {
-    if (_selectedMuscleGroup == 'Todos') {
-      return _exercises;
-    }
-    return _exercises
-        .where((e) => e['muscleGroup'] == _selectedMuscleGroup)
-        .toList();
-  }
 
   Future<void> _showLogoutDialog() async {
     final shouldLogout = await showDialog<bool>(
@@ -139,6 +91,10 @@ class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final exercisesAsync = ref.watch(
+      exercisesByMuscleGroupProvider(_selectedMuscleGroup),
+    );
+
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
@@ -196,27 +152,32 @@ class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
 
           // Lista de ejercicios
           Expanded(
-            child: _filteredExercises.isEmpty
-                ? _buildEmptyState()
-                : ListView.builder(
-                    padding: const EdgeInsets.all(AppConstants.defaultPadding),
-                    itemCount: _filteredExercises.length,
-                    itemBuilder: (context, index) {
-                      final exercise = _filteredExercises[index];
-                      return _ExerciseCard(
-                        name: exercise['name'] as String,
-                        muscleGroup: exercise['muscleGroup'] as String,
-                        muscleGroupColor: _getMuscleGroupColor(
-                          exercise['muscleGroup'] as String,
-                        ),
-                        onTap: () {
-                          context.push(
-                            '${RouteNames.exerciseDetail}/${exercise['id']}',
-                          );
-                        },
-                      );
-                    },
-                  ),
+            child: exercisesAsync.when(
+              loading: () => const Center(
+                child: CircularProgressIndicator(color: AppColors.primary),
+              ),
+              error: (error, stack) => _buildErrorState(error.toString()),
+              data: (exercises) => exercises.isEmpty
+                  ? _buildEmptyState()
+                  : ListView.builder(
+                      padding: const EdgeInsets.all(AppConstants.defaultPadding),
+                      itemCount: exercises.length,
+                      itemBuilder: (context, index) {
+                        final exercise = exercises[index];
+                        return _ExerciseCard(
+                          exercise: exercise,
+                          muscleGroupColor: _getMuscleGroupColor(
+                            exercise.muscleGroup,
+                          ),
+                          onTap: () {
+                            context.push(
+                              '${RouteNames.exerciseDetail}/${exercise.id}',
+                            );
+                          },
+                        );
+                      },
+                    ),
+            ),
           ),
         ],
       ),
@@ -251,17 +212,56 @@ class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
       ),
     );
   }
+
+  Widget _buildErrorState(String error) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.error_outline,
+            size: 64,
+            color: AppColors.error.withOpacity(0.7),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'Error al cargar ejercicios',
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  color: AppColors.textSecondary,
+                ),
+          ),
+          const SizedBox(height: 8),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 32),
+            child: Text(
+              error,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: AppColors.textHint,
+                  ),
+              textAlign: TextAlign.center,
+            ),
+          ),
+          const SizedBox(height: 16),
+          ElevatedButton.icon(
+            onPressed: () {
+              ref.invalidate(exercisesByMuscleGroupProvider(_selectedMuscleGroup));
+            },
+            icon: const Icon(Icons.refresh),
+            label: const Text('Reintentar'),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 class _ExerciseCard extends StatelessWidget {
-  final String name;
-  final String muscleGroup;
+  final ExerciseModel exercise;
   final Color muscleGroupColor;
   final VoidCallback onTap;
 
   const _ExerciseCard({
-    required this.name,
-    required this.muscleGroup,
+    required this.exercise,
     required this.muscleGroupColor,
     required this.onTap,
   });
@@ -284,12 +284,20 @@ class _ExerciseCard extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: AppColors.surfaceVariant,
                   borderRadius: BorderRadius.circular(12),
+                  image: exercise.imageUrl != null
+                      ? DecorationImage(
+                          image: NetworkImage(exercise.imageUrl!),
+                          fit: BoxFit.cover,
+                        )
+                      : null,
                 ),
-                child: Icon(
-                  Icons.fitness_center,
-                  color: muscleGroupColor,
-                  size: 28,
-                ),
+                child: exercise.imageUrl == null
+                    ? Icon(
+                        Icons.fitness_center,
+                        color: muscleGroupColor,
+                        size: 28,
+                      )
+                    : null,
               ),
               const SizedBox(width: 16),
 
@@ -299,7 +307,7 @@ class _ExerciseCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      name,
+                      exercise.name,
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.w600,
                           ),
@@ -315,7 +323,7 @@ class _ExerciseCard extends StatelessWidget {
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text(
-                        muscleGroup,
+                        exercise.muscleGroup,
                         style: Theme.of(context).textTheme.labelSmall?.copyWith(
                               color: muscleGroupColor,
                               fontWeight: FontWeight.w600,
