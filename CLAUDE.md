@@ -300,7 +300,6 @@ firebase deploy --only firestore:rules,storage:rules --project my-gym-app-fd1db
 ### Problemas Conocidos
 1. **`.firebaserc` vacío**: Usar `--project my-gym-app-fd1db` en comandos Firebase CLI
 2. **iOS no configurado**: Falta `GoogleService-Info.plist`
-3. **Discrepancia índices**: `firestore.indexes.json` usa `muscleGroupId`, código usa `muscleGroup`
 
 ### Principios de Desarrollo
 - **Offline-first**: Siempre funcional sin conexión

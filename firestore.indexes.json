@@ -4,33 +4,33 @@
       "collectionGroup": "exercises",
       "queryScope": "COLLECTION",
       "fields": [
-        { "fieldPath": "muscleGroupId", "order": "ASCENDING" },
-        { "fieldPath": "name", "order": "ASCENDING" }
+        { "fieldPath": "muscleGroup", "order": "ASCENDING" },
+        { "fieldPath": "order", "order": "ASCENDING" }
       ]
     },
     {
       "collectionGroup": "exercises",
       "queryScope": "COLLECTION",
       "fields": [
-        { "fieldPath": "muscleGroupId", "order": "ASCENDING" },
-        { "fieldPath": "createdAt", "order": "DESCENDING" }
-      ]
-    },
-    {
-      "collectionGroup": "exercises",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "isActive", "order": "ASCENDING" },
-        { "fieldPath": "muscleGroupId", "order": "ASCENDING" },
+        { "fieldPath": "muscleGroup", "order": "ASCENDING" },
         { "fieldPath": "name", "order": "ASCENDING" }
       ]
     },
     {
-      "collectionGroup": "weight_logs",
+      "collectionGroup": "weightRecords",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "userId", "order": "ASCENDING" },
+        { "fieldPath": "date", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "weightRecords",
       "queryScope": "COLLECTION",
       "fields": [
         { "fieldPath": "exerciseId", "order": "ASCENDING" },
-        { "fieldPath": "performedAt", "order": "DESCENDING" }
+        { "fieldPath": "userId", "order": "ASCENDING" },
+        { "fieldPath": "date", "order": "DESCENDING" }
       ]
     }
   ],

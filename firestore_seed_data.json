@@ -1,222 +1,154 @@
 {
-  "muscle_groups": [
-    {
-      "id": "chest",
-      "name": "Pecho",
-      "nameEn": "Chest",
-      "description": "Musculos pectorales mayor y menor",
-      "iconName": "fitness_center",
-      "sortOrder": 1,
-      "isActive": true,
-      "createdAt": "2026-01-15T00:00:00Z",
-      "updatedAt": "2026-01-15T00:00:00Z"
-    },
-    {
-      "id": "back",
-      "name": "Espalda",
-      "nameEn": "Back",
-      "description": "Dorsales, romboides, trapecio y erectores",
-      "iconName": "fitness_center",
-      "sortOrder": 2,
-      "isActive": true,
-      "createdAt": "2026-01-15T00:00:00Z",
-      "updatedAt": "2026-01-15T00:00:00Z"
-    },
-    {
-      "id": "legs",
-      "name": "Piernas",
-      "nameEn": "Legs",
-      "description": "Cuadriceps, isquiotibiales, gluteos y pantorrillas",
-      "iconName": "directions_walk",
-      "sortOrder": 3,
-      "isActive": true,
-      "createdAt": "2026-01-15T00:00:00Z",
-      "updatedAt": "2026-01-15T00:00:00Z"
-    },
-    {
-      "id": "shoulders",
-      "name": "Hombros",
-      "nameEn": "Shoulders",
-      "description": "Deltoides anterior, lateral y posterior",
-      "iconName": "accessibility_new",
-      "sortOrder": 4,
-      "isActive": true,
-      "createdAt": "2026-01-15T00:00:00Z",
-      "updatedAt": "2026-01-15T00:00:00Z"
-    },
-    {
-      "id": "arms",
-      "name": "Brazos",
-      "nameEn": "Arms",
-      "description": "Biceps, triceps y antebrazos",
-      "iconName": "sports_gymnastics",
-      "sortOrder": 5,
-      "isActive": true,
-      "createdAt": "2026-01-15T00:00:00Z",
-      "updatedAt": "2026-01-15T00:00:00Z"
-    }
-  ],
   "exercises": [
     {
       "id": "bench_press",
       "name": "Press de Banca",
-      "nameEn": "Bench Press",
+      "muscleGroup": "Pecho",
       "description": "Ejercicio compuesto para desarrollar el pecho, hombros anteriores y triceps.",
-      "muscleGroupId": "chest",
-      "secondaryMuscles": ["shoulders", "arms"],
-      "equipment": "barbell",
-      "difficulty": "intermediate",
-      "instructions": [
-        "Acuestate en el banco con los pies firmemente apoyados en el suelo",
-        "Agarra la barra con un agarre ligeramente mas ancho que el ancho de los hombros",
-        "Retira la barra del soporte y mantenla sobre el pecho con los brazos extendidos",
-        "Baja la barra de manera controlada hasta tocar ligeramente el pecho",
-        "Empuja la barra hacia arriba hasta la posicion inicial",
-        "Mantén los codos en un angulo de 45 grados respecto al torso"
-      ],
-      "tips": [
-        "Mantén los hombros retraidos y el pecho elevado durante todo el movimiento",
-        "No rebotes la barra en el pecho",
-        "Usa un observador cuando trabajes con pesos pesados"
-      ],
-      "media": {
-        "imagePath": "exercises/images/bench_press.jpg",
-        "videoPath": "exercises/videos/bench_press.mp4",
-        "thumbnailPath": "exercises/thumbnails/bench_press.jpg"
-      },
-      "searchKeywords": ["press", "banca", "pecho", "bench", "chest", "pectoral"],
-      "isActive": true,
-      "createdAt": "2026-01-15T00:00:00Z",
-      "updatedAt": "2026-01-15T00:00:00Z"
+      "instructions": "1. Acuestate en el banco con los pies firmemente apoyados en el suelo\n2. Agarra la barra con un agarre ligeramente mas ancho que el ancho de los hombros\n3. Retira la barra del soporte y mantenla sobre el pecho con los brazos extendidos\n4. Baja la barra de manera controlada hasta tocar ligeramente el pecho\n5. Empuja la barra hacia arriba hasta la posicion inicial\n6. Manten los codos en un angulo de 45 grados respecto al torso",
+      "imageUrl": null,
+      "videoUrl": null,
+      "order": 1
     },
     {
-      "id": "squat",
-      "name": "Sentadilla",
-      "nameEn": "Squat",
-      "description": "Ejercicio fundamental para el desarrollo de piernas y gluteos.",
-      "muscleGroupId": "legs",
-      "secondaryMuscles": ["back"],
-      "equipment": "barbell",
-      "difficulty": "intermediate",
-      "instructions": [
-        "Coloca la barra sobre los trapecios (sentadilla alta) o deltoides posteriores (sentadilla baja)",
-        "Separa los pies al ancho de los hombros o ligeramente mas, con las puntas hacia afuera",
-        "Mantén el core activado y la espalda recta durante todo el movimiento",
-        "Inicia el movimiento llevando las caderas hacia atras y flexionando las rodillas",
-        "Baja hasta que los muslos esten paralelos al suelo o mas abajo si tu movilidad lo permite",
-        "Empuja desde los talones para volver a la posicion inicial"
-      ],
-      "tips": [
-        "Las rodillas deben seguir la direccion de los pies",
-        "Evita que las rodillas colapsen hacia adentro",
-        "Mira hacia adelante o ligeramente arriba para mantener la postura"
-      ],
-      "media": {
-        "imagePath": "exercises/images/squat.jpg",
-        "videoPath": "exercises/videos/squat.mp4",
-        "thumbnailPath": "exercises/thumbnails/squat.jpg"
-      },
-      "searchKeywords": ["sentadilla", "squat", "piernas", "legs", "cuadriceps", "gluteos"],
-      "isActive": true,
-      "createdAt": "2026-01-15T00:00:00Z",
-      "updatedAt": "2026-01-15T00:00:00Z"
+      "id": "incline_bench_press",
+      "name": "Press Inclinado",
+      "muscleGroup": "Pecho",
+      "description": "Variante del press de banca que enfatiza la porcion superior del pecho.",
+      "instructions": "1. Ajusta el banco a un angulo de 30-45 grados\n2. Acuestate con los pies firmemente apoyados en el suelo\n3. Agarra la barra con agarre medio\n4. Baja la barra hacia la parte superior del pecho\n5. Empuja hacia arriba hasta extender los brazos",
+      "imageUrl": null,
+      "videoUrl": null,
+      "order": 2
+    },
+    {
+      "id": "chest_fly",
+      "name": "Aperturas con Mancuernas",
+      "muscleGroup": "Pecho",
+      "description": "Ejercicio de aislamiento para el pecho con enfasis en el estiramiento.",
+      "instructions": "1. Acuestate en banco plano con una mancuerna en cada mano\n2. Extiende los brazos sobre el pecho con las palmas enfrentadas\n3. Con los codos ligeramente flexionados, abre los brazos hacia los lados\n4. Baja hasta sentir estiramiento en el pecho\n5. Vuelve a la posicion inicial apretando el pecho",
+      "imageUrl": null,
+      "videoUrl": null,
+      "order": 3
     },
     {
       "id": "deadlift",
       "name": "Peso Muerto",
-      "nameEn": "Deadlift",
+      "muscleGroup": "Espalda",
       "description": "Ejercicio compuesto que trabaja toda la cadena posterior del cuerpo.",
-      "muscleGroupId": "back",
-      "secondaryMuscles": ["legs", "arms"],
-      "equipment": "barbell",
-      "difficulty": "advanced",
-      "instructions": [
-        "Coloca los pies al ancho de las caderas con la barra sobre el medio del pie",
-        "Flexiona las caderas y rodillas para agarrar la barra con agarre prono o mixto",
-        "Los brazos deben estar perpendiculares al suelo, hombros sobre la barra",
-        "Mantén la espalda recta y el pecho elevado, activa los dorsales",
-        "Levanta la barra extendiendo caderas y rodillas simultaneamente",
-        "Termina el movimiento con las caderas y rodillas completamente extendidas",
-        "Baja la barra de manera controlada invirtiendo el movimiento"
-      ],
-      "tips": [
-        "La barra debe viajar en linea recta pegada al cuerpo",
-        "No redondees la espalda en ningun momento",
-        "Respira profundo antes de cada repeticion y mantén el core tenso"
-      ],
-      "media": {
-        "imagePath": "exercises/images/deadlift.jpg",
-        "videoPath": "exercises/videos/deadlift.mp4",
-        "thumbnailPath": "exercises/thumbnails/deadlift.jpg"
-      },
-      "searchKeywords": ["peso muerto", "deadlift", "espalda", "back", "posterior", "dorsal"],
-      "isActive": true,
-      "createdAt": "2026-01-15T00:00:00Z",
-      "updatedAt": "2026-01-15T00:00:00Z"
+      "instructions": "1. Coloca los pies al ancho de las caderas con la barra sobre el medio del pie\n2. Flexiona las caderas y rodillas para agarrar la barra\n3. Manten la espalda recta y el pecho elevado\n4. Levanta la barra extendiendo caderas y rodillas simultaneamente\n5. Termina con caderas y rodillas completamente extendidas\n6. Baja la barra de manera controlada",
+      "imageUrl": null,
+      "videoUrl": null,
+      "order": 1
+    },
+    {
+      "id": "barbell_row",
+      "name": "Remo con Barra",
+      "muscleGroup": "Espalda",
+      "description": "Ejercicio compuesto para desarrollar el grosor de la espalda.",
+      "instructions": "1. Inclina el torso hacia adelante manteniendo la espalda recta\n2. Agarra la barra con las manos al ancho de los hombros\n3. Tira de la barra hacia el abdomen bajo\n4. Aprieta los omoplatos al final del movimiento\n5. Baja la barra de forma controlada",
+      "imageUrl": null,
+      "videoUrl": null,
+      "order": 2
+    },
+    {
+      "id": "lat_pulldown",
+      "name": "Jalon al Pecho",
+      "muscleGroup": "Espalda",
+      "description": "Ejercicio para desarrollar la amplitud de la espalda.",
+      "instructions": "1. Sientate en la maquina con los muslos asegurados\n2. Agarra la barra con agarre amplio\n3. Tira de la barra hacia la parte superior del pecho\n4. Aprieta los dorsales en la parte inferior\n5. Sube la barra de forma controlada",
+      "imageUrl": null,
+      "videoUrl": null,
+      "order": 3
+    },
+    {
+      "id": "squat",
+      "name": "Sentadilla",
+      "muscleGroup": "Piernas",
+      "description": "Ejercicio fundamental para el desarrollo de piernas y gluteos.",
+      "instructions": "1. Coloca la barra sobre los trapecios\n2. Separa los pies al ancho de los hombros con las puntas hacia afuera\n3. Manten el core activado y la espalda recta\n4. Baja llevando las caderas hacia atras y flexionando las rodillas\n5. Baja hasta que los muslos esten paralelos al suelo\n6. Empuja desde los talones para volver arriba",
+      "imageUrl": null,
+      "videoUrl": null,
+      "order": 1
+    },
+    {
+      "id": "leg_press",
+      "name": "Prensa de Piernas",
+      "muscleGroup": "Piernas",
+      "description": "Ejercicio de maquina para cuadriceps y gluteos.",
+      "instructions": "1. Sientate en la maquina con la espalda apoyada\n2. Coloca los pies en la plataforma al ancho de los hombros\n3. Suelta los seguros y baja la plataforma flexionando las rodillas\n4. Baja hasta un angulo de 90 grados\n5. Empuja la plataforma hasta casi extender las piernas",
+      "imageUrl": null,
+      "videoUrl": null,
+      "order": 2
+    },
+    {
+      "id": "leg_curl",
+      "name": "Curl de Piernas",
+      "muscleGroup": "Piernas",
+      "description": "Ejercicio de aislamiento para los isquiotibiales.",
+      "instructions": "1. Acuestate boca abajo en la maquina\n2. Coloca los tobillos bajo el rodillo acolchado\n3. Flexiona las rodillas llevando los talones hacia los gluteos\n4. Aprieta los isquiotibiales arriba\n5. Baja de forma controlada",
+      "imageUrl": null,
+      "videoUrl": null,
+      "order": 3
     },
     {
       "id": "overhead_press",
       "name": "Press Militar",
-      "nameEn": "Overhead Press",
+      "muscleGroup": "Hombros",
       "description": "Ejercicio para desarrollar los hombros y la fuerza de empuje vertical.",
-      "muscleGroupId": "shoulders",
-      "secondaryMuscles": ["arms", "chest"],
-      "equipment": "barbell",
-      "difficulty": "intermediate",
-      "instructions": [
-        "De pie con los pies al ancho de los hombros, agarra la barra a la altura de los hombros",
-        "La barra debe descansar sobre los deltoides anteriores con los codos hacia adelante",
-        "Activa el core y aprieta los gluteos para estabilizar el cuerpo",
-        "Empuja la barra hacia arriba en linea recta, moviendo la cabeza hacia atras para dejarla pasar",
-        "Extiende completamente los brazos sobre la cabeza",
-        "Baja la barra de manera controlada a la posicion inicial"
-      ],
-      "tips": [
-        "No uses las piernas para impulsar el peso (eso seria push press)",
-        "Mantén el core activado para proteger la espalda baja",
-        "Al final del movimiento, la cabeza debe pasar al frente de la barra"
-      ],
-      "media": {
-        "imagePath": "exercises/images/overhead_press.jpg",
-        "videoPath": "exercises/videos/overhead_press.mp4",
-        "thumbnailPath": "exercises/thumbnails/overhead_press.jpg"
-      },
-      "searchKeywords": ["press militar", "overhead", "hombros", "shoulders", "deltoides"],
-      "isActive": true,
-      "createdAt": "2026-01-15T00:00:00Z",
-      "updatedAt": "2026-01-15T00:00:00Z"
+      "instructions": "1. De pie con los pies al ancho de los hombros\n2. Agarra la barra a la altura de los hombros\n3. Activa el core y aprieta los gluteos\n4. Empuja la barra hacia arriba en linea recta\n5. Extiende completamente los brazos sobre la cabeza\n6. Baja la barra de manera controlada",
+      "imageUrl": null,
+      "videoUrl": null,
+      "order": 1
+    },
+    {
+      "id": "lateral_raise",
+      "name": "Elevaciones Laterales",
+      "muscleGroup": "Hombros",
+      "description": "Ejercicio de aislamiento para el deltoides lateral.",
+      "instructions": "1. De pie con mancuernas a los lados\n2. Con los codos ligeramente flexionados, eleva los brazos lateralmente\n3. Sube hasta que los brazos esten paralelos al suelo\n4. Manten una ligera inclinacion hacia adelante\n5. Baja de forma controlada",
+      "imageUrl": null,
+      "videoUrl": null,
+      "order": 2
+    },
+    {
+      "id": "face_pull",
+      "name": "Face Pull",
+      "muscleGroup": "Hombros",
+      "description": "Ejercicio para deltoides posterior y salud del hombro.",
+      "instructions": "1. Ajusta la polea a la altura de la cara\n2. Agarra la cuerda con agarre neutro\n3. Tira hacia la cara separando las manos\n4. Aprieta los omoplatos y deltoides posteriores\n5. Vuelve de forma controlada",
+      "imageUrl": null,
+      "videoUrl": null,
+      "order": 3
     },
     {
       "id": "bicep_curl",
       "name": "Curl de Biceps",
-      "nameEn": "Bicep Curl",
+      "muscleGroup": "Brazos",
       "description": "Ejercicio de aislamiento para desarrollar los biceps.",
-      "muscleGroupId": "arms",
-      "secondaryMuscles": [],
-      "equipment": "dumbbell",
-      "difficulty": "beginner",
-      "instructions": [
-        "De pie con una mancuerna en cada mano, brazos extendidos a los lados",
-        "Palmas mirando hacia adelante, codos pegados al torso",
-        "Flexiona los codos para subir las mancuernas hacia los hombros",
-        "Mantén los codos estaticos durante todo el movimiento",
-        "Aprieta los biceps en la parte superior del movimiento",
-        "Baja las mancuernas de manera controlada hasta la extension completa"
-      ],
-      "tips": [
-        "No balancees el cuerpo para levantar el peso",
-        "Controla la fase excentrica (bajada) para maximizar el estimulo",
-        "Puedes hacer el ejercicio de forma alternada o simultanea"
-      ],
-      "media": {
-        "imagePath": "exercises/images/bicep_curl.jpg",
-        "videoPath": "exercises/videos/bicep_curl.mp4",
-        "thumbnailPath": "exercises/thumbnails/bicep_curl.jpg"
-      },
-      "searchKeywords": ["curl", "biceps", "brazos", "arms", "mancuerna", "dumbbell"],
-      "isActive": true,
-      "createdAt": "2026-01-15T00:00:00Z",
-      "updatedAt": "2026-01-15T00:00:00Z"
+      "instructions": "1. De pie con una mancuerna en cada mano, brazos extendidos\n2. Palmas mirando hacia adelante, codos pegados al torso\n3. Flexiona los codos para subir las mancuernas hacia los hombros\n4. Manten los codos estaticos durante el movimiento\n5. Aprieta los biceps arriba\n6. Baja de manera controlada",
+      "imageUrl": null,
+      "videoUrl": null,
+      "order": 1
+    },
+    {
+      "id": "tricep_pushdown",
+      "name": "Extension de Triceps en Polea",
+      "muscleGroup": "Brazos",
+      "description": "Ejercicio de aislamiento para los triceps.",
+      "instructions": "1. De pie frente a la polea alta\n2. Agarra la barra o cuerda con los codos pegados al torso\n3. Extiende los codos empujando hacia abajo\n4. Aprieta los triceps en la extension completa\n5. Vuelve arriba de forma controlada",
+      "imageUrl": null,
+      "videoUrl": null,
+      "order": 2
+    },
+    {
+      "id": "hammer_curl",
+      "name": "Curl Martillo",
+      "muscleGroup": "Brazos",
+      "description": "Variante del curl que trabaja biceps y braquial.",
+      "instructions": "1. De pie con mancuernas a los lados, palmas enfrentadas\n2. Manten los codos pegados al torso\n3. Flexiona los codos subiendo las mancuernas\n4. Manten el agarre neutro durante todo el movimiento\n5. Baja de forma controlada",
+      "imageUrl": null,
+      "videoUrl": null,
+      "order": 3
     }
   ]
 }
