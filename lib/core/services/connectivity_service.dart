@@ -8,17 +8,19 @@ import '../utils/logger.dart';
 /// Servicio para monitorear el estado de conectividad.
 class ConnectivityService {
   final Connectivity _connectivity;
-  StreamSubscription<ConnectivityResult>? _subscription;
+  StreamSubscription<List<ConnectivityResult>>? _subscription;
 
   ConnectivityService({Connectivity? connectivity})
       : _connectivity = connectivity ?? Connectivity();
 
   /// Stream del estado de conectividad.
   Stream<bool> get onConnectivityChanged {
-    return _connectivity.onConnectivityChanged.map((result) {
-      final isConnected = result != ConnectivityResult.none;
+    return _connectivity.onConnectivityChanged.map((results) {
+      // results es ahora List<ConnectivityResult>
+      final isConnected = results.isNotEmpty &&
+          !results.every((r) => r == ConnectivityResult.none);
       AppLogger.debug(
-        'Conectividad cambiada: $result (conectado: $isConnected)',
+        'Conectividad cambiada: $results (conectado: $isConnected)',
         tag: 'Connectivity',
       );
       return isConnected;
@@ -27,8 +29,10 @@ class ConnectivityService {
 
   /// Verifica si hay conexion actualmente.
   Future<bool> hasConnection() async {
-    final result = await _connectivity.checkConnectivity();
-    return result != ConnectivityResult.none;
+    final results = await _connectivity.checkConnectivity();
+    // results es ahora List<ConnectivityResult>
+    return results.isNotEmpty &&
+        !results.every((r) => r == ConnectivityResult.none);
   }
 
   /// Limpia recursos.

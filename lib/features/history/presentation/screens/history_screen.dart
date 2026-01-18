@@ -60,7 +60,7 @@ class HistoryScreen extends ConsumerWidget {
               return _DayHistoryCard(
                 dateLabel: _formatDate(date),
                 records: dayRecords,
-                exercisesMap: exercisesMap.valueOrNull ?? {},
+                exercisesMap: exercisesMap.value ?? {},
               );
             },
           );
