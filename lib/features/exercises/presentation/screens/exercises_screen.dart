@@ -19,6 +19,9 @@ class ExercisesScreen extends ConsumerStatefulWidget {
 
 class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
   String _selectedMuscleGroup = 'Todos';
+  final _searchController = TextEditingController();
+  String _searchQuery = '';
+
   final List<String> _muscleGroups = [
     'Todos',
     'Pecho',
@@ -28,6 +31,22 @@ class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
     'Brazos',
     'Core',
   ];
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  /// Filtra ejercicios por nombre (case-insensitive)
+  List<ExerciseModel> _filterExercises(List<ExerciseModel> exercises) {
+    if (_searchQuery.isEmpty) return exercises;
+
+    final query = _searchQuery.toLowerCase();
+    return exercises.where((exercise) {
+      return exercise.name.toLowerCase().contains(query);
+    }).toList();
+  }
 
   Future<void> _showLogoutDialog() async {
     final shouldLogout = await showDialog<bool>(
@@ -114,6 +133,42 @@ class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
       ),
       body: Column(
         children: [
+          // Buscador
+          Padding(
+            padding: const EdgeInsets.fromLTRB(
+              AppConstants.defaultPadding,
+              AppConstants.smallPadding,
+              AppConstants.defaultPadding,
+              0,
+            ),
+            child: TextField(
+              controller: _searchController,
+              decoration: InputDecoration(
+                hintText: 'Buscar ejercicio...',
+                prefixIcon: const Icon(Icons.search, color: AppColors.textSecondary),
+                suffixIcon: _searchQuery.isNotEmpty
+                    ? IconButton(
+                        icon: const Icon(Icons.clear, color: AppColors.textSecondary),
+                        onPressed: () {
+                          _searchController.clear();
+                          setState(() => _searchQuery = '');
+                        },
+                      )
+                    : null,
+                filled: true,
+                fillColor: AppColors.surfaceVariant,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(AppConstants.defaultBorderRadius),
+                  borderSide: BorderSide.none,
+                ),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              ),
+              onChanged: (value) {
+                setState(() => _searchQuery = value);
+              },
+            ),
+          ),
+
           // Filtro de grupos musculares
           Container(
             height: 56,
@@ -157,26 +212,32 @@ class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
                 child: CircularProgressIndicator(color: AppColors.primary),
               ),
               error: (error, stack) => _buildErrorState(error.toString()),
-              data: (exercises) => exercises.isEmpty
-                  ? _buildEmptyState()
-                  : ListView.builder(
-                      padding: const EdgeInsets.all(AppConstants.defaultPadding),
-                      itemCount: exercises.length,
-                      itemBuilder: (context, index) {
-                        final exercise = exercises[index];
-                        return _ExerciseCard(
-                          exercise: exercise,
-                          muscleGroupColor: _getMuscleGroupColor(
-                            exercise.muscleGroup,
-                          ),
-                          onTap: () {
-                            context.push(
-                              '${RouteNames.exerciseDetail}/${exercise.id}',
-                            );
-                          },
+              data: (exercises) {
+                final filteredExercises = _filterExercises(exercises);
+
+                if (filteredExercises.isEmpty) {
+                  return _buildEmptyState();
+                }
+
+                return ListView.builder(
+                  padding: const EdgeInsets.all(AppConstants.defaultPadding),
+                  itemCount: filteredExercises.length,
+                  itemBuilder: (context, index) {
+                    final exercise = filteredExercises[index];
+                    return _ExerciseCard(
+                      exercise: exercise,
+                      muscleGroupColor: _getMuscleGroupColor(
+                        exercise.muscleGroup,
+                      ),
+                      onTap: () {
+                        context.push(
+                          '${RouteNames.exerciseDetail}/${exercise.id}',
                         );
                       },
-                    ),
+                    );
+                  },
+                );
+              },
             ),
           ),
         ],
@@ -185,28 +246,49 @@ class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
   }
 
   Widget _buildEmptyState() {
+    final hasSearch = _searchQuery.isNotEmpty;
+    final hasFilter = _selectedMuscleGroup != 'Todos';
+
+    String message;
+    String hint;
+
+    if (hasSearch && hasFilter) {
+      message = 'Sin resultados';
+      hint = 'No hay ejercicios de "$_selectedMuscleGroup" que coincidan con "$_searchQuery"';
+    } else if (hasSearch) {
+      message = 'Sin resultados';
+      hint = 'No hay ejercicios que coincidan con "$_searchQuery"';
+    } else {
+      message = 'No hay ejercicios';
+      hint = 'Selecciona otro grupo muscular';
+    }
+
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(
-            Icons.fitness_center,
+            hasSearch ? Icons.search_off : Icons.fitness_center,
             size: 64,
-            color: AppColors.textSecondary.withOpacity(0.5),
+            color: AppColors.textSecondary.withValues(alpha: 0.5),
           ),
           const SizedBox(height: 16),
           Text(
-            'No hay ejercicios',
+            message,
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
                   color: AppColors.textSecondary,
                 ),
           ),
           const SizedBox(height: 8),
-          Text(
-            'Selecciona otro grupo muscular',
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: AppColors.textHint,
-                ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 32),
+            child: Text(
+              hint,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: AppColors.textHint,
+                  ),
+              textAlign: TextAlign.center,
+            ),
           ),
         ],
       ),

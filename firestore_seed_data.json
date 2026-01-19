@@ -31,6 +31,27 @@
       "order": 3
     },
     {
+      "id": "pec_deck",
+      "name": "Pec Deck (Aperturas en Maquina)",
+      "muscleGroup": "Pecho",
+      "description": "Ejercicio de aislamiento para el pecho en maquina, con recorrido guiado y enfasis en la contraccion.",
+      "instructions": "1. Ajusta el asiento para que las manijas o almohadillas queden a la altura del pecho\n2. Apoya la espalda en el respaldo y manten el pecho elevado\n3. Agarra las manijas o coloca los antebrazos en las almohadillas segun la maquina\n4. Junta los brazos al frente en un movimiento controlado hasta casi tocar\n5. Aprieta el pecho 1 segundo al final\n6. Regresa lentamente hasta sentir estiramiento sin perder el control",
+      "imageUrl": null,
+      "videoUrl": null,
+      "order": 4
+    },
+    {
+      "id": "machine_chest_press",
+      "name": "Press de Pecho en Maquina",
+      "muscleGroup": "Pecho",
+      "description": "Ejercicio de empuje en maquina para el pecho, con trayectoria estable y buena opcion para progresar con seguridad.",
+      "instructions": "1. Ajusta el asiento para que las manijas queden a la altura media del pecho\n2. Apoya la espalda y omoplatos en el respaldo, pies firmes en el suelo\n3. Agarra las manijas con agarre comodo, codos ligeramente por debajo de los hombros\n4. Empuja hacia adelante hasta casi extender los codos (sin bloquear)\n5. Regresa controlado hasta que los codos queden ligeramente detras del torso o a un rango comodo\n6. Mantén el pecho arriba y los hombros abajo (no encoger)",
+      "imageUrl": null,
+      "videoUrl": null,
+      "order": 5
+    },
+
+    {
       "id": "deadlift",
       "name": "Peso Muerto",
       "muscleGroup": "Espalda",
@@ -51,15 +72,36 @@
       "order": 2
     },
     {
-      "id": "lat_pulldown",
-      "name": "Jalon al Pecho",
+      "id": "lat_pulldown_wide_grip",
+      "name": "Jalon al Pecho (Agarre Abierto)",
       "muscleGroup": "Espalda",
-      "description": "Ejercicio para desarrollar la amplitud de la espalda.",
-      "instructions": "1. Sientate en la maquina con los muslos asegurados\n2. Agarra la barra con agarre amplio\n3. Tira de la barra hacia la parte superior del pecho\n4. Aprieta los dorsales en la parte inferior\n5. Sube la barra de forma controlada",
+      "description": "Variante del jalon que enfatiza dorsales con un agarre amplio.",
+      "instructions": "1. Ajusta el asiento y fija los muslos bajo las almohadillas\n2. Agarra la barra con agarre amplio (mas ancho que hombros)\n3. Saca el pecho y lleva los hombros hacia abajo y atras\n4. Tira la barra hacia la parte superior del pecho llevando los codos hacia abajo\n5. Pausa 1 segundo apretando dorsales\n6. Sube la barra controlado hasta estirar sin perder la tension",
       "imageUrl": null,
       "videoUrl": null,
       "order": 3
     },
+    {
+      "id": "lat_pulldown_close_grip",
+      "name": "Jalon al Pecho (Agarre Cerrado)",
+      "muscleGroup": "Espalda",
+      "description": "Variante del jalon con agarre estrecho para trabajar dorsales con mayor rango y codos mas pegados.",
+      "instructions": "1. Ajusta el asiento y fija los muslos bajo las almohadillas\n2. Usa agarre cerrado (barra en V o manija estrecha) con agarre neutro si es posible\n3. Mantén el torso estable y el pecho arriba\n4. Tira la manija hacia el esternon/parte media del pecho llevando codos hacia abajo y atras\n5. Pausa 1 segundo apretando dorsales\n6. Regresa controlado hasta estirar sin balancearte",
+      "imageUrl": null,
+      "videoUrl": null,
+      "order": 4
+    },
+    {
+      "id": "back_extension_machine",
+      "name": "Extension de Lumbar en Maquina (Back Extension)",
+      "muscleGroup": "Espalda",
+      "description": "Ejercicio para zona lumbar y cadena posterior, realizado en maquina de extension guiada.",
+      "instructions": "1. Ajusta la maquina para que la almohadilla apoye el torso y puedas flexionar/extender con comodidad\n2. Coloca los pies firmes y sujeta las manijas si las tiene\n3. Inicia con el torso en ligera flexion con espalda neutra (sin encorvar)\n4. Extiende el torso hasta quedar alineado (sin hiperextender)\n5. Aprieta gluteos y espalda baja al final\n6. Baja controlado al inicio manteniendo el core activo",
+      "imageUrl": null,
+      "videoUrl": null,
+      "order": 5
+    },
+
     {
       "id": "squat",
       "name": "Sentadilla",
@@ -81,15 +123,66 @@
       "order": 2
     },
     {
-      "id": "leg_curl",
-      "name": "Curl de Piernas",
+      "id": "hip_thrust",
+      "name": "Hip Thrust",
       "muscleGroup": "Piernas",
-      "description": "Ejercicio de aislamiento para los isquiotibiales.",
-      "instructions": "1. Acuestate boca abajo en la maquina\n2. Coloca los tobillos bajo el rodillo acolchado\n3. Flexiona las rodillas llevando los talones hacia los gluteos\n4. Aprieta los isquiotibiales arriba\n5. Baja de forma controlada",
+      "description": "Ejercicio principal para gluteos, con enfasis en la extension de cadera.",
+      "instructions": "1. Apoya la parte alta de la espalda en un banco estable\n2. Coloca los pies al ancho de caderas, rodillas flexionadas\n3. Si usas barra, colócala sobre la cadera con una almohadilla\n4. Inicia con la cadera abajo y el menton ligeramente hacia el pecho\n5. Empuja el suelo con los talones y eleva la cadera hasta alinear hombros-cadera-rodillas\n6. Pausa 1 segundo apretando gluteos y baja controlado sin perder tension",
       "imageUrl": null,
       "videoUrl": null,
       "order": 3
     },
+    {
+      "id": "seated_leg_extension",
+      "name": "Extension de Piernas Sentado (Cuadriceps)",
+      "muscleGroup": "Piernas",
+      "description": "Ejercicio de aislamiento para cuadriceps en maquina de extension de rodilla.",
+      "instructions": "1. Ajusta el respaldo y el rodillo para que quede sobre la parte baja de la tibia\n2. Alinea la rodilla con el eje de giro de la maquina\n3. Sujeta las manijas y apoya la espalda\n4. Extiende las rodillas elevando el peso hasta casi bloquear (sin bloquear)\n5. Pausa 1 segundo apretando cuadriceps\n6. Baja controlado hasta el inicio",
+      "imageUrl": null,
+      "videoUrl": null,
+      "order": 4
+    },
+    {
+      "id": "seated_leg_curl",
+      "name": "Curl de Piernas Sentado (Isquiotibiales)",
+      "muscleGroup": "Piernas",
+      "description": "Ejercicio de aislamiento para isquiotibiales en maquina sentado.",
+      "instructions": "1. Ajusta el respaldo y el rodillo para que apoye sobre los talones o parte baja de la pierna\n2. Asegura los muslos con el soporte superior\n3. Mantén la espalda apoyada y sujeta las manijas\n4. Flexiona las rodillas llevando el rodillo hacia abajo/atras\n5. Pausa 1 segundo apretando isquiotibiales\n6. Regresa controlado hasta estirar sin perder tension",
+      "imageUrl": null,
+      "videoUrl": null,
+      "order": 5
+    },
+    {
+      "id": "lying_leg_curl",
+      "name": "Curl de Piernas Acostado (Isquiotibiales)",
+      "muscleGroup": "Piernas",
+      "description": "Variante acostado para isquiotibiales, con buen enfoque en la flexion de rodilla.",
+      "instructions": "1. Acuestate boca abajo en la maquina con la cadera bien apoyada\n2. Coloca los tobillos bajo el rodillo acolchado\n3. Agarra las manijas y mantén el abdomen firme\n4. Flexiona las rodillas llevando los talones hacia los gluteos\n5. Pausa 1 segundo arriba sin levantar la cadera\n6. Baja controlado hasta el inicio",
+      "imageUrl": null,
+      "videoUrl": null,
+      "order": 6
+    },
+    {
+      "id": "hip_abductor_machine",
+      "name": "Abduccion de Cadera en Maquina",
+      "muscleGroup": "Piernas",
+      "description": "Ejercicio de aislamiento para gluteo medio y abductores, abriendo las piernas contra resistencia.",
+      "instructions": "1. Ajusta el asiento para estar estable y con la espalda apoyada\n2. Coloca los muslos contra las almohadillas con las rodillas flexionadas\n3. Sujeta las manijas y mantén el core firme\n4. Abre las piernas de forma controlada sin rebotar\n5. Pausa 1 segundo en la apertura\n6. Regresa lentamente manteniendo la tension",
+      "imageUrl": null,
+      "videoUrl": null,
+      "order": 7
+    },
+    {
+      "id": "hip_adductor_machine",
+      "name": "Aduccion de Cadera en Maquina",
+      "muscleGroup": "Piernas",
+      "description": "Ejercicio de aislamiento para aductores, cerrando las piernas contra resistencia.",
+      "instructions": "1. Ajusta el asiento y apoya la espalda\n2. Coloca las piernas abiertas apoyadas en las almohadillas\n3. Sujeta las manijas para estabilizar el tronco\n4. Cierra las piernas de forma controlada hasta juntar lo mas que permita el rango comodo\n5. Pausa 1 segundo en la contraccion\n6. Abre lentamente manteniendo el control",
+      "imageUrl": null,
+      "videoUrl": null,
+      "order": 8
+    },
+
     {
       "id": "overhead_press",
       "name": "Press Militar",
@@ -101,6 +194,16 @@
       "order": 1
     },
     {
+      "id": "machine_shoulder_press",
+      "name": "Press Militar en Maquina",
+      "muscleGroup": "Hombros",
+      "description": "Variante en maquina del press por encima de la cabeza, enfocada en deltoides y empuje vertical con estabilidad.",
+      "instructions": "1. Ajusta el asiento para que las manijas queden a la altura de los hombros\n2. Apoya la espalda y mantén el core firme\n3. Agarra las manijas con antebrazos verticales\n4. Empuja hacia arriba hasta casi extender los codos (sin bloquear)\n5. Baja controlado hasta la posicion inicial\n6. Evita encoger hombros: manténlos abajo y atras",
+      "imageUrl": null,
+      "videoUrl": null,
+      "order": 2
+    },
+    {
       "id": "lateral_raise",
       "name": "Elevaciones Laterales",
       "muscleGroup": "Hombros",
@@ -108,7 +211,7 @@
       "instructions": "1. De pie con mancuernas a los lados\n2. Con los codos ligeramente flexionados, eleva los brazos lateralmente\n3. Sube hasta que los brazos esten paralelos al suelo\n4. Manten una ligera inclinacion hacia adelante\n5. Baja de forma controlada",
       "imageUrl": null,
       "videoUrl": null,
-      "order": 2
+      "order": 3
     },
     {
       "id": "face_pull",
@@ -118,8 +221,9 @@
       "instructions": "1. Ajusta la polea a la altura de la cara\n2. Agarra la cuerda con agarre neutro\n3. Tira hacia la cara separando las manos\n4. Aprieta los omoplatos y deltoides posteriores\n5. Vuelve de forma controlada",
       "imageUrl": null,
       "videoUrl": null,
-      "order": 3
+      "order": 4
     },
+
     {
       "id": "bicep_curl",
       "name": "Curl de Biceps",
@@ -149,6 +253,37 @@
       "imageUrl": null,
       "videoUrl": null,
       "order": 3
+    },
+    {
+      "id": "preacher_curl_machine",
+      "name": "Curl Predicador en Maquina",
+      "muscleGroup": "Brazos",
+      "description": "Ejercicio de aislamiento de biceps con apoyo en predicador para reducir el impulso.",
+      "instructions": "1. Ajusta el asiento para que el brazo quede bien apoyado en el pad predicador\n2. Agarra la manija con agarre comodo y muñeca neutra\n3. Inicia con el brazo casi extendido (sin bloquear el codo)\n4. Flexiona el codo subiendo la manija hacia ti sin despegar el brazo del pad\n5. Aprieta el biceps 1 segundo arriba\n6. Baja controlado hasta el inicio",
+      "imageUrl": null,
+      "videoUrl": null,
+      "order": 4
+    },
+    {
+      "id": "tricep_dip_machine",
+      "name": "Fondos en Maquina (Triceps Dip Machine)",
+      "muscleGroup": "Brazos",
+      "description": "Maquina que simula fondos, enfocada en triceps con soporte/recorrido guiado.",
+      "instructions": "1. Ajusta el asiento para que las manijas queden a una altura comoda\n2. Apoya bien la espalda si aplica y sujeta las manijas\n3. Coloca los codos apuntando hacia atras y cerca del torso\n4. Empuja hacia abajo/adelante segun la trayectoria hasta extender casi por completo (sin bloquear)\n5. Pausa 1 segundo apretando triceps\n6. Regresa controlado hasta sentir un estiramiento comodo sin perder postura",
+      "imageUrl": null,
+      "videoUrl": null,
+      "order": 5
+    },
+
+    {
+      "id": "cable_crunch_machine",
+      "name": "Crunch en Maquina",
+      "muscleGroup": "Abdomen",
+      "description": "Ejercicio de abdominales en maquina sentado con manijas/correas, enfocando la flexion de columna.",
+      "instructions": "1. Ajusta el asiento y el respaldo para quedar estable\n2. Agarra las manijas o correas y coloca los codos cerca del cuerpo\n3. Inicia con el torso ligeramente extendido pero controlado\n4. Realiza el crunch llevando el pecho hacia la pelvis (no solo bajar los brazos)\n5. Pausa 1 segundo apretando el abdomen\n6. Regresa controlado sin soltar la tension",
+      "imageUrl": null,
+      "videoUrl": null,
+      "order": 1
     }
   ]
 }

@@ -4,9 +4,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/constants/app_constants.dart';
-import '../../../../core/constants/storage_constants.dart';
-import '../../../../shared/widgets/exercise_image.dart';
-import '../../../../shared/widgets/exercise_video_player.dart';
+import '../../../../core/config/providers/app_config_provider.dart';
+import '../../../../shared/widgets/storage_image.dart';
+import '../../../../shared/widgets/storage_video_player.dart';
 import '../../data/models/exercise_model.dart';
 import '../../data/models/weight_record_model.dart';
 import '../../providers/exercises_provider.dart';
@@ -186,6 +186,7 @@ class _ExerciseDetailScreenState extends ConsumerState<ExerciseDetailScreen> {
     final instructions = exercise.instructions.isNotEmpty
         ? exercise.instructions.split('\n')
         : <String>[];
+    final mediaHelper = ref.watch(mediaUrlHelperProvider);
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -197,10 +198,9 @@ class _ExerciseDetailScreenState extends ConsumerState<ExerciseDetailScreen> {
             pinned: true,
             backgroundColor: AppColors.background,
             flexibleSpace: FlexibleSpaceBar(
-              background: StorageConstants.shouldShowImage(exercise.imageUrl)
-                  ? ExerciseImage(
-                      imageUrl: StorageConstants.getExerciseImageUrl(
-                          exercise.imageUrl),
+              background: mediaHelper.shouldShowImage(exercise.imageUrl)
+                  ? StorageImage(
+                      path: mediaHelper.getImagePath(exercise.imageUrl),
                       fit: BoxFit.cover,
                       placeholder: _buildImagePlaceholder(),
                       errorWidget: _buildImagePlaceholder(),
@@ -262,14 +262,13 @@ class _ExerciseDetailScreenState extends ConsumerState<ExerciseDetailScreen> {
                   ],
 
                   // Video del ejercicio
-                  if (StorageConstants.shouldShowVideo(exercise.videoUrl))
-                    ExerciseVideoPlayer(
-                      videoUrl: StorageConstants.getExerciseVideoUrl(
-                          exercise.videoUrl),
+                  if (mediaHelper.shouldShowVideo(exercise.videoUrl))
+                    StorageVideoPlayer(
+                      path: mediaHelper.getVideoPath(exercise.videoUrl),
                       height: 200,
                       showControls: true,
                     ),
-                  if (StorageConstants.shouldShowVideo(exercise.videoUrl))
+                  if (mediaHelper.shouldShowVideo(exercise.videoUrl))
                     const SizedBox(height: 24),
 
                   // Instrucciones
