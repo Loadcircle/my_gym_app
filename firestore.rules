@@ -18,6 +18,16 @@ service cloud.firestore {
     }
 
     // ============================================
+    // CONFIGURACION DE LA APP
+    // ============================================
+
+    // app_config - lectura para autenticados (config remota)
+    match /app_config/{configId} {
+      allow read: if isAuthenticated();
+      allow write: if false; // Solo desde consola/admin
+    }
+
+    // ============================================
     // CATALOGO DE EJERCICIOS
     // ============================================
 

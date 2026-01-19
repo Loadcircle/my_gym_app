@@ -26,19 +26,20 @@ Splash → Login/Register → Lista ejercicios (filtro por músculo) → Detalle
 
 | Categoría | Tecnología | Versión |
 |-----------|------------|---------|
-| Framework | Flutter | SDK >=3.0.0 |
-| Estado | flutter_riverpod | ^2.3.6 |
-| Navegación | go_router | ^7.1.1 |
-| Modelos | freezed + json_serializable | ^2.3.4 / ^6.6.2 |
+| Framework | Flutter | SDK ^3.8.0 |
+| Estado | flutter_riverpod | ^2.6.1 |
+| Navegación | go_router | ^17.0.1 |
+| Modelos | freezed + json_serializable | ^2.4.1 / ^6.7.1 |
 | DB Local | Drift (SQLite) | ^2.8.0 |
-| Auth | Firebase Auth | ^4.6.3 |
-| DB Cloud | Cloud Firestore | ^4.8.0 |
-| Media | Firebase Storage | ^11.2.3 |
-| Monitoreo | Firebase Crashlytics | ^3.3.3 |
+| Auth | Firebase Auth | ^6.1.3 |
+| DB Cloud | Cloud Firestore | ^6.1.1 |
+| Media | Firebase Storage | ^13.0.5 |
+| Monitoreo | Firebase Crashlytics | ^5.0.6 |
 | HTTP | dio | ^5.2.1 |
-| Cache Imágenes | cached_network_image | ^3.2.3 |
-| Video | video_player | ^2.6.1 |
-| Conectividad | connectivity_plus | ^4.0.1 |
+| Cache Imágenes | cached_network_image | ^3.4.1 |
+| Video | video_player | ^2.9.2 |
+| Conectividad | connectivity_plus | ^7.0.0 |
+| Google Sign-In | google_sign_in | ^6.2.2 |
 
 ## Arquitectura de Carpetas
 
@@ -47,7 +48,13 @@ lib/
 ├── main.dart                              # Entry point, inicializa Firebase
 ├── core/
 │   ├── config/
-│   │   └── app_config.dart                # Configuración por entorno (dev/prod)
+│   │   ├── app_config.dart                # Configuración por entorno (dev/prod)
+│   │   ├── models/
+│   │   │   └── app_config_model.dart      # Modelos de config remota (Freezed)
+│   │   ├── repositories/
+│   │   │   └── app_config_repository.dart # Repo para config desde Firestore
+│   │   └── providers/
+│   │       └── app_config_provider.dart   # Providers de config + StorageService
 │   ├── constants/
 │   │   ├── app_constants.dart             # Constantes globales, nombres de colecciones
 │   │   └── storage_constants.dart         # URLs default de Firebase Storage
@@ -56,6 +63,7 @@ lib/
 │   │   └── route_names.dart               # Nombres de rutas centralizados
 │   ├── services/
 │   │   ├── connectivity_service.dart      # Monitoreo de conexión a internet
+│   │   ├── storage_service.dart           # Firebase Storage con getDownloadURL + caché
 │   │   └── sync_service.dart              # Sincronización offline-first
 │   ├── theme/
 │   │   ├── app_colors.dart                # Paleta de colores (tema oscuro)
@@ -115,8 +123,10 @@ lib/
     ├── error_view.dart                    # Vista de error con retry
     ├── empty_state.dart                   # Vista estado vacío
     ├── google_sign_in_button.dart         # Botón Google con logo
-    ├── exercise_image.dart                # Imagen con cache
-    └── exercise_video_player.dart         # Video player con fullscreen
+    ├── exercise_image.dart                # Imagen con cache (base)
+    ├── exercise_video_player.dart         # Video player con fullscreen (base)
+    ├── storage_image.dart                 # Imagen que resuelve path → URL
+    └── storage_video_player.dart          # Video que resuelve path → URL
 ```
 
 ## Modelos de Datos
@@ -135,16 +145,16 @@ lib/
 
 ### ExerciseModel (Freezed)
 ```dart
-| Campo        | Tipo    | Descripción                    |
-|--------------|---------|--------------------------------|
-| id           | String  | ID documento Firestore         |
-| name         | String  | Nombre del ejercicio           |
-| muscleGroup  | String  | Grupo muscular                 |
-| description  | String  | Descripción                    |
-| instructions | String  | Instrucciones (separadas \n)   |
-| imageUrl     | String? | URL imagen Firebase Storage    |
-| videoUrl     | String? | URL video Firebase Storage     |
-| order        | int     | Orden dentro del grupo         |
+| Campo        | Tipo    | Descripción                         |
+|--------------|---------|-------------------------------------|
+| id           | String  | ID documento Firestore              |
+| name         | String  | Nombre del ejercicio                |
+| muscleGroup  | String  | Grupo muscular                      |
+| description  | String  | Descripción                         |
+| instructions | String  | Instrucciones (separadas \n)        |
+| imageUrl     | String? | Path relativo en Storage (no URL)   |
+| videoUrl     | String? | Path relativo en Storage (no URL)   |
+| order        | int     | Orden dentro del grupo              |
 ```
 
 ### WeightRecordModel (Freezed)
@@ -219,6 +229,10 @@ ESCRITURA:
 | `syncServiceProvider` | Provider | Servicio de sync |
 | `pendingSyncCountProvider` | StreamProvider | Operaciones pendientes |
 | `isConnectedProvider` | StreamProvider | Estado de conexión |
+| `mediaConfigProvider` | FutureProvider | Config de media desde Firestore |
+| `storageServiceProvider` | Provider | Servicio Firebase Storage |
+| `imageUrlProvider` | FutureProvider.family | Resuelve path → URL imagen |
+| `videoUrlProvider` | FutureProvider.family | Resuelve path → URL video |
 
 ## Navegación (go_router)
 
@@ -242,6 +256,8 @@ ESCRITURA:
 ### Colecciones Firestore
 | Colección | Descripción |
 |-----------|-------------|
+| `app_config` | Configuración remota de la app |
+| `app_config/media` | Paths por defecto de imagen/video |
 | `exercises` | Catálogo de ejercicios |
 | `weightRecords` | Registros de peso de usuarios |
 | `users/{userId}` | Datos de usuario (futuro) |
