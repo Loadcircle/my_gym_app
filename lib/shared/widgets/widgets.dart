@@ -9,3 +9,4 @@ export 'google_sign_in_button.dart';
 export 'loading_indicator.dart';
 export 'storage_image.dart';
 export 'storage_video_player.dart';
+export 'weight_progress_chart.dart';

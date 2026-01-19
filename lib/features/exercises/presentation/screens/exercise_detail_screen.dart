@@ -7,6 +7,7 @@ import '../../../../core/constants/app_constants.dart';
 import '../../../../core/config/providers/app_config_provider.dart';
 import '../../../../shared/widgets/storage_image.dart';
 import '../../../../shared/widgets/storage_video_player.dart';
+import '../../../../shared/widgets/weight_progress_chart.dart';
 import '../../data/models/exercise_model.dart';
 import '../../data/models/weight_record_model.dart';
 import '../../providers/exercises_provider.dart';
@@ -326,6 +327,18 @@ class _ExerciseDetailScreenState extends ConsumerState<ExerciseDetailScreen> {
                     error: (_, __) => const SizedBox.shrink(),
                     data: (history) => history.isNotEmpty
                         ? _buildRecentHistory(history.take(5).toList())
+                        : const SizedBox.shrink(),
+                  ),
+
+                  // Grafico de evolucion (si hay suficiente historial)
+                  historyAsync.when(
+                    loading: () => const SizedBox.shrink(),
+                    error: (_, __) => const SizedBox.shrink(),
+                    data: (history) => history.length >= 2
+                        ? Padding(
+                            padding: const EdgeInsets.only(top: 24),
+                            child: WeightProgressChart(records: history),
+                          )
                         : const SizedBox.shrink(),
                   ),
                   const SizedBox(height: 32),
