@@ -22,6 +22,7 @@ class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
   final _searchController = TextEditingController();
   String _searchQuery = '';
 
+  /// TODO traer grupos musculares desde firebase
   final List<String> _muscleGroups = [
     'Todos',
     'Pecho',
