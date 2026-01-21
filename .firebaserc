@@ -1,6 +1,8 @@
 {
   "projects": {
-    "default": "my-gym-app-fd1db"
+    "default": "my-gym-app-dev",
+    "dev": "my-gym-app-dev",
+    "prod": "my-gym-app-fd1db"
   },
   "targets": {},
   "etags": {}

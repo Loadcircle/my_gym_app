@@ -1,62 +1,51 @@
-import 'package:firebase_storage/firebase_storage.dart';
+import '../config/app_config.dart';
 
 /// Servicio para obtener URLs de descarga de Firebase Storage.
-/// Convierte paths relativos a URLs firmadas usando getDownloadURL().
-/// Incluye cache en memoria para evitar llamadas repetidas.
+/// Construye URLs publicas directamente sin usar getDownloadURL().
+///
+/// IMPORTANTE: Siempre usa el bucket de produccion porque las imagenes
+/// y videos son compartidos entre dev y prod. Las reglas de Storage
+/// permiten lectura publica de /exercises/**.
 class StorageService {
-  final FirebaseStorage _storage;
   final Map<String, String> _urlCache = {};
-  final Map<String, Future<String>> _pendingRequests = {};
 
-  StorageService({FirebaseStorage? storage})
-      : _storage = storage ?? FirebaseStorage.instance;
+  StorageService();
 
-  /// Obtiene la URL de descarga para un path de Storage.
-  /// Usa cache en memoria para evitar llamadas repetidas.
+  /// Construye la URL publica de Firebase Storage para un path.
   ///
   /// [path] - Path relativo en Storage (ej: 'exercises/images/bench_press.jpg')
-  /// Returns URL firmada para descargar el archivo.
-  Future<String> getDownloadUrl(String path) async {
+  /// Returns URL publica para descargar el archivo.
+  ///
+  /// Formato: https://firebasestorage.googleapis.com/v0/b/{bucket}/o/{encodedPath}?alt=media
+  String getPublicUrl(String path) {
     // Retornar del cache si existe
     if (_urlCache.containsKey(path)) {
       return _urlCache[path]!;
     }
 
-    // Si ya hay una peticion pendiente para este path, esperar esa
-    if (_pendingRequests.containsKey(path)) {
-      return _pendingRequests[path]!;
-    }
+    // Codificar el path para URL (reemplazar / por %2F)
+    final encodedPath = Uri.encodeComponent(path);
+    final url = 'https://firebasestorage.googleapis.com/v0/b/${AppConfig.storageBucket}/o/$encodedPath?alt=media';
 
-    // Crear nueva peticion
-    final future = _fetchDownloadUrl(path);
-    _pendingRequests[path] = future;
-
-    try {
-      final url = await future;
-      _urlCache[path] = url;
-      return url;
-    } finally {
-      _pendingRequests.remove(path);
-    }
+    _urlCache[path] = url;
+    return url;
   }
 
-  Future<String> _fetchDownloadUrl(String path) async {
-    final ref = _storage.ref(path);
-    return await ref.getDownloadURL();
+  /// Obtiene la URL de descarga para un path de Storage.
+  /// Wrapper async para compatibilidad con codigo existente.
+  Future<String> getDownloadUrl(String path) async {
+    return getPublicUrl(path);
   }
 
-  /// Obtiene la URL o retorna null si hay error.
-  /// Util para casos donde el archivo puede no existir.
+  /// Obtiene la URL o retorna null si el path no es valido.
   Future<String?> getDownloadUrlOrNull(String path) async {
-    try {
-      return await getDownloadUrl(path);
-    } catch (e) {
+    if (!isValidPath(path)) {
       return null;
     }
+    return getPublicUrl(path);
   }
 
   /// Limpia el cache de URLs.
-  /// Util si las URLs han expirado o se necesita refrescar.
   void clearCache() {
     _urlCache.clear();
   }

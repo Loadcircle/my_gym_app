@@ -14,7 +14,10 @@ const fs = require('fs');
 const path = require('path');
 
 // Inicializar Firebase Admin con service account key
-const serviceAccount = require('./serviceAccountKey.json');
+const env = process.env.ENV || "dev"; // dev por defecto
+
+const keyPath = path.join(__dirname, `serviceAccountKey.${env}.json`);
+const serviceAccount = require(keyPath);
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount)
 });

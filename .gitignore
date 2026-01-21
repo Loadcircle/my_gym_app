@@ -62,6 +62,8 @@ app.*.map.json
 /ios/Runner/GoogleService-Info.plist
 /ios/firebase_app_id_file.json
 firebase_options.dart
+**/google-services.json
+**/google-services*.json
 
 # Environment & Secrets
 .env
@@ -72,6 +74,10 @@ credentials.json
 **/serviceAccountKey.json
 **/service-account*.json
 **/firebase-adminsdk*.json
+
+# Firebase service account keys (custom names)
+serviceAccountKey.*
+**/serviceAccountKey.*
 
 # Generated files (build_runner, freezed, json_serializable, drift)
 *.g.dart

@@ -45,7 +45,10 @@ Splash → Login/Register → Lista ejercicios (filtro por músculo) → Detalle
 
 ```
 lib/
-├── main.dart                              # Entry point, inicializa Firebase
+├── main.dart                              # Entry point default (usa dart-define)
+├── main_dev.dart                          # Entry point para flavor dev
+├── main_prod.dart                         # Entry point para flavor prod
+├── main_common.dart                       # Código compartido de inicialización
 ├── core/
 │   ├── config/
 │   │   ├── app_config.dart                # Configuración por entorno (dev/prod)
@@ -248,10 +251,29 @@ ESCRITURA:
 
 ## Firebase
 
-### Proyecto
-- **Project ID**: `my-gym-app-fd1db`
-- **Storage Bucket**: `my-gym-app-fd1db.firebasestorage.app`
+### Entornos (Flavors)
+
+La app soporta dos entornos configurados con Flutter flavors:
+
+| Entorno | Firebase Project | Firestore DB | Storage Bucket | Uso |
+|---------|-----------------|--------------|----------------|-----|
+| **dev** | `my-gym-app-dev` | my-gym-app-dev | my-gym-app-fd1db (compartido) | Desarrollo y testing |
+| **prod** | `my-gym-app-fd1db` | my-gym-app-fd1db | my-gym-app-fd1db | Producción |
+
+**Nota**: El Storage bucket es compartido entre ambos entornos (imágenes/videos son los mismos).
+
+### Configuración Android
+```
+android/app/src/
+├── dev/google-services.json     # Config Firebase dev
+├── prod/google-services.json    # Config Firebase prod
+├── main/                        # Código común
+└── debug/profile/               # Manifests por build type
+```
+
+### Proyecto Principal
 - **Android Package**: `com.example.my_gym_app`
+- **Storage Bucket (compartido)**: `my-gym-app-fd1db.firebasestorage.app`
 
 ### Colecciones Firestore
 | Colección | Descripción |
@@ -288,6 +310,34 @@ ESCRITURA:
 
 ## Comandos Útiles
 
+### Ejecutar App (Flavors)
+
+```bash
+# Desarrollo (recomendado para día a día)
+flutter run --flavor dev -t lib/main_dev.dart
+
+# Producción
+flutter run --flavor prod -t lib/main_prod.dart
+
+# Sin flavor (usa dart-define, default: dev)
+flutter run
+```
+
+### Build APK
+
+```bash
+# APK Debug - Dev
+flutter build apk --flavor dev -t lib/main_dev.dart --debug
+
+# APK Release - Dev
+flutter build apk --flavor dev -t lib/main_dev.dart --release
+
+# APK Release - Prod
+flutter build apk --flavor prod -t lib/main_prod.dart --release
+```
+
+### Generación de Código
+
 ```bash
 # Generar código (freezed, json_serializable, drift)
 dart run build_runner build --delete-conflicting-outputs
@@ -295,27 +345,42 @@ dart run build_runner build --delete-conflicting-outputs
 # Watch mode para generación
 dart run build_runner watch --delete-conflicting-outputs
 
-# Correr tests
-flutter test
-
-# Build APK debug
-flutter build apk --debug
-
-# Build APK release
-flutter build apk --release
-
 # Limpiar y regenerar
 flutter clean && flutter pub get && dart run build_runner build --delete-conflicting-outputs
+```
 
-# Deploy Firebase rules
-firebase deploy --only firestore:rules,storage:rules --project my-gym-app-fd1db
+### Firebase CLI
+
+```bash
+# Deploy rules a Dev (default)
+firebase deploy --only firestore:rules,storage:rules
+
+# Deploy rules a Prod
+firebase deploy --only firestore:rules,storage:rules --project prod
+
+# Cambiar proyecto activo
+firebase use dev    # Cambiar a dev
+firebase use prod   # Cambiar a prod
+
+# Ver proyecto activo
+firebase use
+```
+
+### Tests
+
+```bash
+flutter test
 ```
 
 ## Notas Importantes
 
 ### Problemas Conocidos
-1. **`.firebaserc` vacío**: Usar `--project my-gym-app-fd1db` en comandos Firebase CLI
-2. **iOS no configurado**: Falta `GoogleService-Info.plist`
+1. **iOS no configurado**: Falta `GoogleService-Info.plist` para ambos entornos
+
+### Configuración de Entornos
+- **AppConfig** (`lib/core/config/app_config.dart`): Detecta el entorno y expone configuración
+- **StorageService**: Siempre usa el bucket de prod (media compartido)
+- **VS Code**: Configuraciones de launch en `.vscode/launch.json`
 
 ### Principios de Desarrollo
 - **Offline-first**: Siempre funcional sin conexión
