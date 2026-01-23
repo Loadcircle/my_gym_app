@@ -126,3 +126,15 @@ final videoUrlProvider = FutureProvider.family<String?, String>((ref, path) asyn
   final storage = ref.watch(storageServiceProvider);
   return storage.getDownloadUrlOrNull(path);
 });
+
+/// Provider para resolver URLs de imagenes de usuario.
+/// Usa getDownloadURL() porque las imagenes de usuario requieren autenticacion.
+final userImageUrlProvider = FutureProvider.family<String?, String>((ref, path) async {
+  if (!StorageService.isValidPath(path)) {
+    if (StorageService.isFullUrl(path)) return path;
+    return null;
+  }
+
+  final storage = ref.watch(storageServiceProvider);
+  return storage.getUserImageUrl(path);
+});

@@ -73,6 +73,41 @@ service cloud.firestore {
       match /weight_logs/{logId} {
         allow read, write: if isOwner(userId);
       }
+
+      // Subcoleccion: customExercises (ejercicios personalizados)
+      match /customExercises/{exerciseId} {
+        // Solo el owner puede leer sus ejercicios
+        allow read: if isOwner(userId);
+
+        // Solo el owner puede crear, con validaciones
+        allow create: if isOwner(userId)
+                      // userId en el documento debe coincidir con el path
+                      && request.resource.data.userId == userId
+                      // Campos requeridos no vacios
+                      && request.resource.data.name is string
+                      && request.resource.data.name.size() > 0
+                      && request.resource.data.muscleGroup is string
+                      && request.resource.data.muscleGroup.size() > 0
+                      // proposalStatus debe ser 'none' al crear
+                      && request.resource.data.proposalStatus == 'none'
+                      // Timestamps deben existir
+                      && request.resource.data.createdAt is timestamp
+                      && request.resource.data.updatedAt is timestamp;
+
+        // Solo el owner puede actualizar, con restricciones
+        allow update: if isOwner(userId)
+                      // No puede cambiar userId
+                      && request.resource.data.userId == resource.data.userId
+                      // Usuario no puede cambiar proposalStatus a 'approved' (solo admin)
+                      && (request.resource.data.proposalStatus != 'approved'
+                          || resource.data.proposalStatus == 'approved')
+                      // Usuario no puede asignar linkedGlobalExerciseId (solo admin)
+                      && (request.resource.data.linkedGlobalExerciseId == null
+                          || request.resource.data.linkedGlobalExerciseId == resource.data.linkedGlobalExerciseId);
+
+        // Solo el owner puede eliminar sus ejercicios
+        allow delete: if isOwner(userId);
+      }
     }
 
     // ============================================

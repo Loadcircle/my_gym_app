@@ -124,6 +124,9 @@ class SyncService {
       case 'weightRecord':
         await _syncWeightRecord(op.entityId, operation, op.payload);
         break;
+      case 'customExercise':
+        await _syncCustomExercise(op.entityId, operation, op.payload);
+        break;
       default:
         AppLogger.warning(
           'Tipo de entidad desconocido: ${op.entityType}',
@@ -164,6 +167,80 @@ class SyncService {
         }
         await collection.doc(entityId).update(data);
         await _db.weightRecordsDao.markAsSynced(entityId);
+        break;
+
+      case SyncOperation.delete:
+        await collection.doc(entityId).delete();
+        break;
+    }
+  }
+
+  Future<void> _syncCustomExercise(
+    String entityId,
+    SyncOperation operation,
+    String? payload,
+  ) async {
+    if (payload == null && operation != SyncOperation.delete) return;
+
+    final data = payload != null
+        ? jsonDecode(payload) as Map<String, dynamic>
+        : <String, dynamic>{};
+    final userId = data['userId'] as String?;
+
+    if (userId == null) {
+      AppLogger.warning(
+        'UserId no encontrado para sincronizar customExercise: $entityId',
+        tag: 'Sync',
+      );
+      return;
+    }
+
+    final collection = _firestore
+        .collection('users')
+        .doc(userId)
+        .collection('customExercises');
+
+    switch (operation) {
+      case SyncOperation.create:
+        // Convertir date strings a Timestamps
+        final firestoreData = Map<String, dynamic>.from(data);
+        firestoreData.remove('userId'); // userId ya esta en el path
+
+        if (firestoreData['createdAt'] != null &&
+            firestoreData['createdAt'] is String) {
+          firestoreData['createdAt'] =
+              Timestamp.fromDate(DateTime.parse(firestoreData['createdAt']));
+        }
+        if (firestoreData['updatedAt'] != null &&
+            firestoreData['updatedAt'] is String) {
+          firestoreData['updatedAt'] =
+              Timestamp.fromDate(DateTime.parse(firestoreData['updatedAt']));
+        }
+
+        // Crear en Firestore y obtener el ID real
+        final docRef = await collection.add(firestoreData);
+
+        // Actualizar el registro local con el ID de Firestore
+        await _db.customExercisesDao.markAsSynced(entityId, firestoreId: docRef.id);
+        break;
+
+      case SyncOperation.update:
+        final firestoreData = Map<String, dynamic>.from(data);
+        firestoreData.remove('userId');
+
+        if (firestoreData['createdAt'] != null &&
+            firestoreData['createdAt'] is String) {
+          firestoreData['createdAt'] =
+              Timestamp.fromDate(DateTime.parse(firestoreData['createdAt']));
+        }
+        if (firestoreData['updatedAt'] != null &&
+            firestoreData['updatedAt'] is String) {
+          firestoreData['updatedAt'] =
+              Timestamp.fromDate(DateTime.parse(firestoreData['updatedAt']));
+        }
+
+        await collection.doc(entityId).update(firestoreData);
+        await _db.customExercisesDao.markAsSynced(entityId);
         break;
 
       case SyncOperation.delete:

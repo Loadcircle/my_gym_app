@@ -8,23 +8,25 @@ import 'package:path/path.dart' as p;
 import 'tables/exercises_table.dart';
 import 'tables/weight_records_table.dart';
 import 'tables/sync_queue_table.dart';
+import 'tables/custom_exercises_table.dart';
 import 'daos/exercises_dao.dart';
 import 'daos/weight_records_dao.dart';
 import 'daos/sync_queue_dao.dart';
+import 'daos/custom_exercises_dao.dart';
 
 part 'database.g.dart';
 
 /// Base de datos local usando Drift (SQLite).
 /// Almacena ejercicios, registros de peso y cola de sincronizacion.
 @DriftDatabase(
-  tables: [Exercises, WeightRecords, SyncQueue],
-  daos: [ExercisesDao, WeightRecordsDao, SyncQueueDao],
+  tables: [Exercises, WeightRecords, SyncQueue, CustomExercises],
+  daos: [ExercisesDao, WeightRecordsDao, SyncQueueDao, CustomExercisesDao],
 )
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
 
   @override
   MigrationStrategy get migration {
@@ -33,7 +35,10 @@ class AppDatabase extends _$AppDatabase {
         await m.createAll();
       },
       onUpgrade: (Migrator m, int from, int to) async {
-        // Futuras migraciones aqui
+        // Migracion v1 -> v2: Agregar tabla CustomExercises
+        if (from < 2) {
+          await m.createTable(customExercises);
+        }
       },
     );
   }

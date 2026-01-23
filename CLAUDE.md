@@ -6,7 +6,7 @@ App móvil de gimnasio para registrar pesos por ejercicio/máquina y ver guías 
 
 ## Estado del Proyecto
 
-**MVP: ~90% Completo**
+**MVP: ~95% Completo**
 
 | Fase | Estado | Descripción |
 |------|--------|-------------|
@@ -14,12 +14,17 @@ App móvil de gimnasio para registrar pesos por ejercicio/máquina y ver guías 
 | Fase 2: Auth | ✅ Completa | Email/password, Google Sign-In, recuperación |
 | Fase 3: Ejercicios | ✅ Completa | Lista, detalle, filtros, registro de peso |
 | Fase 3.1: Offline + Media | ✅ Completa | Drift cache, sync queue, video player |
+| Fase 3.2: Ejercicios Custom | ✅ Completa | CRUD ejercicios personalizados, subida imágenes |
 | Fase 4: Pulido | ⏳ Pendiente | Tests, optimizaciones, deploy |
 
 ## Flow Principal (MVP)
 
 ```
 Splash → Login/Register → Lista ejercicios (filtro por músculo) → Detalle ejercicio → Registrar peso → Historial
+                                    ↓
+                         FAB (+) → Crear ejercicio custom → Lista actualizada
+                                    ↓
+                         Detalle custom → Editar/Eliminar → Lista actualizada
 ```
 
 ## Stack Tecnológico
@@ -66,7 +71,7 @@ lib/
 │   │   └── route_names.dart               # Nombres de rutas centralizados
 │   ├── services/
 │   │   ├── connectivity_service.dart      # Monitoreo de conexión a internet
-│   │   ├── storage_service.dart           # Firebase Storage con getDownloadURL + caché
+│   │   ├── storage_service.dart           # Firebase Storage: URLs públicas + upload/delete usuario
 │   │   └── sync_service.dart              # Sincronización offline-first
 │   ├── theme/
 │   │   ├── app_colors.dart                # Paleta de colores (tema oscuro)
@@ -80,16 +85,19 @@ lib/
 │   │   ├── database.dart                  # Clase AppDatabase (Drift)
 │   │   ├── database.g.dart                # Código generado
 │   │   ├── tables/
-│   │   │   ├── exercises_table.dart       # Tabla de ejercicios
+│   │   │   ├── exercises_table.dart       # Tabla de ejercicios globales
+│   │   │   ├── custom_exercises_table.dart # Tabla de ejercicios personalizados
 │   │   │   ├── weight_records_table.dart  # Tabla de registros
 │   │   │   └── sync_queue_table.dart      # Cola de sincronización
 │   │   └── daos/
-│   │       ├── exercises_dao.dart         # DAO ejercicios
+│   │       ├── exercises_dao.dart         # DAO ejercicios globales
+│   │       ├── custom_exercises_dao.dart  # DAO ejercicios personalizados
 │   │       ├── weight_records_dao.dart    # DAO registros
 │   │       └── sync_queue_dao.dart        # DAO cola sync
 │   └── repositories/
-│       ├── offline_exercises_repository.dart      # Repo offline-first ejercicios
-│       └── offline_weight_records_repository.dart # Repo offline-first registros
+│       ├── offline_exercises_repository.dart        # Repo offline-first ejercicios
+│       ├── offline_custom_exercises_repository.dart # Repo offline-first custom
+│       └── offline_weight_records_repository.dart   # Repo offline-first registros
 ├── features/
 │   ├── auth/
 │   │   ├── data/
@@ -107,17 +115,23 @@ lib/
 │   ├── exercises/
 │   │   ├── data/
 │   │   │   ├── models/
-│   │   │   │   ├── exercise_model.dart    # Modelo ejercicio (Freezed)
+│   │   │   │   ├── exercise_model.dart      # Modelo ejercicio global (Freezed)
+│   │   │   │   ├── custom_exercise_model.dart # Modelo ejercicio custom (Freezed)
 │   │   │   │   └── weight_record_model.dart # Modelo registro (Freezed)
 │   │   │   └── repositories/
-│   │   │       ├── exercises_repository.dart      # Repo Firestore directo
-│   │   │       └── weight_records_repository.dart # Repo Firestore directo
+│   │   │       ├── exercises_repository.dart        # Repo Firestore directo
+│   │   │       ├── custom_exercises_repository.dart # Repo custom Firestore
+│   │   │       └── weight_records_repository.dart   # Repo Firestore directo
 │   │   ├── presentation/screens/
-│   │   │   ├── exercises_screen.dart      # Lista con filtro por músculo
-│   │   │   └── exercise_detail_screen.dart # Detalle con media y registro
+│   │   │   ├── exercises_screen.dart            # Lista con filtro (globales + custom)
+│   │   │   ├── exercise_detail_screen.dart      # Detalle ejercicio global
+│   │   │   ├── custom_exercise_detail_screen.dart # Detalle ejercicio custom
+│   │   │   ├── add_exercise_screen.dart         # Crear ejercicio custom
+│   │   │   └── edit_custom_exercise_screen.dart # Editar ejercicio custom
 │   │   └── providers/
-│   │       ├── exercises_provider.dart    # Providers de ejercicios
-│   │       └── weight_records_provider.dart # Providers de registros
+│   │       ├── exercises_provider.dart        # Providers ejercicios globales
+│   │       ├── custom_exercises_provider.dart # Providers ejercicios custom
+│   │       └── weight_records_provider.dart   # Providers de registros
 │   └── history/
 │       └── presentation/screens/
 │           └── history_screen.dart        # Historial agrupado por fecha
@@ -174,13 +188,29 @@ lib/
 | date       | DateTime | Fecha del registro       |
 ```
 
+### CustomExerciseModel (Freezed)
+```dart
+| Campo          | Tipo           | Descripción                           |
+|----------------|----------------|---------------------------------------|
+| id             | String         | ID documento Firestore                |
+| userId         | String         | UID del usuario propietario           |
+| name           | String         | Nombre del ejercicio                  |
+| muscleGroup    | String         | Grupo muscular                        |
+| notes          | String?        | Notas/instrucciones personales        |
+| imageUrl       | String?        | Path relativo en Storage (users/...)  |
+| proposalStatus | ProposalStatus | Estado de propuesta (none/pending/approved/rejected) |
+| createdAt      | DateTime       | Fecha de creación                     |
+| updatedAt      | DateTime       | Fecha de última modificación          |
+```
+
 ## Base de Datos Local (Drift)
 
 ### Tablas
 
 | Tabla | Propósito |
 |-------|-----------|
-| `Exercises` | Cache de ejercicios de Firestore |
+| `Exercises` | Cache de ejercicios globales de Firestore |
+| `CustomExercises` | Ejercicios personalizados del usuario |
 | `WeightRecords` | Registros de peso con flag `isSynced` |
 | `SyncQueue` | Cola de operaciones pendientes de sync |
 
@@ -208,13 +238,26 @@ ESCRITURA:
 | `isAuthenticatedProvider` | Provider<bool> | Si está autenticado |
 | `currentUserProvider` | Provider<UserModel?> | Usuario actual |
 
-### Exercises
+### Exercises (Globales)
 | Provider | Tipo | Descripción |
 |----------|------|-------------|
 | `exercisesProvider` | FutureProvider | Todos los ejercicios |
 | `exercisesByMuscleGroupProvider` | FutureProvider.family | Por grupo muscular |
 | `exerciseByIdProvider` | FutureProvider.family | Por ID |
 | `offlineExercisesRepositoryProvider` | Provider | Repo offline-first |
+
+### Custom Exercises (Personalizados)
+| Provider | Tipo | Descripción |
+|----------|------|-------------|
+| `customExercisesProvider` | FutureProvider | Todos los custom del usuario |
+| `customExercisesByMuscleGroupProvider` | Provider.family | **Derivado** - filtra por músculo |
+| `customExerciseByIdProvider` | FutureProvider.family | Por ID |
+| `customExerciseNotifierProvider` | StateNotifierProvider | CRUD de ejercicios custom |
+| `offlineCustomExercisesRepositoryProvider` | Provider | Repo offline-first |
+
+> **Patrón Providers Derivados**: `customExercisesByMuscleGroupProvider` depende de
+> `customExercisesProvider` y filtra en memoria. Esto permite invalidación automática
+> en cascada cuando se crea/edita/elimina un ejercicio.
 
 ### Weight Records
 | Provider | Tipo | Descripción |
@@ -234,8 +277,13 @@ ESCRITURA:
 | `isConnectedProvider` | StreamProvider | Estado de conexión |
 | `mediaConfigProvider` | FutureProvider | Config de media desde Firestore |
 | `storageServiceProvider` | Provider | Servicio Firebase Storage |
-| `imageUrlProvider` | FutureProvider.family | Resuelve path → URL imagen |
-| `videoUrlProvider` | FutureProvider.family | Resuelve path → URL video |
+| `imageUrlProvider` | FutureProvider.family | Resuelve path → URL imagen (público) |
+| `videoUrlProvider` | FutureProvider.family | Resuelve path → URL video (público) |
+| `userImageUrlProvider` | FutureProvider.family | Resuelve path → URL imagen de usuario (con token) |
+
+> **Nota sobre URLs de imágenes**: Las imágenes en `exercises/**` son públicas y usan
+> URL directa. Las imágenes en `users/**` requieren autenticación, por lo que
+> `userImageUrlProvider` usa `getDownloadURL()` para obtener URL con token.
 
 ## Navegación (go_router)
 
@@ -247,6 +295,9 @@ ESCRITURA:
 | forgotPassword | `/forgot-password` | No |
 | exercises | `/exercises` | Sí |
 | exerciseDetail | `/exercise/:exerciseId` | Sí |
+| customExerciseDetail | `/custom-exercise/:exerciseId` | Sí |
+| addExercise | `/add-exercise` | Sí |
+| editCustomExercise | `/edit-custom-exercise/:exerciseId` | Sí |
 | history | `/history` | Sí |
 
 ## Firebase
@@ -280,17 +331,26 @@ android/app/src/
 |-----------|-------------|
 | `app_config` | Configuración remota de la app |
 | `app_config/media` | Paths por defecto de imagen/video |
-| `exercises` | Catálogo de ejercicios |
+| `exercises` | Catálogo de ejercicios globales |
+| `customExercises` | Ejercicios personalizados de usuarios |
 | `weightRecords` | Registros de peso de usuarios |
 | `users/{userId}` | Datos de usuario (futuro) |
 
 ### Estructura Storage
 ```
 /exercises/
-  /images/      # Imágenes de ejercicios
-  /videos/      # Videos de ejercicios
-  /default/     # Media por defecto
-/users/{userId}/ # Archivos de usuario (futuro)
+  /images/      # Imágenes de ejercicios globales (lectura pública)
+  /videos/      # Videos de ejercicios globales (lectura pública)
+  /default/     # Media por defecto (lectura pública)
+/users/{userId}/
+  /exercises/
+    /images/    # Imágenes de ejercicios custom (requiere auth)
+```
+
+### Storage Rules
+```
+/exercises/**     → allow read: true (público)
+/users/{userId}/** → allow read/write: if auth.uid == userId (privado)
 ```
 
 ### Auth Habilitado
@@ -388,13 +448,41 @@ flutter test
 - **Sin over-engineering**: Mantener simple
 - **Tema oscuro**: UI optimizada para uso en gimnasio
 
+### Patrones Arquitectónicos
+
+#### Providers Derivados (Riverpod)
+Para evitar problemas de invalidación manual, usamos providers que derivan de un provider base:
+
+```dart
+// Provider BASE - carga datos del repositorio
+final customExercisesProvider = FutureProvider<List<CustomExerciseModel>>(...);
+
+// Provider DERIVADO - filtra en memoria, se invalida automáticamente
+final customExercisesByMuscleGroupProvider = Provider.family<AsyncValue<...>, String>(
+  (ref, muscleGroup) {
+    final allExercises = ref.watch(customExercisesProvider);  // Dependencia
+    return allExercises.when(
+      data: (list) => AsyncValue.data(list.where(...).toList()),
+      ...
+    );
+  }
+);
+```
+
+Cuando se invalida el provider base, los derivados se recalculan automáticamente.
+
+#### URLs de Storage con Autenticación
+- **Imágenes públicas** (`exercises/**`): URL directa sin token
+- **Imágenes de usuario** (`users/**`): Requiere `getDownloadURL()` para obtener URL con token
+
 ## Features Futuras (Post-MVP)
 
 > No implementar aún, arquitectura preparada para:
 
 - [ ] Rutinas personalizadas (splits)
-- [ ] Gráficos de progresión
+- [x] Gráficos de progresión (implementado en detalle de ejercicio)
 - [ ] Notificaciones/recordatorios
 - [ ] Compartir progreso
 - [ ] Soporte iOS
 - [ ] Tests unitarios y de integración
+- [ ] Proponer ejercicio custom como global (flujo de aprobación)

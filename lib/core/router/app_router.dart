@@ -11,6 +11,9 @@ import '../../features/auth/providers/auth_provider.dart';
 import '../../features/auth/providers/auth_state.dart';
 import '../../features/exercises/presentation/screens/exercises_screen.dart';
 import '../../features/exercises/presentation/screens/exercise_detail_screen.dart';
+import '../../features/exercises/presentation/screens/add_exercise_screen.dart';
+import '../../features/exercises/presentation/screens/custom_exercise_detail_screen.dart';
+import '../../features/exercises/presentation/screens/edit_custom_exercise_screen.dart';
 import '../../features/history/presentation/screens/history_screen.dart';
 
 /// Provider del router principal de la aplicacion.
@@ -93,6 +96,27 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) {
           final exerciseId = state.pathParameters['exerciseId'] ?? '';
           return ExerciseDetailScreen(exerciseId: exerciseId);
+        },
+      ),
+      GoRoute(
+        path: RouteNames.addExercise,
+        name: 'addExercise',
+        builder: (context, state) => const AddExerciseScreen(),
+      ),
+      GoRoute(
+        path: '${RouteNames.customExerciseDetail}/:exerciseId',
+        name: 'customExerciseDetail',
+        builder: (context, state) {
+          final exerciseId = state.pathParameters['exerciseId'] ?? '';
+          return CustomExerciseDetailScreen(exerciseId: exerciseId);
+        },
+      ),
+      GoRoute(
+        path: '${RouteNames.editCustomExercise}/:exerciseId',
+        name: 'editCustomExercise',
+        builder: (context, state) {
+          final exerciseId = state.pathParameters['exerciseId'] ?? '';
+          return EditCustomExerciseScreen(exerciseId: exerciseId);
         },
       ),
       GoRoute(
