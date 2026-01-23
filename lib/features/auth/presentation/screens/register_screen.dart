@@ -54,7 +54,10 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
         context.go(RouteNames.exercises);
       }
     } catch (e) {
-      // El error ya se maneja en el provider y se muestra via el listener
+      // Mostrar error en UI
+      if (mounted) {
+        _showErrorSnackBar(e.toString());
+      }
     }
   }
 
@@ -82,6 +85,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
         content: Text(message),
         backgroundColor: AppColors.error,
         behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 4),
       ),
     );
   }

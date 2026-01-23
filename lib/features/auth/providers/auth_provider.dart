@@ -59,7 +59,11 @@ class AuthNotifier extends StateNotifier<AuthState> {
         if (user != null) {
           state = AuthState.authenticated(UserModel.fromFirebaseUser(user));
         } else {
-          state = AuthState.unauthenticated();
+          // Solo cambiar a unauthenticated si no estamos en estado de error
+          // para no sobrescribir mensajes de error de login/registro fallido
+          if (state.status != AuthStatus.error) {
+            state = AuthState.unauthenticated();
+          }
         }
       },
       onError: (error) {
@@ -223,9 +227,13 @@ class AuthNotifier extends StateNotifier<AuthState> {
   }
 
   /// Limpia el mensaje de error actual.
+  /// Tambien resetea el status a unauthenticated si estamos en estado de error.
   void clearError() {
-    if (state.errorMessage != null) {
-      state = state.copyWith(errorMessage: null);
+    if (state.errorMessage != null || state.status == AuthStatus.error) {
+      state = state.copyWith(
+        errorMessage: null,
+        status: state.user != null ? AuthStatus.authenticated : AuthStatus.unauthenticated,
+      );
     }
   }
 }
