@@ -11,12 +11,25 @@ import '../../features/auth/providers/auth_provider.dart';
 import '../../features/auth/providers/auth_state.dart';
 import '../../features/exercises/presentation/screens/exercises_screen.dart';
 import '../../features/exercises/presentation/screens/exercise_detail_screen.dart';
+import '../../features/exercises/presentation/screens/add_exercise_screen.dart';
+import '../../features/exercises/presentation/screens/custom_exercise_detail_screen.dart';
+import '../../features/exercises/presentation/screens/edit_custom_exercise_screen.dart';
 import '../../features/history/presentation/screens/history_screen.dart';
+
+/// Provider que indica si el estado de auth aun esta inicializando.
+/// Usado por el router para saber si debe esperar.
+final _isAuthInitializingProvider = Provider<bool>((ref) {
+  final status = ref.watch(authStateProvider.select((s) => s.status));
+  return status == AuthStatus.initial;
+});
 
 /// Provider del router principal de la aplicacion.
 /// Usa go_router para navegacion declarativa con proteccion de rutas.
 final appRouterProvider = Provider<GoRouter>((ref) {
-  final authState = ref.watch(authStateProvider);
+  // Solo observar autenticacion e inicializacion, NO errores
+  // Esto evita que el router se reconstruya cuando hay errores de login
+  final isAuthenticated = ref.watch(isAuthenticatedProvider);
+  final isInitializing = ref.watch(_isAuthInitializingProvider);
 
   return GoRouter(
     initialLocation: RouteNames.splash,
@@ -24,8 +37,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
 
     // Redirect basado en estado de autenticacion
     redirect: (context, state) {
-      final isAuthenticated = authState.isAuthenticated;
-      final isLoading = authState.status == AuthStatus.initial;
       final currentPath = state.matchedLocation;
 
       // Rutas de autenticacion
@@ -38,7 +49,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       final isOnSplash = currentPath == RouteNames.splash;
 
       // Si estamos cargando el estado inicial, quedarnos en splash
-      if (isLoading && isOnSplash) {
+      if (isInitializing && isOnSplash) {
         return null;
       }
 
@@ -93,6 +104,27 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) {
           final exerciseId = state.pathParameters['exerciseId'] ?? '';
           return ExerciseDetailScreen(exerciseId: exerciseId);
+        },
+      ),
+      GoRoute(
+        path: RouteNames.addExercise,
+        name: 'addExercise',
+        builder: (context, state) => const AddExerciseScreen(),
+      ),
+      GoRoute(
+        path: '${RouteNames.customExerciseDetail}/:exerciseId',
+        name: 'customExerciseDetail',
+        builder: (context, state) {
+          final exerciseId = state.pathParameters['exerciseId'] ?? '';
+          return CustomExerciseDetailScreen(exerciseId: exerciseId);
+        },
+      ),
+      GoRoute(
+        path: '${RouteNames.editCustomExercise}/:exerciseId',
+        name: 'editCustomExercise',
+        builder: (context, state) {
+          final exerciseId = state.pathParameters['exerciseId'] ?? '';
+          return EditCustomExerciseScreen(exerciseId: exerciseId);
         },
       ),
       GoRoute(

@@ -72,6 +72,9 @@ class AuthRepository {
     } on FirebaseAuthException catch (e) {
       AppLogger.warning('Error de Firebase Auth: ${e.code}', tag: _tag);
       throw _mapFirebaseAuthException(e);
+    } on FirebaseException catch (e) {
+      AppLogger.warning('Error de Firebase: ${e.code}', tag: _tag);
+      throw _mapFirebaseException(e);
     } catch (e) {
       AppLogger.error('Error inesperado en login', tag: _tag, error: e);
       throw AuthException('Ocurrio un error inesperado. Intenta de nuevo.');
@@ -114,8 +117,11 @@ class AuthRepository {
     } on FirebaseAuthException catch (e) {
       AppLogger.warning('Error de Firebase Auth al crear cuenta: ${e.code}', tag: _tag);
       throw _mapFirebaseAuthException(e);
+    } on FirebaseException catch (e) {
+      AppLogger.warning('Error de Firebase al crear cuenta: ${e.code}', tag: _tag);
+      throw _mapFirebaseException(e);
     } catch (e) {
-      AppLogger.error('Error inesperado creando cuenta', tag: _tag, error: e);
+      AppLogger.error('Error inesperado creando cuenta (${e.runtimeType}): $e', tag: _tag, error: e);
       throw AuthException('Ocurrio un error inesperado. Intenta de nuevo.');
     }
   }
@@ -205,8 +211,11 @@ class AuthRepository {
     } on FirebaseAuthException catch (e) {
       AppLogger.warning('Error enviando email de recuperacion: ${e.code}', tag: _tag);
       throw _mapFirebaseAuthException(e);
+    } on FirebaseException catch (e) {
+      AppLogger.warning('Error de Firebase enviando email: ${e.code}', tag: _tag);
+      throw _mapFirebaseException(e);
     } catch (e) {
-      AppLogger.error('Error inesperado enviando email de recuperacion', tag: _tag, error: e);
+      AppLogger.error('Error inesperado enviando email (${e.runtimeType}): $e', tag: _tag, error: e);
       throw AuthException('No se pudo enviar el email. Intenta de nuevo.');
     }
   }
@@ -241,6 +250,35 @@ class AuthRepository {
     } catch (e) {
       AppLogger.error('Error actualizando perfil', tag: _tag, error: e);
       throw AuthException('No se pudo actualizar el perfil. Intenta de nuevo.');
+    }
+  }
+
+  /// Mapea FirebaseException generica a AuthException.
+  AuthException _mapFirebaseException(FirebaseException e) {
+    // Intentar mapear usando el código si está disponible
+    final code = e.code;
+    switch (code) {
+      case 'user-not-found':
+        return AuthException('No existe una cuenta con este email', code: code);
+      case 'wrong-password':
+        return AuthException('Contrasena incorrecta', code: code);
+      case 'invalid-credential':
+        return AuthException('Email o contrasena incorrectos', code: code);
+      case 'user-disabled':
+        return AuthException('Esta cuenta ha sido deshabilitada', code: code);
+      case 'too-many-requests':
+        return AuthException('Demasiados intentos fallidos. Intenta mas tarde', code: code);
+      case 'email-already-in-use':
+        return AuthException('Ya existe una cuenta con este email', code: code);
+      case 'weak-password':
+        return AuthException('La contrasena es muy debil. Usa al menos 6 caracteres', code: code);
+      case 'invalid-email':
+        return AuthException('El formato del email no es valido', code: code);
+      case 'network-request-failed':
+        return AuthException('Error de conexion. Verifica tu internet', code: code);
+      default:
+        AppLogger.warning('Codigo de FirebaseException no mapeado: $code', tag: _tag);
+        return AuthException(e.message ?? 'Ocurrio un error. Intenta de nuevo', code: code);
     }
   }
 

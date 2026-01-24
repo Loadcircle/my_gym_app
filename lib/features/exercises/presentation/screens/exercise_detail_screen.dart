@@ -33,6 +33,7 @@ class _ExerciseDetailScreenState extends ConsumerState<ExerciseDetailScreen> {
   final _repsController = TextEditingController(text: '10');
   bool _isSaving = false;
   bool _hasPrefilledWeight = false;
+  bool _detailsExpanded = false;
 
   @override
   void dispose() {
@@ -108,6 +109,7 @@ class _ExerciseDetailScreenState extends ConsumerState<ExerciseDetailScreen> {
     }
   }
 
+  // Centralizar muscle groups desde firebase y app config
   Color _getMuscleGroupColor(String muscleGroup) {
     switch (muscleGroup) {
       case 'Pecho':
@@ -195,7 +197,7 @@ class _ExerciseDetailScreenState extends ConsumerState<ExerciseDetailScreen> {
         slivers: [
           // App Bar con imagen
           SliverAppBar(
-            expandedHeight: 250,
+            expandedHeight: 180,
             pinned: true,
             backgroundColor: AppColors.background,
             flexibleSpace: FlexibleSpaceBar(
@@ -229,7 +231,7 @@ class _ExerciseDetailScreenState extends ConsumerState<ExerciseDetailScreen> {
                       vertical: 4,
                     ),
                     decoration: BoxDecoration(
-                      color: muscleColor.withOpacity(0.2),
+                      color: muscleColor.withAlpha(51),
                       borderRadius: BorderRadius.circular(16),
                     ),
                     child: Text(
@@ -240,83 +242,99 @@ class _ExerciseDetailScreenState extends ConsumerState<ExerciseDetailScreen> {
                           ),
                     ),
                   ),
-                  const SizedBox(height: 24),
 
-                  // Ultimo peso registrado
-                  lastRecordAsync.when(
-                    loading: () => const SizedBox.shrink(),
-                    error: (_, __) => const SizedBox.shrink(),
-                    data: (lastRecord) => lastRecord != null
-                        ? _buildLastWeightCard(lastRecord)
-                        : const SizedBox.shrink(),
-                  ),
-
-                  // Descripcion
-                  if (exercise.description.isNotEmpty) ...[
-                    Text(
-                      exercise.description,
-                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                            color: AppColors.textSecondary,
-                          ),
-                    ),
-                    const SizedBox(height: 24),
-                  ],
-
-                  // Video del ejercicio
-                  if (mediaHelper.shouldShowVideo(exercise.videoUrl))
-                    StorageVideoPlayer(
-                      path: mediaHelper.getVideoPath(exercise.videoUrl),
-                      height: 200,
-                      showControls: true,
-                    ),
-                  if (mediaHelper.shouldShowVideo(exercise.videoUrl))
-                    const SizedBox(height: 24),
-
-                  // Instrucciones
-                  if (instructions.isNotEmpty) ...[
-                    Text(
-                      'Instrucciones',
-                      style: Theme.of(context).textTheme.titleLarge,
-                    ),
-                    const SizedBox(height: 12),
-                    ...instructions.asMap().entries.map((entry) {
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 12),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Container(
-                              width: 24,
-                              height: 24,
-                              decoration: const BoxDecoration(
-                                color: AppColors.primary,
-                                shape: BoxShape.circle,
-                              ),
-                              child: Center(
-                                child: Text(
-                                  '${entry.key + 1}',
-                                  style: const TextStyle(
-                                    color: AppColors.textPrimary,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 12,
-                                  ),
+                  // --- Detalles ocultos por defecto (descripcion + video + instrucciones) ---
+                  Theme(
+                    data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+                    child: ExpansionTile(
+                      initiallyExpanded: _detailsExpanded,
+                      tilePadding: EdgeInsets.zero,
+                      childrenPadding: const EdgeInsets.only(top: 12),
+                      onExpansionChanged: (expanded) {
+                        setState(() => _detailsExpanded = expanded);
+                      },
+                      title: Text(
+                        _detailsExpanded ? 'Ocultar detalles del ejercicio' : 'Ver detalles del ejercicio',
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                      subtitle: Text(
+                        _detailsExpanded
+                            ? 'Toca para ocultar'
+                            : 'Descripción, video e instrucciones',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: AppColors.textSecondary,
+                            ),
+                      ),
+                      children: [                        
+                        // Descripcion
+                        if (exercise.description.isNotEmpty) ...[
+                          Text(
+                            exercise.description,
+                            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                                  color: AppColors.textSecondary,
                                 ),
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Text(
-                                entry.value,
-                                style: Theme.of(context).textTheme.bodyMedium,
-                              ),
-                            ),
-                          ],
-                        ),
-                      );
-                    }),
-                    const SizedBox(height: 32),
-                  ],
+                          ),
+                          const SizedBox(height: 24),
+                        ],
 
+                        // Video del ejercicio
+                        if (mediaHelper.shouldShowVideo(exercise.videoUrl))
+                          StorageVideoPlayer(
+                            path: mediaHelper.getVideoPath(exercise.videoUrl),
+                            height: 200,
+                            showControls: true,
+                          ),
+                        if (mediaHelper.shouldShowVideo(exercise.videoUrl))
+                          const SizedBox(height: 24),
+
+                        // Instrucciones
+                        if (instructions.isNotEmpty) ...[
+                          Text(
+                            'Instrucciones',
+                            style: Theme.of(context).textTheme.titleLarge,
+                          ),
+                          const SizedBox(height: 12),
+                          ...instructions.asMap().entries.map((entry) {
+                            return Padding(
+                              padding: const EdgeInsets.only(bottom: 12),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Container(
+                                    width: 24,
+                                    height: 24,
+                                    decoration: const BoxDecoration(
+                                      color: AppColors.primary,
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: Center(
+                                      child: Text(
+                                        '${entry.key + 1}',
+                                        style: const TextStyle(
+                                          color: AppColors.textPrimary,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Text(
+                                      entry.value,
+                                      style: Theme.of(context).textTheme.bodyMedium,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+                          }),
+                          const SizedBox(height: 16),
+                        ],
+                      ],
+                    ),
+                  ),
+                  
                   // Registro de peso
                   _buildWeightInputCard(),
                   const SizedBox(height: 24),
@@ -324,7 +342,7 @@ class _ExerciseDetailScreenState extends ConsumerState<ExerciseDetailScreen> {
                   // Historial reciente
                   historyAsync.when(
                     loading: () => const SizedBox.shrink(),
-                    error: (_, __) => const SizedBox.shrink(),
+                    error: (_, _) => const SizedBox.shrink(),
                     data: (history) => history.isNotEmpty
                         ? _buildRecentHistory(history.take(5).toList())
                         : const SizedBox.shrink(),
@@ -333,7 +351,7 @@ class _ExerciseDetailScreenState extends ConsumerState<ExerciseDetailScreen> {
                   // Grafico de evolucion (si hay suficiente historial)
                   historyAsync.when(
                     loading: () => const SizedBox.shrink(),
-                    error: (_, __) => const SizedBox.shrink(),
+                    error: (_, _) => const SizedBox.shrink(),
                     data: (history) => history.length >= 2
                         ? Padding(
                             padding: const EdgeInsets.only(top: 24),
@@ -360,51 +378,6 @@ class _ExerciseDetailScreenState extends ConsumerState<ExerciseDetailScreen> {
           size: 80,
           color: AppColors.primary,
         ),
-      ),
-    );
-  }
-
-  Widget _buildLastWeightCard(WeightRecordModel lastRecord) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 24),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.primary.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(AppConstants.cardBorderRadius),
-        border: Border.all(color: AppColors.primary.withOpacity(0.3)),
-      ),
-      child: Row(
-        children: [
-          const Icon(Icons.history, color: AppColors.primary),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Ultimo registro',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: AppColors.textSecondary,
-                      ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  '${lastRecord.weight} kg x ${lastRecord.sets} series x ${lastRecord.reps} reps',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        color: AppColors.primary,
-                        fontWeight: FontWeight.bold,
-                      ),
-                ),
-              ],
-            ),
-          ),
-          Text(
-            _formatDate(lastRecord.date),
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: AppColors.textHint,
-                ),
-          ),
-        ],
       ),
     );
   }

@@ -10,5 +10,8 @@ abstract class RouteNames {
   // Main
   static const String exercises = '/exercises';
   static const String exerciseDetail = '/exercise';
+  static const String addExercise = '/add-exercise';
+  static const String customExerciseDetail = '/custom-exercise';
+  static const String editCustomExercise = '/edit-custom-exercise';
   static const String history = '/history';
 }
