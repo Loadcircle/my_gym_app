@@ -34,27 +34,51 @@ class RoutineCompletionHistoryItem extends HistoryItem {
   DateTime get date => completion.completedAt;
 }
 
-/// Provider combinado que une weight records y routine completions.
-final combinedHistoryProvider = FutureProvider<List<HistoryItem>>((ref) async {
-  final weightRecordsAsync = await ref.watch(allHistoryProvider.future);
-  final completionsAsync = await ref.watch(routineCompletionsProvider.future);
+/// Provider combinado que une weight records y routine completions (reactivo con streams).
+/// Se actualiza automáticamente cuando se agregan nuevos registros.
+final combinedHistoryProvider = Provider<AsyncValue<List<HistoryItem>>>((ref) {
+  final weightRecordsAsync = ref.watch(historyStreamProvider);
+  final completionsAsync = ref.watch(routineCompletionsStreamProvider);
+
+  // Si alguno está cargando, mostrar loading
+  if (weightRecordsAsync.isLoading || completionsAsync.isLoading) {
+    return const AsyncValue.loading();
+  }
+
+  // Si alguno tiene error, mostrar el primer error
+  if (weightRecordsAsync.hasError) {
+    return AsyncValue.error(
+      weightRecordsAsync.error!,
+      weightRecordsAsync.stackTrace!,
+    );
+  }
+  if (completionsAsync.hasError) {
+    return AsyncValue.error(
+      completionsAsync.error!,
+      completionsAsync.stackTrace!,
+    );
+  }
+
+  // Ambos tienen datos
+  final weightRecords = weightRecordsAsync.value ?? [];
+  final completions = completionsAsync.value ?? [];
 
   final items = <HistoryItem>[];
 
   // Agregar weight records
-  for (final record in weightRecordsAsync) {
+  for (final record in weightRecords) {
     items.add(WeightRecordHistoryItem(record));
   }
 
   // Agregar routine completions
-  for (final completion in completionsAsync) {
+  for (final completion in completions) {
     items.add(RoutineCompletionHistoryItem(completion));
   }
 
   // Ordenar por fecha descendente
   items.sort((a, b) => b.date.compareTo(a.date));
 
-  return items;
+  return AsyncValue.data(items);
 });
 
 /// Pantalla de historial de entrenamientos.
