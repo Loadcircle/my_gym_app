@@ -110,4 +110,44 @@ class WeightRecordsDao extends DatabaseAccessor<AppDatabase>
   Future<int> deleteAllRecordsForUser(String userId) {
     return (delete(weightRecords)..where((r) => r.userId.equals(userId))).go();
   }
+
+  /// Obtiene registros en un rango de fechas para un usuario.
+  Future<List<WeightRecord>> getRecordsByDateRange(
+    String userId,
+    DateTime startDate,
+    DateTime endDate,
+  ) {
+    return (select(weightRecords)
+          ..where((r) =>
+              r.userId.equals(userId) &
+              r.date.isBiggerOrEqualValue(startDate) &
+              r.date.isSmallerOrEqualValue(endDate))
+          ..orderBy([(r) => OrderingTerm.desc(r.date)]))
+        .get();
+  }
+
+  /// Observa registros en un rango de fechas para un usuario.
+  Stream<List<WeightRecord>> watchRecordsByDateRange(
+    String userId,
+    DateTime startDate,
+    DateTime endDate,
+  ) {
+    return (select(weightRecords)
+          ..where((r) =>
+              r.userId.equals(userId) &
+              r.date.isBiggerOrEqualValue(startDate) &
+              r.date.isSmallerOrEqualValue(endDate))
+          ..orderBy([(r) => OrderingTerm.desc(r.date)]))
+        .watch();
+  }
+
+  /// Obtiene los IDs de ejercicios únicos que tienen registros en un rango de fechas.
+  Future<Set<String>> getExerciseIdsWithRecordsInDateRange(
+    String userId,
+    DateTime startDate,
+    DateTime endDate,
+  ) async {
+    final records = await getRecordsByDateRange(userId, startDate, endDate);
+    return records.map((r) => r.exerciseId).toSet();
+  }
 }

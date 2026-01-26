@@ -15,6 +15,12 @@ import '../../features/exercises/presentation/screens/add_exercise_screen.dart';
 import '../../features/exercises/presentation/screens/custom_exercise_detail_screen.dart';
 import '../../features/exercises/presentation/screens/edit_custom_exercise_screen.dart';
 import '../../features/history/presentation/screens/history_screen.dart';
+import '../../features/routines/presentation/screens/routines_screen.dart';
+import '../../features/routines/presentation/screens/create_routine_screen.dart'
+    show CreateRoutineScreen, InitialExerciseData;
+import '../../features/routines/presentation/screens/routine_detail_screen.dart';
+import '../../features/routines/presentation/screens/add_exercises_to_routine_screen.dart';
+import '../../shared/widgets/main_shell.dart';
 
 /// Provider que indica si el estado de auth aun esta inicializando.
 /// Usado por el router para saber si debe esperar.
@@ -22,6 +28,11 @@ final _isAuthInitializingProvider = Provider<bool>((ref) {
   final status = ref.watch(authStateProvider.select((s) => s.status));
   return status == AuthStatus.initial;
 });
+
+/// Keys para las ramas de navegación.
+final _rootNavigatorKey = GlobalKey<NavigatorState>();
+final _shellNavigatorKeyExercises = GlobalKey<NavigatorState>(debugLabel: 'exercises');
+final _shellNavigatorKeyRoutines = GlobalKey<NavigatorState>(debugLabel: 'routines');
 
 /// Provider del router principal de la aplicacion.
 /// Usa go_router para navegacion declarativa con proteccion de rutas.
@@ -32,6 +43,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
   final isInitializing = ref.watch(_isAuthInitializingProvider);
 
   return GoRouter(
+    navigatorKey: _rootNavigatorKey,
     initialLocation: RouteNames.splash,
     debugLogDiagnostics: true,
 
@@ -92,15 +104,43 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const ForgotPasswordScreen(),
       ),
 
-      // Main App Routes (protegidas)
-      GoRoute(
-        path: RouteNames.exercises,
-        name: 'exercises',
-        builder: (context, state) => const ExercisesScreen(),
+      // Main App Shell con Bottom Navigation
+      StatefulShellRoute.indexedStack(
+        builder: (context, state, navigationShell) {
+          return MainShell(navigationShell: navigationShell);
+        },
+        branches: [
+          // Branch 0: Ejercicios
+          StatefulShellBranch(
+            navigatorKey: _shellNavigatorKeyExercises,
+            routes: [
+              GoRoute(
+                path: RouteNames.exercises,
+                name: 'exercises',
+                builder: (context, state) => const ExercisesScreen(),
+              ),
+            ],
+          ),
+
+          // Branch 1: Rutinas
+          StatefulShellBranch(
+            navigatorKey: _shellNavigatorKeyRoutines,
+            routes: [
+              GoRoute(
+                path: RouteNames.routines,
+                name: 'routines',
+                builder: (context, state) => const RoutinesScreen(),
+              ),
+            ],
+          ),
+        ],
       ),
+
+      // Rutas fuera del shell (no muestran bottom nav)
       GoRoute(
         path: '${RouteNames.exerciseDetail}/:exerciseId',
         name: 'exerciseDetail',
+        parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) {
           final exerciseId = state.pathParameters['exerciseId'] ?? '';
           return ExerciseDetailScreen(exerciseId: exerciseId);
@@ -109,11 +149,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: RouteNames.addExercise,
         name: 'addExercise',
+        parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) => const AddExerciseScreen(),
       ),
       GoRoute(
         path: '${RouteNames.customExerciseDetail}/:exerciseId',
         name: 'customExerciseDetail',
+        parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) {
           final exerciseId = state.pathParameters['exerciseId'] ?? '';
           return CustomExerciseDetailScreen(exerciseId: exerciseId);
@@ -122,6 +164,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '${RouteNames.editCustomExercise}/:exerciseId',
         name: 'editCustomExercise',
+        parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) {
           final exerciseId = state.pathParameters['exerciseId'] ?? '';
           return EditCustomExerciseScreen(exerciseId: exerciseId);
@@ -130,7 +173,38 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: RouteNames.history,
         name: 'history',
+        parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) => const HistoryScreen(),
+      ),
+
+      // Rutas de Rutinas (fuera del shell)
+      GoRoute(
+        path: RouteNames.createRoutine,
+        name: 'createRoutine',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) {
+          // Obtener ejercicio inicial si viene como extra
+          final initialExercise = state.extra as InitialExerciseData?;
+          return CreateRoutineScreen(initialExercise: initialExercise);
+        },
+      ),
+      GoRoute(
+        path: '${RouteNames.routineDetail}/:routineId',
+        name: 'routineDetail',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) {
+          final routineId = state.pathParameters['routineId'] ?? '';
+          return RoutineDetailScreen(routineId: routineId);
+        },
+      ),
+      GoRoute(
+        path: '/routine/:routineId/add-exercises',
+        name: 'addExercisesToRoutine',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) {
+          final routineId = state.pathParameters['routineId'] ?? '';
+          return AddExercisesToRoutineScreen(routineId: routineId);
+        },
       ),
     ],
 

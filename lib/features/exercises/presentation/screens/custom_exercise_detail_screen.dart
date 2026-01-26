@@ -8,6 +8,7 @@ import '../../../../core/constants/app_constants.dart';
 import '../../../../core/router/route_names.dart';
 import '../../../../core/config/providers/app_config_provider.dart';
 import '../../../../shared/widgets/weight_progress_chart.dart';
+import '../../../routines/presentation/widgets/select_routine_sheet.dart';
 import '../../data/models/custom_exercise_model.dart';
 import '../../data/models/weight_record_model.dart';
 import '../../providers/custom_exercises_provider.dart';
@@ -159,6 +160,16 @@ class _CustomExerciseDetailScreenState
         );
       }
     }
+  }
+
+  void _showAddToRoutineSheet(CustomExerciseModel exercise) {
+    SelectRoutineSheet.show(
+      context,
+      exerciseId: exercise.id,
+      exerciseName: exercise.name,
+      muscleGroup: exercise.muscleGroup,
+      isCustomExercise: true,
+    );
   }
 
   Color _getMuscleGroupColor(String muscleGroup) {
@@ -334,22 +345,37 @@ class _CustomExerciseDetailScreenState
                     style: Theme.of(context).textTheme.headlineSmall,
                   ),
                   const SizedBox(height: 8),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: muscleColor.withAlpha(51),
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: Text(
-                      exercise.muscleGroup,
-                      style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                            color: muscleColor,
-                            fontWeight: FontWeight.w600,
-                          ),
-                    ),
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: muscleColor.withAlpha(51),
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Text(
+                          exercise.muscleGroup,
+                          style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                                color: muscleColor,
+                                fontWeight: FontWeight.w600,
+                              ),
+                        ),
+                      ),
+                      const Spacer(),
+                      // Botón agregar a rutina
+                      TextButton.icon(
+                        onPressed: () => _showAddToRoutineSheet(exercise),
+                        icon: const Icon(Icons.playlist_add, size: 20),
+                        label: const Text('Rutina'),
+                        style: TextButton.styleFrom(
+                          foregroundColor: AppColors.primary,
+                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                        ),
+                      ),
+                    ],
                   ),
 
                   // Notas personales (si hay)

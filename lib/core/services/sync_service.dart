@@ -127,6 +127,9 @@ class SyncService {
       case 'customExercise':
         await _syncCustomExercise(op.entityId, operation, op.payload);
         break;
+      case 'routineCompletion':
+        await _syncRoutineCompletion(op.entityId, operation, op.payload);
+        break;
       default:
         AppLogger.warning(
           'Tipo de entidad desconocido: ${op.entityType}',
@@ -241,6 +244,63 @@ class SyncService {
 
         await collection.doc(entityId).update(firestoreData);
         await _db.customExercisesDao.markAsSynced(entityId);
+        break;
+
+      case SyncOperation.delete:
+        await collection.doc(entityId).delete();
+        break;
+    }
+  }
+
+  Future<void> _syncRoutineCompletion(
+    String entityId,
+    SyncOperation operation,
+    String? payload,
+  ) async {
+    if (payload == null && operation != SyncOperation.delete) return;
+
+    final data = payload != null
+        ? jsonDecode(payload) as Map<String, dynamic>
+        : <String, dynamic>{};
+    final userId = data['userId'] as String?;
+
+    if (userId == null) {
+      AppLogger.warning(
+        'UserId no encontrado para sincronizar routineCompletion: $entityId',
+        tag: 'Sync',
+      );
+      return;
+    }
+
+    final collection = _firestore
+        .collection('users')
+        .doc(userId)
+        .collection('routineCompletions');
+
+    switch (operation) {
+      case SyncOperation.create:
+        // Convertir date strings a Timestamps
+        final firestoreData = Map<String, dynamic>.from(data);
+
+        if (firestoreData['completedAt'] != null &&
+            firestoreData['completedAt'] is String) {
+          firestoreData['completedAt'] =
+              Timestamp.fromDate(DateTime.parse(firestoreData['completedAt']));
+        }
+
+        // Crear en Firestore y obtener el ID real
+        final docRef = await collection.add(firestoreData);
+
+        // Actualizar el registro local con el ID de Firestore
+        await _db.routineCompletionsDao.markAsSynced(entityId, firestoreId: docRef.id);
+        break;
+
+      case SyncOperation.update:
+        // Routine completions son inmutables, no deberia llegar aqui
+        AppLogger.warning(
+          'Intento de actualizar routineCompletion, operacion ignorada',
+          tag: 'Sync',
+        );
         break;
 
       case SyncOperation.delete:

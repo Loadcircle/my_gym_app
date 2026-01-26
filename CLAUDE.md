@@ -6,7 +6,7 @@ App móvil de gimnasio para registrar pesos por ejercicio/máquina y ver guías 
 
 ## Estado del Proyecto
 
-**MVP: ~95% Completo**
+**MVP: ~98% Completo**
 
 | Fase | Estado | Descripción |
 |------|--------|-------------|
@@ -15,17 +15,141 @@ App móvil de gimnasio para registrar pesos por ejercicio/máquina y ver guías 
 | Fase 3: Ejercicios | ✅ Completa | Lista, detalle, filtros, registro de peso |
 | Fase 3.1: Offline + Media | ✅ Completa | Drift cache, sync queue, video player |
 | Fase 3.2: Ejercicios Custom | ✅ Completa | CRUD ejercicios personalizados, subida imágenes |
+| Fase 3.3: Rutinas | ✅ Completa | CRUD rutinas, agregar/quitar ejercicios |
+| Fase 3.4: Routine Completions | ✅ Completa | Progreso de rutinas, auto-completado, historial |
 | Fase 4: Pulido | ⏳ Pendiente | Tests, optimizaciones, deploy |
 
 ## Flow Principal (MVP)
 
 ```
-Splash → Login/Register → Lista ejercicios (filtro por músculo) → Detalle ejercicio → Registrar peso → Historial
-                                    ↓
-                         FAB (+) → Crear ejercicio custom → Lista actualizada
-                                    ↓
-                         Detalle custom → Editar/Eliminar → Lista actualizada
+Splash → Login/Register → Bottom Navigation (2 tabs)
+                                    │
+                    ┌───────────────┴───────────────┐
+                    ▼                               ▼
+            Tab: Ejercicios                  Tab: Rutinas
+                    │                               │
+    Lista ejercicios (filtro)              Lista rutinas
+                    │                               │
+           ┌───────┴───────┐               ┌───────┴───────┐
+           ▼               ▼               ▼               ▼
+    Detalle global   Detalle custom   Crear rutina   Detalle rutina
+           │               │               │               │
+    Registrar peso   Editar/Eliminar      │        Agregar ejercicios
+           │                               │               │
+         Botón "Agregar a Rutina" ─────────┼───────────────┘
+                                           ▼
+                              Quitar ejercicio (swipe)
 ```
+
+## Flujo de Rutinas (Detalle)
+
+### Descripción
+Las rutinas permiten al usuario organizar ejercicios en grupos personalizados para facilitar sus entrenamientos. Cada rutina puede contener ejercicios globales y/o personalizados.
+
+### Pantallas
+
+| Pantalla | Archivo | Descripción |
+|----------|---------|-------------|
+| Lista de Rutinas | `routines_screen.dart` | Tab principal, muestra todas las rutinas del usuario |
+| Crear Rutina | `create_routine_screen.dart` | Formulario para crear nueva rutina |
+| Detalle de Rutina | `routine_detail_screen.dart` | Muestra ejercicios de la rutina, permite quitar |
+| Agregar Ejercicios | `add_exercises_to_routine_screen.dart` | Multi-select de ejercicios para agregar |
+| Selector de Rutina | `select_routine_sheet.dart` | Bottom sheet para agregar desde detalle ejercicio |
+
+### Flujos de Usuario
+
+#### Crear Rutina
+```
+Tab Rutinas → FAB (+) → CreateRoutineScreen
+    ↓
+Ingresar nombre → Validar (min 1 char)
+    ↓
+Crear en Drift + Firestore → Navegar a RoutineDetailScreen
+```
+
+#### Agregar Ejercicios (desde Rutina)
+```
+RoutineDetailScreen → FAB "Agregar" → AddExercisesToRoutineScreen
+    ↓
+Filtrar por músculo → Seleccionar ejercicios (checkbox)
+    ↓
+Ejercicios ya agregados aparecen deshabilitados con ✓
+    ↓
+Botón "Agregar (N)" → Guardar items → Volver a detalle
+```
+
+#### Agregar Ejercicio (desde Detalle de Ejercicio)
+```
+ExerciseDetailScreen / CustomExerciseDetailScreen
+    ↓
+Botón "Rutina" → SelectRoutineSheet (bottom sheet)
+    ↓
+Lista de rutinas existentes + "Crear nueva"
+    ↓
+Tap en rutina → Agregar item → SnackBar "Agregado a {rutina} ✓"
+```
+
+#### Quitar Ejercicio
+```
+RoutineDetailScreen → Swipe left en ejercicio
+    ↓
+Aparece fondo rojo con icono delete
+    ↓
+Confirmar swipe → Eliminar item + actualizar contador
+```
+
+#### Renombrar/Eliminar Rutina
+```
+RoutineDetailScreen → Menú (⋮) → Renombrar / Eliminar
+    ↓
+Diálogo de confirmación → Ejecutar acción
+```
+
+### Modelo de Datos
+
+#### Firestore Structure
+```
+users/{uid}/routines/{routineId}
+├── name: "Mi Rutina"
+├── exerciseCount: 5
+├── createdAt: timestamp
+├── updatedAt: timestamp
+└── /items/{itemId}
+    ├── exerciseRefType: "global" | "custom"
+    ├── exerciseId: "abc123"
+    ├── exerciseNameSnapshot: "Press Banca"
+    ├── muscleGroupSnapshot: "Pecho"
+    ├── addedAt: timestamp
+    └── order: 0
+```
+
+#### Snapshots
+Se guardan snapshots de `exerciseName` y `muscleGroup` en cada item para:
+- Evitar joins/queries adicionales al mostrar la lista
+- Mantener el nombre histórico si el ejercicio se renombra
+- Funcionar offline sin cargar todos los ejercicios
+
+### Validaciones (Firestore Rules)
+
+| Campo | Validación |
+|-------|------------|
+| `name` | String, no vacío |
+| `exerciseCount` | Number >= 0 |
+| `userId` | Debe coincidir con auth.uid |
+| `exerciseRefType` | Debe ser 'global' o 'custom' |
+| `order` | Number >= 0 |
+
+### Consideraciones Técnicas
+
+1. **Contador Denormalizado**: `exerciseCount` se mantiene en la rutina para mostrar "X ejercicios" sin query adicional
+
+2. **Prevención de Duplicados**: Antes de agregar, se verifica si el ejercicio ya existe en la rutina (mismo `exerciseId` + `exerciseRefType`)
+
+3. **Orden de Items**: Cada item tiene un `order` numérico para futuro reordenamiento (drag & drop)
+
+4. **Offline-First**: Todas las operaciones se guardan primero en Drift, luego se sincronizan con Firestore
+
+5. **Bottom Navigation**: Se usa `StatefulShellRoute` para preservar el estado de cada tab al cambiar
 
 ## Stack Tecnológico
 
@@ -88,16 +212,21 @@ lib/
 │   │   │   ├── exercises_table.dart       # Tabla de ejercicios globales
 │   │   │   ├── custom_exercises_table.dart # Tabla de ejercicios personalizados
 │   │   │   ├── weight_records_table.dart  # Tabla de registros
+│   │   │   ├── routines_table.dart        # Tabla de rutinas
+│   │   │   ├── routine_items_table.dart   # Tabla de items de rutina
 │   │   │   └── sync_queue_table.dart      # Cola de sincronización
 │   │   └── daos/
 │   │       ├── exercises_dao.dart         # DAO ejercicios globales
 │   │       ├── custom_exercises_dao.dart  # DAO ejercicios personalizados
 │   │       ├── weight_records_dao.dart    # DAO registros
+│   │       ├── routines_dao.dart          # DAO rutinas
+│   │       ├── routine_items_dao.dart     # DAO items de rutina
 │   │       └── sync_queue_dao.dart        # DAO cola sync
 │   └── repositories/
 │       ├── offline_exercises_repository.dart        # Repo offline-first ejercicios
 │       ├── offline_custom_exercises_repository.dart # Repo offline-first custom
-│       └── offline_weight_records_repository.dart   # Repo offline-first registros
+│       ├── offline_weight_records_repository.dart   # Repo offline-first registros
+│       └── offline_routines_repository.dart         # Repo offline-first rutinas
 ├── features/
 │   ├── auth/
 │   │   ├── data/
@@ -132,10 +261,29 @@ lib/
 │   │       ├── exercises_provider.dart        # Providers ejercicios globales
 │   │       ├── custom_exercises_provider.dart # Providers ejercicios custom
 │   │       └── weight_records_provider.dart   # Providers de registros
+│   ├── routines/
+│   │   ├── data/
+│   │   │   ├── models/
+│   │   │   │   ├── routine_model.dart         # Modelo rutina (Freezed)
+│   │   │   │   └── routine_item_model.dart    # Modelo item de rutina (Freezed)
+│   │   │   └── repositories/
+│   │   │       ├── routines_repository.dart       # Repo Firestore directo
+│   │   │       └── routine_items_repository.dart  # Repo items Firestore
+│   │   ├── presentation/
+│   │   │   ├── screens/
+│   │   │   │   ├── routines_screen.dart              # Lista de rutinas
+│   │   │   │   ├── create_routine_screen.dart        # Crear rutina
+│   │   │   │   ├── routine_detail_screen.dart        # Detalle con ejercicios
+│   │   │   │   └── add_exercises_to_routine_screen.dart # Agregar ejercicios
+│   │   │   └── widgets/
+│   │   │       └── select_routine_sheet.dart     # Bottom sheet selección
+│   │   └── providers/
+│   │       └── routines_provider.dart        # Providers de rutinas
 │   └── history/
 │       └── presentation/screens/
 │           └── history_screen.dart        # Historial agrupado por fecha
 └── shared/widgets/
+    ├── main_shell.dart                    # Bottom navigation shell
     ├── loading_indicator.dart             # Indicador de carga
     ├── error_view.dart                    # Vista de error con retry
     ├── empty_state.dart                   # Vista estado vacío
@@ -203,6 +351,46 @@ lib/
 | updatedAt      | DateTime       | Fecha de última modificación          |
 ```
 
+### RoutineModel (Freezed)
+```dart
+| Campo          | Tipo     | Descripción                        |
+|----------------|----------|-----------------------------------|
+| id             | String   | ID documento Firestore             |
+| userId         | String   | UID del usuario propietario        |
+| name           | String   | Nombre de la rutina                |
+| exerciseCount  | int      | Cantidad de ejercicios (denormalizado) |
+| createdAt      | DateTime | Fecha de creación                  |
+| updatedAt      | DateTime | Fecha de última modificación       |
+```
+
+### RoutineItemModel (Freezed)
+```dart
+| Campo                 | Tipo            | Descripción                    |
+|-----------------------|-----------------|--------------------------------|
+| id                    | String          | ID documento Firestore         |
+| routineId             | String          | ID de la rutina padre          |
+| exerciseRefType       | ExerciseRefType | Tipo: global o custom          |
+| exerciseId            | String          | ID del ejercicio referenciado  |
+| exerciseNameSnapshot  | String          | Snapshot nombre del ejercicio  |
+| muscleGroupSnapshot   | String          | Snapshot grupo muscular        |
+| addedAt               | DateTime        | Fecha en que se agregó         |
+| order                 | int             | Orden dentro de la rutina      |
+```
+
+### RoutineCompletionModel (Freezed)
+```dart
+| Campo                   | Tipo           | Descripción                         |
+|-------------------------|----------------|-------------------------------------|
+| id                      | String         | ID documento Firestore              |
+| routineId               | String         | ID de la rutina completada          |
+| userId                  | String         | ID del usuario                      |
+| routineNameSnapshot     | String         | Snapshot nombre de la rutina        |
+| exerciseCountSnapshot   | int            | Total ejercicios al completar       |
+| exercisesCompletedCount | int            | Ejercicios con weight record        |
+| completedAt             | DateTime       | Fecha/hora de completado            |
+| completionType          | CompletionType | auto (100%) o manual (botón)        |
+```
+
 ## Base de Datos Local (Drift)
 
 ### Tablas
@@ -212,6 +400,9 @@ lib/
 | `Exercises` | Cache de ejercicios globales de Firestore |
 | `CustomExercises` | Ejercicios personalizados del usuario |
 | `WeightRecords` | Registros de peso con flag `isSynced` |
+| `Routines` | Rutinas del usuario con contador ejercicios |
+| `RoutineItems` | Items de rutina (relación rutina-ejercicio) |
+| `RoutineCompletions` | Registros de rutinas completadas |
 | `SyncQueue` | Cola de operaciones pendientes de sync |
 
 ### Patrón Offline-First
@@ -268,6 +459,30 @@ ESCRITURA:
 | `weightRecordNotifierProvider` | StateNotifierProvider | Para guardar registros |
 | `offlineWeightRecordsRepositoryProvider` | Provider | Repo offline-first |
 
+### Routines
+| Provider | Tipo | Descripción |
+|----------|------|-------------|
+| `routinesProvider` | FutureProvider | Todas las rutinas del usuario |
+| `routineByIdProvider` | FutureProvider.family | Rutina por ID |
+| `routineItemsProvider` | FutureProvider.family | Items de una rutina |
+| `routinesStreamProvider` | StreamProvider | Stream de rutinas en tiempo real |
+| `routineItemsStreamProvider` | StreamProvider.family | Stream de items en tiempo real |
+| `routineNotifierProvider` | StateNotifierProvider | CRUD de rutinas |
+| `routineItemsNotifierProvider` | StateNotifierProvider | Agregar/quitar items |
+| `offlineRoutinesRepositoryProvider` | Provider | Repo offline-first |
+
+### Routine Completions
+| Provider | Tipo | Descripción |
+|----------|------|-------------|
+| `todayWeightRecordsProvider` | StreamProvider | Records de peso de hoy |
+| `todayCompletedExerciseIdsProvider` | Provider | Set de IDs de ejercicios completados hoy |
+| `routineCompletionStatusProvider` | Provider.family | Estado de progreso de rutina (%, completedIds) |
+| `todayRoutineCompletionProvider` | FutureProvider.family | Completion de hoy para una rutina |
+| `routineCompletionsProvider` | FutureProvider | Todos los registros de completado |
+| `routineCompletionsStreamProvider` | StreamProvider | Stream de completados en tiempo real |
+| `routineCompletionNotifierProvider` | StateNotifierProvider | Crear registros de completado |
+| `offlineRoutineCompletionsRepositoryProvider` | Provider | Repo offline-first |
+
 ### Core
 | Provider | Tipo | Descripción |
 |----------|------|-------------|
@@ -293,10 +508,14 @@ ESCRITURA:
 | login | `/login` | No |
 | register | `/register` | No |
 | forgotPassword | `/forgot-password` | No |
-| exercises | `/exercises` | Sí |
+| exercises | `/exercises` | Sí (Tab 0) |
 | exerciseDetail | `/exercise/:exerciseId` | Sí |
 | customExerciseDetail | `/custom-exercise/:exerciseId` | Sí |
 | addExercise | `/add-exercise` | Sí |
+| routines | `/routines` | Sí (Tab 1) |
+| createRoutine | `/create-routine` | Sí |
+| routineDetail | `/routine/:routineId` | Sí |
+| addExercisesToRoutine | `/routine/:routineId/add-exercises` | Sí |
 | editCustomExercise | `/edit-custom-exercise/:exerciseId` | Sí |
 | history | `/history` | Sí |
 
@@ -332,9 +551,12 @@ android/app/src/
 | `app_config` | Configuración remota de la app |
 | `app_config/media` | Paths por defecto de imagen/video |
 | `exercises` | Catálogo de ejercicios globales |
-| `customExercises` | Ejercicios personalizados de usuarios |
 | `weightRecords` | Registros de peso de usuarios |
-| `users/{userId}` | Datos de usuario (futuro) |
+| `users/{userId}` | Datos de usuario |
+| `users/{userId}/customExercises` | Ejercicios personalizados del usuario |
+| `users/{userId}/routines` | Rutinas del usuario |
+| `users/{userId}/routines/{routineId}/items` | Items de cada rutina |
+| `users/{userId}/routineCompletions` | Registros de rutinas completadas |
 
 ### Estructura Storage
 ```
@@ -479,8 +701,9 @@ Cuando se invalida el provider base, los derivados se recalculan automáticament
 
 > No implementar aún, arquitectura preparada para:
 
-- [ ] Rutinas personalizadas (splits)
+- [x] Rutinas personalizadas (implementado en Fase 3.3)
 - [x] Gráficos de progresión (implementado en detalle de ejercicio)
+- [ ] Reordenar ejercicios en rutina (drag & drop)
 - [ ] Notificaciones/recordatorios
 - [ ] Compartir progreso
 - [ ] Soporte iOS

@@ -108,6 +108,95 @@ service cloud.firestore {
         // Solo el owner puede eliminar sus ejercicios
         allow delete: if isOwner(userId);
       }
+
+      // Subcoleccion: routines (rutinas de entrenamiento)
+      match /routines/{routineId} {
+        // Solo el owner puede leer sus rutinas
+        allow read: if isOwner(userId);
+
+        // Solo el owner puede crear, con validaciones
+        allow create: if isOwner(userId)
+                      // userId en el documento debe coincidir con el path
+                      && request.resource.data.userId == userId
+                      // Campos requeridos no vacios
+                      && request.resource.data.name is string
+                      && request.resource.data.name.size() > 0
+                      // exerciseCount debe ser numero >= 0
+                      && request.resource.data.exerciseCount is number
+                      && request.resource.data.exerciseCount >= 0
+                      // Timestamps deben existir
+                      && request.resource.data.createdAt is timestamp
+                      && request.resource.data.updatedAt is timestamp;
+
+        // Solo el owner puede actualizar
+        allow update: if isOwner(userId)
+                      // No puede cambiar userId
+                      && request.resource.data.userId == resource.data.userId;
+
+        // Solo el owner puede eliminar sus rutinas
+        allow delete: if isOwner(userId);
+
+        // Subcoleccion: items (ejercicios en la rutina)
+        match /items/{itemId} {
+          // Solo el owner puede leer items de su rutina
+          allow read: if isOwner(userId);
+
+          // Solo el owner puede crear items
+          allow create: if isOwner(userId)
+                        // exerciseRefType debe ser 'global' o 'custom'
+                        && request.resource.data.exerciseRefType in ['global', 'custom']
+                        // exerciseId no vacio
+                        && request.resource.data.exerciseId is string
+                        && request.resource.data.exerciseId.size() > 0
+                        // Snapshots no vacios
+                        && request.resource.data.exerciseNameSnapshot is string
+                        && request.resource.data.muscleGroupSnapshot is string
+                        // addedAt debe existir
+                        && request.resource.data.addedAt is timestamp
+                        // order debe ser numero >= 0
+                        && request.resource.data.order is number
+                        && request.resource.data.order >= 0;
+
+          // Solo el owner puede actualizar (para reordenar)
+          allow update: if isOwner(userId);
+
+          // Solo el owner puede eliminar items
+          allow delete: if isOwner(userId);
+        }
+      }
+
+      // Subcoleccion: routineCompletions (registros de rutinas completadas)
+      match /routineCompletions/{completionId} {
+        // Solo el owner puede leer sus registros de completado
+        allow read: if isOwner(userId);
+
+        // Solo el owner puede crear, con validaciones
+        allow create: if isOwner(userId)
+                      // userId en el documento debe coincidir con el path
+                      && request.resource.data.userId == userId
+                      // routineId no vacio
+                      && request.resource.data.routineId is string
+                      && request.resource.data.routineId.size() > 0
+                      // Snapshots requeridos
+                      && request.resource.data.routineNameSnapshot is string
+                      && request.resource.data.routineNameSnapshot.size() > 0
+                      // exerciseCountSnapshot debe ser numero >= 0
+                      && request.resource.data.exerciseCountSnapshot is number
+                      && request.resource.data.exerciseCountSnapshot >= 0
+                      // exercisesCompletedCount debe ser numero >= 0
+                      && request.resource.data.exercisesCompletedCount is number
+                      && request.resource.data.exercisesCompletedCount >= 0
+                      // completedAt debe existir
+                      && request.resource.data.completedAt is timestamp
+                      // completionType debe ser 'auto' o 'manual'
+                      && request.resource.data.completionType in ['auto', 'manual'];
+
+        // No permitir actualizar (registros inmutables)
+        allow update: if false;
+
+        // Solo el owner puede eliminar (si se implementa en el futuro)
+        allow delete: if isOwner(userId);
+      }
     }
 
     // ============================================
