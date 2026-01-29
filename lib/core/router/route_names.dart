@@ -15,6 +15,13 @@ abstract class RouteNames {
   static const String editCustomExercise = '/edit-custom-exercise';
   static const String history = '/history';
 
+  // Advanced Weight Record
+  static const String advancedWeightRecord = '/exercise/:exerciseId/advanced-record';
+
+  /// Helper para construir ruta de registro avanzado.
+  static String advancedWeightRecordPath(String exerciseId) =>
+      '/exercise/$exerciseId/advanced-record';
+
   // Main - Routines Tab
   static const String routines = '/routines';
   static const String createRoutine = '/create-routine';

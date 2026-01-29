@@ -10,6 +10,7 @@ import '../../../../core/config/providers/app_config_provider.dart';
 import '../../../../shared/widgets/weight_progress_chart.dart';
 import '../../../routines/presentation/widgets/select_routine_sheet.dart';
 import '../../data/models/custom_exercise_model.dart';
+import '../../data/models/record_mode.dart';
 import '../../data/models/weight_record_model.dart';
 import '../../providers/custom_exercises_provider.dart';
 import '../../providers/weight_records_provider.dart';
@@ -430,7 +431,7 @@ class _CustomExerciseDetailScreenState
                   const SizedBox(height: 24),
 
                   // Registro de peso
-                  _buildWeightInputCard(),
+                  _buildWeightInputCard(exercise),
                   const SizedBox(height: 24),
 
                   // Historial reciente
@@ -547,7 +548,9 @@ class _CustomExerciseDetailScreenState
     );
   }
 
-  Widget _buildWeightInputCard() {
+  Widget _buildWeightInputCard(CustomExerciseModel exercise) {
+    final customExerciseId = 'custom_${widget.exerciseId}';
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -663,6 +666,31 @@ class _CustomExerciseDetailScreenState
                   : const Text('Guardar'),
             ),
           ),
+          const SizedBox(height: 12),
+
+          // Link a registro avanzado
+          Center(
+            child: TextButton.icon(
+              onPressed: () async {
+                final result = await context.push<bool>(
+                  RouteNames.advancedWeightRecordPath(customExerciseId),
+                  extra: {
+                    'exerciseName': exercise.name,
+                    'muscleGroup': exercise.muscleGroup,
+                  },
+                );
+                if (result == true) {
+                  ref.invalidate(lastWeightRecordProvider(customExerciseId));
+                  ref.invalidate(exerciseHistoryProvider(customExerciseId));
+                }
+              },
+              icon: const Icon(Icons.format_list_numbered, size: 18),
+              label: const Text('Registro detallado por series'),
+              style: TextButton.styleFrom(
+                foregroundColor: AppColors.textSecondary,
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -688,11 +716,32 @@ class _CustomExerciseDetailScreenState
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  '${record.weight} kg',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
+                Row(
+                  children: [
+                    Text(
+                      '${record.weight} kg',
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                    ),
+                    if (record.mode == RecordMode.advanced) ...[
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: AppColors.primary.withAlpha(26),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          'Detallado',
+                          style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                                color: AppColors.primary,
+                                fontSize: 10,
+                              ),
+                        ),
                       ),
+                    ],
+                  ],
                 ),
                 Text(
                   '${record.sets}x${record.reps}',

@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:drift/drift.dart';
@@ -9,6 +11,8 @@ import '../../core/services/connectivity_service.dart';
 import '../../core/services/sync_service.dart';
 import '../../core/utils/logger.dart';
 import '../../features/exercises/data/models/weight_record_model.dart';
+import '../../features/exercises/data/models/record_mode.dart';
+import '../../features/exercises/data/models/set_entry_model.dart';
 
 /// Repositorio offline-first para registros de peso.
 /// Guarda primero en local (Drift), luego sincroniza con Firestore.
@@ -33,7 +37,7 @@ class OfflineWeightRecordsRepository {
   CollectionReference<Map<String, dynamic>> get _recordsRef =>
       _firestore.collection('weightRecords');
 
-  /// Guarda un nuevo registro de peso.
+  /// Guarda un nuevo registro de peso (modo rapido).
   /// Siempre guarda localmente primero, luego intenta sincronizar.
   Future<WeightRecordModel> saveRecord({
     required String exerciseId,
@@ -57,6 +61,7 @@ class OfflineWeightRecordsRepository {
       notes: Value(notes),
       date: now,
       isSynced: const Value(false),
+      mode: const Value('quick'),
     );
 
     await _db.weightRecordsDao.insertRecord(companion);
@@ -67,18 +72,19 @@ class OfflineWeightRecordsRepository {
     );
 
     // 2. Intentar sincronizar con Firestore
+    final firestoreData = {
+      'exerciseId': exerciseId,
+      'userId': userId,
+      'weight': weight,
+      'reps': reps,
+      'sets': sets,
+      'notes': notes,
+      'date': Timestamp.fromDate(now),
+      'mode': 'quick',
+    };
+
     if (await _connectivity.hasConnection()) {
       try {
-        final firestoreData = {
-          'exerciseId': exerciseId,
-          'userId': userId,
-          'weight': weight,
-          'reps': reps,
-          'sets': sets,
-          'notes': notes,
-          'date': Timestamp.fromDate(now),
-        };
-
         final docRef = await _recordsRef.add(firestoreData);
 
         // Actualizar el ID local con el de Firestore y marcar como sincronizado
@@ -98,6 +104,7 @@ class OfflineWeightRecordsRepository {
           sets: sets,
           notes: notes,
           date: now,
+          mode: RecordMode.quick,
         );
       } catch (e) {
         AppLogger.error(
@@ -105,7 +112,6 @@ class OfflineWeightRecordsRepository {
           tag: 'OfflineWeightRecords',
           error: e,
         );
-        // Agregar a cola de sincronizacion
         await _syncService.queueOperation(
           entityType: 'weightRecord',
           entityId: localId,
@@ -118,6 +124,7 @@ class OfflineWeightRecordsRepository {
             'sets': sets,
             'notes': notes,
             'date': now.toIso8601String(),
+            'mode': 'quick',
           },
         );
       }
@@ -135,6 +142,7 @@ class OfflineWeightRecordsRepository {
           'sets': sets,
           'notes': notes,
           'date': now.toIso8601String(),
+          'mode': 'quick',
         },
       );
     }
@@ -148,6 +156,162 @@ class OfflineWeightRecordsRepository {
       sets: sets,
       notes: notes,
       date: now,
+      mode: RecordMode.quick,
+    );
+  }
+
+  /// Guarda un registro de peso avanzado (por serie individual).
+  Future<WeightRecordModel> saveAdvancedRecord({
+    required String exerciseId,
+    required String userId,
+    required List<SetEntryModel> setEntries,
+    String? notes,
+  }) async {
+    final now = DateTime.now();
+    final localId = _uuid.v4();
+
+    // Calcular resumen
+    final summary = _calculateSummary(setEntries);
+    final setsDataJson = jsonEncode(setEntries.map((e) => e.toJson()).toList());
+
+    // 1. Guardar parent WeightRecord localmente
+    final companion = WeightRecordsCompanion.insert(
+      id: localId,
+      exerciseId: exerciseId,
+      userId: userId,
+      weight: summary.weight,
+      reps: Value(summary.reps),
+      sets: Value(summary.sets),
+      notes: Value(notes),
+      date: now,
+      isSynced: const Value(false),
+      mode: const Value('advanced'),
+      setsData: Value(setsDataJson),
+    );
+
+    await _db.weightRecordsDao.insertRecord(companion);
+
+    // 2. Guardar child WorkoutSets rows
+    final setCompanions = setEntries.map((entry) {
+      return WorkoutSetsCompanion.insert(
+        id: entry.id,
+        weightRecordId: localId,
+        setNumber: entry.setNumber,
+        weight: entry.weight,
+        reps: entry.reps,
+      );
+    }).toList();
+
+    await _db.workoutSetsDao.insertMultipleSets(setCompanions);
+
+    AppLogger.debug(
+      'Registro avanzado guardado localmente: $localId con ${setEntries.length} series',
+      tag: 'OfflineWeightRecords',
+    );
+
+    // 3. Intentar sincronizar con Firestore
+    final firestoreData = {
+      'exerciseId': exerciseId,
+      'userId': userId,
+      'weight': summary.weight,
+      'reps': summary.reps,
+      'sets': summary.sets,
+      'notes': notes,
+      'date': Timestamp.fromDate(now),
+      'mode': 'advanced',
+      'setEntries': setEntries.map((e) => e.toJson()).toList(),
+    };
+
+    if (await _connectivity.hasConnection()) {
+      try {
+        final docRef = await _recordsRef.add(firestoreData);
+
+        await _db.weightRecordsDao.markAsSynced(localId, firestoreId: docRef.id);
+
+        // Actualizar workoutSets con el nuevo ID
+        // (eliminamos los viejos y reinsertamos con el nuevo parentId)
+        await _db.workoutSetsDao.deleteAllSetsForRecord(localId);
+        final updatedSetCompanions = setEntries.map((entry) {
+          return WorkoutSetsCompanion.insert(
+            id: entry.id,
+            weightRecordId: docRef.id,
+            setNumber: entry.setNumber,
+            weight: entry.weight,
+            reps: entry.reps,
+          );
+        }).toList();
+        await _db.workoutSetsDao.insertMultipleSets(updatedSetCompanions);
+
+        AppLogger.info(
+          'Registro avanzado sincronizado con Firestore: ${docRef.id}',
+          tag: 'OfflineWeightRecords',
+        );
+
+        return WeightRecordModel(
+          id: docRef.id,
+          exerciseId: exerciseId,
+          userId: userId,
+          weight: summary.weight,
+          reps: summary.reps,
+          sets: summary.sets,
+          notes: notes,
+          date: now,
+          mode: RecordMode.advanced,
+          setEntries: setEntries,
+        );
+      } catch (e) {
+        AppLogger.error(
+          'Error sincronizando registro avanzado, se reintentara',
+          tag: 'OfflineWeightRecords',
+          error: e,
+        );
+        await _syncService.queueOperation(
+          entityType: 'weightRecord',
+          entityId: localId,
+          operation: SyncOperation.create,
+          data: {
+            'exerciseId': exerciseId,
+            'userId': userId,
+            'weight': summary.weight,
+            'reps': summary.reps,
+            'sets': summary.sets,
+            'notes': notes,
+            'date': now.toIso8601String(),
+            'mode': 'advanced',
+            'setEntries': setEntries.map((e) => e.toJson()).toList(),
+          },
+        );
+      }
+    } else {
+      await _syncService.queueOperation(
+        entityType: 'weightRecord',
+        entityId: localId,
+        operation: SyncOperation.create,
+        data: {
+          'exerciseId': exerciseId,
+          'userId': userId,
+          'weight': summary.weight,
+          'reps': summary.reps,
+          'sets': summary.sets,
+          'notes': notes,
+          'date': now.toIso8601String(),
+          'mode': 'advanced',
+          'setEntries': setEntries.map((e) => e.toJson()).toList(),
+        },
+      );
+    }
+
+    return WeightRecordModel(
+      id: localId,
+      exerciseId: exerciseId,
+      userId: userId,
+      weight: summary.weight,
+      reps: summary.reps,
+      sets: summary.sets,
+      notes: notes,
+      date: now,
+      mode: RecordMode.advanced,
+      setEntries: setEntries,
     );
   }
 
@@ -194,7 +358,7 @@ class OfflineWeightRecordsRepository {
 
     if (local.isNotEmpty) {
       _syncInBackground(userId);
-      return local.map(_toModel).toList();
+      return Future.wait(local.map(_toModel));
     }
 
     if (await _connectivity.hasConnection()) {
@@ -204,7 +368,7 @@ class OfflineWeightRecordsRepository {
         userId: userId,
         limit: limit,
       );
-      return refreshed.map(_toModel).toList();
+      return Future.wait(refreshed.map(_toModel));
     }
 
     return [];
@@ -222,7 +386,7 @@ class OfflineWeightRecordsRepository {
 
     if (local.isNotEmpty) {
       _syncInBackground(userId);
-      return local.map(_toModel).toList();
+      return Future.wait(local.map(_toModel));
     }
 
     if (await _connectivity.hasConnection()) {
@@ -231,7 +395,7 @@ class OfflineWeightRecordsRepository {
         userId,
         limit: limit,
       );
-      return refreshed.map(_toModel).toList();
+      return Future.wait(refreshed.map(_toModel));
     }
 
     return [];
@@ -239,6 +403,8 @@ class OfflineWeightRecordsRepository {
 
   /// Elimina un registro de peso.
   Future<void> deleteRecord(String recordId) async {
+    // Eliminar workout sets hijos si los hay
+    await _db.workoutSetsDao.deleteAllSetsForRecord(recordId);
     await _db.weightRecordsDao.deleteRecord(recordId);
 
     if (await _connectivity.hasConnection()) {
@@ -265,7 +431,7 @@ class OfflineWeightRecordsRepository {
       {int? limit}) {
     return _db.weightRecordsDao
         .watchRecordsForUser(userId, limit: limit)
-        .map((records) => records.map(_toModel).toList());
+        .asyncMap((records) => Future.wait(records.map(_toModel)));
   }
 
   /// Fuerza sincronizacion desde Firestore.
@@ -303,6 +469,8 @@ class OfflineWeightRecordsRepository {
           date = DateTime.now();
         }
 
+        final mode = data['mode'] as String? ?? 'quick';
+
         final companion = WeightRecordsCompanion.insert(
           id: doc.id,
           exerciseId: data['exerciseId'] as String? ?? '',
@@ -314,9 +482,33 @@ class OfflineWeightRecordsRepository {
           date: date,
           isSynced: const Value(true),
           lastSynced: Value(DateTime.now()),
+          mode: Value(mode),
+          setsData: Value(
+            mode == 'advanced' && data['setEntries'] != null
+                ? jsonEncode(data['setEntries'])
+                : null,
+          ),
         );
 
         await _db.weightRecordsDao.upsertRecord(companion);
+
+        // Si es advanced, sincronizar workout sets
+        if (mode == 'advanced' && data['setEntries'] != null) {
+          final entriesList = data['setEntries'] as List<dynamic>;
+          // Limpiar sets existentes y reinsertar
+          await _db.workoutSetsDao.deleteAllSetsForRecord(doc.id);
+          for (final entryData in entriesList) {
+            final entry = entryData as Map<String, dynamic>;
+            final setCompanion = WorkoutSetsCompanion.insert(
+              id: entry['id'] as String? ?? const Uuid().v4(),
+              weightRecordId: doc.id,
+              setNumber: entry['setNumber'] as int? ?? 1,
+              weight: (entry['weight'] as num?)?.toDouble() ?? 0.0,
+              reps: entry['reps'] as int? ?? 1,
+            );
+            await _db.workoutSetsDao.upsertSet(setCompanion);
+          }
+        }
       }
 
       AppLogger.info(
@@ -332,7 +524,31 @@ class OfflineWeightRecordsRepository {
     }
   }
 
-  WeightRecordModel _toModel(WeightRecord record) {
+  Future<WeightRecordModel> _toModel(WeightRecord record) async {
+    final mode = RecordMode.fromString(record.mode);
+
+    List<SetEntryModel> setEntries = [];
+    if (mode == RecordMode.advanced) {
+      // Intentar cargar desde la tabla WorkoutSets
+      final sets = await _db.workoutSetsDao.getSetsForRecord(record.id);
+      if (sets.isNotEmpty) {
+        setEntries = sets
+            .map((s) => SetEntryModel(
+                  id: s.id,
+                  setNumber: s.setNumber,
+                  weight: s.weight,
+                  reps: s.reps,
+                ))
+            .toList();
+      } else if (record.setsData != null) {
+        // Fallback: deserializar del JSON backup
+        final entriesList = jsonDecode(record.setsData!) as List<dynamic>;
+        setEntries = entriesList
+            .map((e) => SetEntryModel.fromJson(e as Map<String, dynamic>))
+            .toList();
+      }
+    }
+
     return WeightRecordModel(
       id: record.id,
       exerciseId: record.exerciseId,
@@ -342,8 +558,45 @@ class OfflineWeightRecordsRepository {
       sets: record.sets,
       notes: record.notes,
       date: record.date,
+      mode: mode,
+      setEntries: setEntries,
     );
   }
+
+  /// Calcula resumen desde una lista de series.
+  /// weight = max(entries.weight)
+  /// sets = entries.length
+  /// reps = max reps entre entries con weight == maxWeight
+  _RecordSummary _calculateSummary(List<SetEntryModel> entries) {
+    if (entries.isEmpty) {
+      return const _RecordSummary(weight: 0, reps: 1, sets: 0);
+    }
+
+    final maxWeight = entries.map((e) => e.weight).reduce((a, b) => a > b ? a : b);
+    final setsCount = entries.length;
+    final maxRepsAtMaxWeight = entries
+        .where((e) => e.weight == maxWeight)
+        .map((e) => e.reps)
+        .reduce((a, b) => a > b ? a : b);
+
+    return _RecordSummary(
+      weight: maxWeight,
+      reps: maxRepsAtMaxWeight,
+      sets: setsCount,
+    );
+  }
+}
+
+class _RecordSummary {
+  final double weight;
+  final int reps;
+  final int sets;
+
+  const _RecordSummary({
+    required this.weight,
+    required this.reps,
+    required this.sets,
+  });
 }
 
 /// Provider del repositorio offline de registros de peso.

@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/config/providers/app_config_provider.dart';
+import '../../../../core/router/route_names.dart';
 import '../../../../shared/widgets/storage_image.dart';
 import '../../../../shared/widgets/storage_video_player.dart';
 import '../../../../shared/widgets/weight_progress_chart.dart';
@@ -362,17 +364,7 @@ class _ExerciseDetailScreenState extends ConsumerState<ExerciseDetailScreen> {
                   ),
                   
                   // Registro de peso
-                  _buildWeightInputCard(),
-                  const SizedBox(height: 24),
-
-                  // Historial reciente
-                  historyAsync.when(
-                    loading: () => const SizedBox.shrink(),
-                    error: (_, _) => const SizedBox.shrink(),
-                    data: (history) => history.isNotEmpty
-                        ? _buildRecentHistory(history.take(5).toList())
-                        : const SizedBox.shrink(),
-                  ),
+                  _buildWeightInputCard(exercise),
 
                   // Grafico de evolucion (si hay suficiente historial)
                   historyAsync.when(
@@ -408,7 +400,7 @@ class _ExerciseDetailScreenState extends ConsumerState<ExerciseDetailScreen> {
     );
   }
 
-  Widget _buildWeightInputCard() {
+  Widget _buildWeightInputCard(ExerciseModel exercise) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -524,67 +516,39 @@ class _ExerciseDetailScreenState extends ConsumerState<ExerciseDetailScreen> {
                   : const Text('Guardar'),
             ),
           ),
+          const SizedBox(height: 12),
+
+          // Link a registro avanzado
+          Center(
+            child: TextButton.icon(
+              onPressed: () async {
+                final result = await context.push<Map<String, dynamic>?>(
+                  RouteNames.advancedWeightRecordPath(widget.exerciseId),
+                  extra: {
+                    'exerciseName': exercise.name,
+                    'muscleGroup': exercise.muscleGroup,
+                  },
+                );
+                if (result != null && mounted) {
+                  ref.invalidate(lastWeightRecordProvider(widget.exerciseId));
+                  ref.invalidate(exerciseHistoryProvider(widget.exerciseId));
+                  // Update controllers directly with returned values
+                  setState(() {
+                    _weightController.text = result['weight'].toString();
+                    _repsController.text = result['reps'].toString();
+                    _setsController.text = result['sets'].toString();
+                  });
+                }
+              },
+              icon: const Icon(Icons.format_list_numbered, size: 18),
+              label: const Text('Registro detallado por series'),
+              style: TextButton.styleFrom(
+                foregroundColor: AppColors.textSecondary,
+              ),
+            ),
+          ),
         ],
       ),
     );
-  }
-
-  Widget _buildRecentHistory(List<WeightRecordModel> history) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Historial Reciente',
-          style: Theme.of(context).textTheme.titleLarge,
-        ),
-        const SizedBox(height: 12),
-        ...history.map((record) => Container(
-              margin: const EdgeInsets.only(bottom: 8),
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: AppColors.surfaceVariant,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    '${record.weight} kg',
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
-                  ),
-                  Text(
-                    '${record.sets}x${record.reps}',
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: AppColors.textSecondary,
-                        ),
-                  ),
-                  Text(
-                    _formatDate(record.date),
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: AppColors.textHint,
-                        ),
-                  ),
-                ],
-              ),
-            )),
-      ],
-    );
-  }
-
-  String _formatDate(DateTime date) {
-    final now = DateTime.now();
-    final diff = now.difference(date);
-
-    if (diff.inDays == 0) {
-      return 'Hoy';
-    } else if (diff.inDays == 1) {
-      return 'Ayer';
-    } else if (diff.inDays < 7) {
-      return 'Hace ${diff.inDays} dias';
-    } else {
-      return '${date.day}/${date.month}/${date.year}';
-    }
   }
 }

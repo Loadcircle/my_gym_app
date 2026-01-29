@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:drift/drift.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:uuid/uuid.dart';
 
 import '../../data/local/database.dart';
 import '../../data/local/tables/sync_queue_table.dart';
@@ -155,11 +156,32 @@ class SyncService {
           data['date'] = Timestamp.fromDate(DateTime.parse(data['date']));
         }
 
+        // setEntries ya viene como List<Map> desde el payload, no necesita conversion
+
         // Crear en Firestore y obtener el ID real
         final docRef = await collection.add(data);
 
         // Actualizar el registro local con el ID de Firestore
         await _db.weightRecordsDao.markAsSynced(entityId, firestoreId: docRef.id);
+
+        // Si es advanced, actualizar los workout sets con el nuevo ID
+        if (data['mode'] == 'advanced') {
+          final sets = await _db.workoutSetsDao.getSetsForRecord(entityId);
+          if (sets.isNotEmpty) {
+            await _db.workoutSetsDao.deleteAllSetsForRecord(entityId);
+            for (final s in sets) {
+              await _db.workoutSetsDao.upsertSet(
+                WorkoutSetsCompanion.insert(
+                  id: s.id,
+                  weightRecordId: docRef.id,
+                  setNumber: s.setNumber,
+                  weight: s.weight,
+                  reps: s.reps,
+                ),
+              );
+            }
+          }
+        }
         break;
 
       case SyncOperation.update:
@@ -365,7 +387,7 @@ class SyncService {
           .where('userId', isEqualTo: userId)
           .get();
 
-      final records = snapshot.docs.map((doc) {
+      for (final doc in snapshot.docs) {
         final data = doc.data();
         final dateData = data['date'];
         DateTime date;
@@ -375,7 +397,9 @@ class SyncService {
           date = DateTime.now();
         }
 
-        return WeightRecordsCompanion.insert(
+        final mode = data['mode'] as String? ?? 'quick';
+
+        final record = WeightRecordsCompanion.insert(
           id: doc.id,
           exerciseId: data['exerciseId'] as String? ?? '',
           userId: userId,
@@ -386,15 +410,37 @@ class SyncService {
           date: date,
           isSynced: const Value(true),
           lastSynced: Value(DateTime.now()),
+          mode: Value(mode),
+          setsData: Value(
+            mode == 'advanced' && data['setEntries'] != null
+                ? jsonEncode(data['setEntries'])
+                : null,
+          ),
         );
-      }).toList();
 
-      for (final record in records) {
         await _db.weightRecordsDao.upsertRecord(record);
+
+        // Si es advanced, sincronizar workout sets
+        if (mode == 'advanced' && data['setEntries'] != null) {
+          final entriesList = data['setEntries'] as List<dynamic>;
+          await _db.workoutSetsDao.deleteAllSetsForRecord(doc.id);
+          for (final entryData in entriesList) {
+            final entry = entryData as Map<String, dynamic>;
+            await _db.workoutSetsDao.upsertSet(
+              WorkoutSetsCompanion.insert(
+                id: entry['id'] as String? ?? const Uuid().v4(),
+                weightRecordId: doc.id,
+                setNumber: entry['setNumber'] as int? ?? 1,
+                weight: (entry['weight'] as num?)?.toDouble() ?? 0.0,
+                reps: entry['reps'] as int? ?? 1,
+              ),
+            );
+          }
+        }
       }
 
       AppLogger.info(
-        '${records.length} registros sincronizados',
+        '${snapshot.docs.length} registros sincronizados',
         tag: 'Sync',
       );
     } catch (e) {

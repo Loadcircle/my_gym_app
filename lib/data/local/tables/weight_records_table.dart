@@ -33,6 +33,12 @@ class WeightRecords extends Table {
   /// Fecha de ultima sincronizacion
   DateTimeColumn get lastSynced => dateTime().nullable()();
 
+  /// Modo de registro: 'quick' o 'advanced'
+  TextColumn get mode => text().withDefault(const Constant('quick'))();
+
+  /// JSON serializado de las series (backup para sync)
+  TextColumn get setsData => text().nullable()();
+
   @override
   Set<Column> get primaryKey => {id};
 }

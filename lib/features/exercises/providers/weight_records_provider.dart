@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../data/repositories/offline_weight_records_repository.dart';
 import '../data/models/weight_record_model.dart';
+import '../data/models/set_entry_model.dart';
 import '../data/repositories/weight_records_repository.dart';
 import '../../auth/providers/auth_provider.dart';
 
@@ -86,6 +87,27 @@ class WeightRecordNotifier extends StateNotifier<AsyncValue<void>> {
         weight: weight,
         reps: reps,
         sets: sets,
+        notes: notes,
+      );
+      state = const AsyncValue.data(null);
+      return record;
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
+      return null;
+    }
+  }
+
+  Future<WeightRecordModel?> saveAdvancedRecord({
+    required String exerciseId,
+    required List<SetEntryModel> setEntries,
+    String? notes,
+  }) async {
+    state = const AsyncValue.loading();
+    try {
+      final record = await _repository.saveAdvancedRecord(
+        exerciseId: exerciseId,
+        userId: _userId,
+        setEntries: setEntries,
         notes: notes,
       );
       state = const AsyncValue.data(null);

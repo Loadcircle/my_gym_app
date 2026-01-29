@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/constants/app_constants.dart';
+import '../../../exercises/data/models/record_mode.dart';
 import '../../../exercises/data/models/weight_record_model.dart';
 import '../../../exercises/providers/exercises_provider.dart';
 import '../../../exercises/providers/weight_records_provider.dart';
@@ -544,11 +545,35 @@ class _WeightRecordTile extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  exerciseName,
-                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        fontWeight: FontWeight.w500,
+                Row(
+                  children: [
+                    Flexible(
+                      child: Text(
+                        exerciseName,
+                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                              fontWeight: FontWeight.w500,
+                            ),
+                        overflow: TextOverflow.ellipsis,
                       ),
+                    ),
+                    if (record.mode == RecordMode.advanced) ...[
+                      const SizedBox(width: 6),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                        decoration: BoxDecoration(
+                          color: AppColors.primary.withAlpha(26),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          'Detallado',
+                          style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                                color: AppColors.primary,
+                                fontSize: 9,
+                              ),
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
                 Row(
                   children: [

@@ -27,10 +27,18 @@ class WeightProgressChart extends StatelessWidget {
     final sortedRecords = List<WeightRecordModel>.from(records)
       ..sort((a, b) => a.date.compareTo(b.date));
 
+    // Deduplicar: mismo dia + mismo peso + mismas reps = 1 solo punto
+    final deduplicatedRecords = _deduplicateRecords(sortedRecords);
+
+    // Necesitamos al menos 2 puntos despues de deduplicar
+    if (deduplicatedRecords.length < 2) {
+      return const SizedBox.shrink();
+    }
+
     // Tomar los ultimos 10 registros para no saturar el grafico
-    final displayRecords = sortedRecords.length > 10
-        ? sortedRecords.sublist(sortedRecords.length - 10)
-        : sortedRecords;
+    final displayRecords = deduplicatedRecords.length > 10
+        ? deduplicatedRecords.sublist(deduplicatedRecords.length - 10)
+        : deduplicatedRecords;
 
     // Crear puntos para el grafico
     final spots = <FlSpot>[];
@@ -154,7 +162,7 @@ class WeightProgressChart extends StatelessWidget {
                       final index = spot.x.toInt();
                       final record = displayRecords[index];
                       return LineTooltipItem(
-                        '${record.weight}kg\n${record.sets}x${record.reps}',
+                        '${record.weight}kg x ${record.reps} reps',
                         const TextStyle(
                           color: AppColors.textPrimary,
                           fontWeight: FontWeight.bold,
@@ -173,6 +181,25 @@ class WeightProgressChart extends StatelessWidget {
         _buildTrendIndicator(displayRecords),
       ],
     );
+  }
+
+  /// Elimina duplicados: mismo dia + mismo peso + mismas reps = 1 punto.
+  List<WeightRecordModel> _deduplicateRecords(List<WeightRecordModel> records) {
+    final seen = <String>{};
+    final result = <WeightRecordModel>[];
+
+    for (final record in records) {
+      // Clave unica: año-mes-dia + peso + reps
+      final key = '${record.date.year}-${record.date.month}-${record.date.day}'
+          '_${record.weight}_${record.reps}';
+
+      if (!seen.contains(key)) {
+        seen.add(key);
+        result.add(record);
+      }
+    }
+
+    return result;
   }
 
   double _calculateInterval(double min, double max) {
