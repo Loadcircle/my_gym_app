@@ -13,7 +13,13 @@ abstract class RouteNames {
   static const String addExercise = '/add-exercise';
   static const String customExerciseDetail = '/custom-exercise';
   static const String editCustomExercise = '/edit-custom-exercise';
+
+  // Main - History Tab
   static const String history = '/history';
+
+  // Profile & Settings
+  static const String profile = '/profile';
+  static const String settings = '/settings';
 
   // Advanced Weight Record
   static const String advancedWeightRecord = '/exercise/:exerciseId/advanced-record';

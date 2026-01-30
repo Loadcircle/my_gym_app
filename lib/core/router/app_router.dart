@@ -21,6 +21,8 @@ import '../../features/routines/presentation/screens/create_routine_screen.dart'
     show CreateRoutineScreen, InitialExerciseData;
 import '../../features/routines/presentation/screens/routine_detail_screen.dart';
 import '../../features/routines/presentation/screens/add_exercises_to_routine_screen.dart';
+import '../../features/profile/presentation/screens/profile_screen.dart';
+import '../../features/settings/presentation/screens/settings_screen.dart';
 import '../../shared/widgets/main_shell.dart';
 
 /// Provider que indica si el estado de auth aun esta inicializando.
@@ -34,6 +36,7 @@ final _isAuthInitializingProvider = Provider<bool>((ref) {
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
 final _shellNavigatorKeyExercises = GlobalKey<NavigatorState>(debugLabel: 'exercises');
 final _shellNavigatorKeyRoutines = GlobalKey<NavigatorState>(debugLabel: 'routines');
+final _shellNavigatorKeyHistory = GlobalKey<NavigatorState>(debugLabel: 'history');
 
 /// Provider del router principal de la aplicacion.
 /// Usa go_router para navegacion declarativa con proteccion de rutas.
@@ -134,6 +137,18 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               ),
             ],
           ),
+
+          // Branch 2: Historial
+          StatefulShellBranch(
+            navigatorKey: _shellNavigatorKeyHistory,
+            routes: [
+              GoRoute(
+                path: RouteNames.history,
+                name: 'history',
+                builder: (context, state) => const HistoryScreen(),
+              ),
+            ],
+          ),
         ],
       ),
 
@@ -185,11 +200,19 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           return EditCustomExerciseScreen(exerciseId: exerciseId);
         },
       ),
+
+      // Profile & Settings
       GoRoute(
-        path: RouteNames.history,
-        name: 'history',
+        path: RouteNames.profile,
+        name: 'profile',
         parentNavigatorKey: _rootNavigatorKey,
-        builder: (context, state) => const HistoryScreen(),
+        builder: (context, state) => const ProfileScreen(),
+      ),
+      GoRoute(
+        path: RouteNames.settings,
+        name: 'settings',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const SettingsScreen(),
       ),
 
       // Rutas de Rutinas (fuera del shell)

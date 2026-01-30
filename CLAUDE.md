@@ -6,7 +6,7 @@ App móvil de gimnasio para registrar pesos por ejercicio/máquina y ver guías 
 
 ## Estado del Proyecto
 
-**MVP: ~98% Completo**
+**MVP: ~100% Completo**
 
 | Fase | Estado | Descripción |
 |------|--------|-------------|
@@ -17,28 +17,32 @@ App móvil de gimnasio para registrar pesos por ejercicio/máquina y ver guías 
 | Fase 3.2: Ejercicios Custom | ✅ Completa | CRUD ejercicios personalizados, subida imágenes |
 | Fase 3.3: Rutinas | ✅ Completa | CRUD rutinas, agregar/quitar ejercicios |
 | Fase 3.4: Routine Completions | ✅ Completa | Progreso de rutinas, auto-completado, historial |
+| Fase 3.5: Perfil y Navegación | ✅ Completa | Perfil usuario, drawer lateral, historial como tab |
 | Fase 4: Pulido | ⏳ Pendiente | Tests, optimizaciones, deploy |
 
 ## Flow Principal (MVP)
 
 ```
-Splash → Login/Register → Bottom Navigation (2 tabs)
+Splash → Login/Register → Bottom Navigation (3 tabs) + Drawer
                                     │
-                    ┌───────────────┴───────────────┐
-                    ▼                               ▼
-            Tab: Ejercicios                  Tab: Rutinas
-                    │                               │
-    Lista ejercicios (filtro)              Lista rutinas
-                    │                               │
-           ┌───────┴───────┐               ┌───────┴───────┐
-           ▼               ▼               ▼               ▼
-    Detalle global   Detalle custom   Crear rutina   Detalle rutina
-           │               │               │               │
-    Registrar peso   Editar/Eliminar      │        Agregar ejercicios
-           │                               │               │
-         Botón "Agregar a Rutina" ─────────┼───────────────┘
-                                           ▼
-                              Quitar ejercicio (swipe)
+                    ┌───────────────┼───────────────┐
+                    ▼               ▼               ▼
+            Tab: Ejercicios   Tab: Rutinas   Tab: Historial
+                    │               │               │
+    Lista ejercicios (filtro)  Lista rutinas   Registros + Completados
+                    │               │
+           ┌───────┴───────┐       │
+           ▼               ▼       ▼
+    Detalle global   Detalle custom   Detalle rutina
+           │               │               │
+    Registrar peso   Editar/Eliminar   Agregar ejercicios
+           │                               │
+         Botón "Agregar a Rutina" ─────────┘
+
+Drawer Lateral:
+    ├── Mi Perfil → Editar datos personales
+    ├── Configuración → Cambiar contraseña, cerrar sesión
+    └── Cerrar Sesión
 ```
 
 ## Flujo de Rutinas (Detalle)
@@ -169,6 +173,7 @@ Se guardan snapshots de `exerciseName` y `muscleGroup` en cada item para:
 | Video | video_player | ^2.9.2 |
 | Conectividad | connectivity_plus | ^7.0.0 |
 | Google Sign-In | google_sign_in | ^6.2.2 |
+| Info de App | package_info_plus | ^8.0.0 |
 
 ## Arquitectura de Carpetas
 
@@ -214,6 +219,7 @@ lib/
 │   │   │   ├── weight_records_table.dart  # Tabla de registros
 │   │   │   ├── routines_table.dart        # Tabla de rutinas
 │   │   │   ├── routine_items_table.dart   # Tabla de items de rutina
+│   │   │   ├── user_profiles_table.dart   # Tabla de perfiles de usuario
 │   │   │   └── sync_queue_table.dart      # Cola de sincronización
 │   │   └── daos/
 │   │       ├── exercises_dao.dart         # DAO ejercicios globales
@@ -221,12 +227,14 @@ lib/
 │   │       ├── weight_records_dao.dart    # DAO registros
 │   │       ├── routines_dao.dart          # DAO rutinas
 │   │       ├── routine_items_dao.dart     # DAO items de rutina
+│   │       ├── user_profiles_dao.dart     # DAO perfiles de usuario
 │   │       └── sync_queue_dao.dart        # DAO cola sync
 │   └── repositories/
 │       ├── offline_exercises_repository.dart        # Repo offline-first ejercicios
 │       ├── offline_custom_exercises_repository.dart # Repo offline-first custom
 │       ├── offline_weight_records_repository.dart   # Repo offline-first registros
-│       └── offline_routines_repository.dart         # Repo offline-first rutinas
+│       ├── offline_routines_repository.dart         # Repo offline-first rutinas
+│       └── offline_user_profile_repository.dart     # Repo offline-first perfil
 ├── features/
 │   ├── auth/
 │   │   ├── data/
@@ -279,11 +287,25 @@ lib/
 │   │   │       └── select_routine_sheet.dart     # Bottom sheet selección
 │   │   └── providers/
 │   │       └── routines_provider.dart        # Providers de rutinas
-│   └── history/
+│   ├── history/
+│   │   └── presentation/screens/
+│   │       └── history_screen.dart        # Historial agrupado por fecha (tab)
+│   ├── profile/
+│   │   ├── data/
+│   │   │   ├── models/
+│   │   │   │   └── user_profile_model.dart  # Modelo perfil (Freezed)
+│   │   │   └── repositories/
+│   │   │       └── user_profile_repository.dart  # Repo Firestore
+│   │   ├── presentation/screens/
+│   │   │   └── profile_screen.dart        # Editar datos personales
+│   │   └── providers/
+│   │       └── user_profile_provider.dart # Providers de perfil
+│   └── settings/
 │       └── presentation/screens/
-│           └── history_screen.dart        # Historial agrupado por fecha
+│           └── settings_screen.dart       # Configuración de cuenta
 └── shared/widgets/
-    ├── main_shell.dart                    # Bottom navigation shell
+    ├── main_shell.dart                    # Bottom navigation shell + drawer
+    ├── app_drawer.dart                    # Drawer lateral con perfil
     ├── loading_indicator.dart             # Indicador de carga
     ├── error_view.dart                    # Vista de error con retry
     ├── empty_state.dart                   # Vista estado vacío
@@ -351,6 +373,21 @@ lib/
 | updatedAt      | DateTime       | Fecha de última modificación          |
 ```
 
+### UserProfileModel (Freezed)
+```dart
+| Campo     | Tipo      | Descripción                                     |
+|-----------|-----------|------------------------------------------------|
+| userId    | String    | ID del usuario (mismo que Firebase Auth UID)    |
+| firstName | String?   | Nombre del usuario                              |
+| lastName  | String?   | Apellido del usuario                            |
+| age       | int?      | Edad del usuario                                |
+| height    | double?   | Altura en centímetros                           |
+| weight    | double?   | Peso en kilogramos                              |
+| sex       | Sex?      | Sexo (male, female, preferNotToSay)             |
+| createdAt | DateTime  | Fecha de creación del perfil                    |
+| updatedAt | DateTime  | Fecha de última actualización                   |
+```
+
 ### RoutineModel (Freezed)
 ```dart
 | Campo          | Tipo     | Descripción                        |
@@ -403,6 +440,7 @@ lib/
 | `Routines` | Rutinas del usuario con contador ejercicios |
 | `RoutineItems` | Items de rutina (relación rutina-ejercicio) |
 | `RoutineCompletions` | Registros de rutinas completadas |
+| `UserProfiles` | Perfiles de usuario con datos personales |
 | `SyncQueue` | Cola de operaciones pendientes de sync |
 
 ### Patrón Offline-First
@@ -483,6 +521,14 @@ ESCRITURA:
 | `routineCompletionNotifierProvider` | StateNotifierProvider | Crear registros de completado |
 | `offlineRoutineCompletionsRepositoryProvider` | Provider | Repo offline-first |
 
+### User Profile
+| Provider | Tipo | Descripción |
+|----------|------|-------------|
+| `userProfileProvider` | FutureProvider | Perfil del usuario actual |
+| `userProfileStreamProvider` | StreamProvider | Stream del perfil en tiempo real |
+| `userProfileNotifierProvider` | StateNotifierProvider | Guardar cambios de perfil |
+| `offlineUserProfileRepositoryProvider` | Provider | Repo offline-first |
+
 ### Core
 | Provider | Tipo | Descripción |
 |----------|------|-------------|
@@ -517,7 +563,9 @@ ESCRITURA:
 | routineDetail | `/routine/:routineId` | Sí |
 | addExercisesToRoutine | `/routine/:routineId/add-exercises` | Sí |
 | editCustomExercise | `/edit-custom-exercise/:exerciseId` | Sí |
-| history | `/history` | Sí |
+| history | `/history` | Sí (Tab 2) |
+| profile | `/profile` | Sí |
+| settings | `/settings` | Sí |
 
 ## Firebase
 

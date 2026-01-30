@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/theme/app_colors.dart';
+import 'app_drawer.dart';
 
-/// Shell principal de la aplicación con bottom navigation.
-/// Envuelve las pantallas principales (Ejercicios, Rutinas).
+/// Shell principal de la aplicación con bottom navigation y drawer.
+/// Envuelve las pantallas principales (Ejercicios, Rutinas, Historial).
 class MainShell extends StatelessWidget {
   final StatefulNavigationShell navigationShell;
 
@@ -16,6 +17,7 @@ class MainShell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      drawer: const AppDrawer(),
       body: navigationShell,
       bottomNavigationBar: NavigationBar(
         selectedIndex: navigationShell.currentIndex,
@@ -37,6 +39,11 @@ class MainShell extends StatelessWidget {
             icon: Icon(Icons.list_alt_outlined),
             selectedIcon: Icon(Icons.list_alt),
             label: 'Rutinas',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.history_outlined),
+            selectedIcon: Icon(Icons.history),
+            label: 'Historial',
           ),
         ],
       ),

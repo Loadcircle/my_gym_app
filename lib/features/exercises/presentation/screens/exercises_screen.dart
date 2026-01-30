@@ -7,7 +7,6 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/config/providers/app_config_provider.dart';
 import '../../../../core/utils/muscle_groups.dart';
-import '../../../auth/providers/auth_provider.dart';
 import '../../data/models/exercise_model.dart';
 import '../../data/models/custom_exercise_model.dart';
 import '../../providers/exercises_provider.dart';
@@ -122,47 +121,6 @@ class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
     }).toList();
   }
 
-  Future<void> _showLogoutDialog() async {
-    final shouldLogout = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Cerrar Sesion'),
-        content: const Text('Estas seguro que deseas cerrar sesion?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancelar'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            style: TextButton.styleFrom(
-              foregroundColor: AppColors.error,
-            ),
-            child: const Text('Cerrar Sesion'),
-          ),
-        ],
-      ),
-    );
-
-    if (shouldLogout == true && mounted) {
-      try {
-        await ref.read(authStateProvider.notifier).signOut();
-        if (mounted) {
-          context.go(RouteNames.login);
-        }
-      } catch (e) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Error al cerrar sesion: $e'),
-              backgroundColor: AppColors.error,
-            ),
-          );
-        }
-      }
-    }
-  }
-
   void _navigateToExercise(ExerciseListItem item) {
     if (item.isCustom) {
       context.push('${RouteNames.customExerciseDetail}/${item.id}');
@@ -208,19 +166,12 @@ class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.menu),
+          onPressed: () => Scaffold.of(context).openDrawer(),
+          tooltip: 'Menu',
+        ),
         title: const Text('Ejercicios'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.history),
-            onPressed: () => context.push(RouteNames.history),
-            tooltip: 'Historial',
-          ),
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: () => _showLogoutDialog(),
-            tooltip: 'Cerrar sesion',
-          ),
-        ],
       ),
       // FAB para agregar ejercicio
       floatingActionButton: FloatingActionButton(

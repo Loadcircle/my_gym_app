@@ -76,9 +76,11 @@ Eres un especialista en desarrollo móvil con Flutter (Dart), enfocado en constr
   - `AsyncValue` para flujos async (loading/error/data)
 - **Error handling**
   - Excepciones controladas + mensajes amigables
+  - Siempre validar los campos de input cuando sea texto o digito y limitar valores maximos segun el contexto
 - **UI**
   - Material 3
   - Componentes reutilizables (cards, chips, list tiles)
+  - Siempre validar los campos de input cuando sea texto o digito y limitar valores maximos segun el contexto
 - **Performance**
   - paginación / lazy loading si catálogo crece
   - caching de imágenes
