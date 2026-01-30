@@ -479,6 +479,110 @@ class OfflineRoutinesRepository {
     );
   }
 
+  /// Agrega múltiples ejercicios a una rutina de forma atómica.
+  /// Retorna los items agregados (excluyendo duplicados).
+  Future<List<RoutineItemModel>> addMultipleItemsToRoutine(
+    String userId,
+    String routineId,
+    List<RoutineItemModel> items,
+  ) async {
+    final now = DateTime.now();
+
+    AppLogger.debug(
+      '[REPO] addMultipleItemsToRoutine: $routineId, ${items.length} items',
+      tag: 'OfflineRoutines',
+    );
+
+    // Preparar companions con IDs locales
+    final companions = items.map((item) {
+      final localId = _uuid.v4();
+      return _toItemCompanion(
+        item.copyWith(id: localId, addedAt: now),
+        isSynced: false,
+      );
+    }).toList();
+
+    // 1. Insertar atómicamente en Drift
+    final insertedEntities = await _db.routineItemsDao.addMultipleItemsInTransaction(
+      routineId: routineId,
+      items: companions,
+    );
+
+    if (insertedEntities.isEmpty) {
+      AppLogger.debug(
+        'No se agregaron items (todos duplicados)',
+        tag: 'OfflineRoutines',
+      );
+      return [];
+    }
+
+    final insertedModels = insertedEntities.map(_toItemModel).toList();
+
+    // 2. Actualizar contador de la rutina
+    final itemCount = await _db.routineItemsDao.countByRoutineId(routineId);
+    await _db.routinesDao.updateExerciseCount(routineId, itemCount);
+
+    AppLogger.debug(
+      '[REPO] Contador actualizado a $itemCount',
+      tag: 'OfflineRoutines',
+    );
+
+    AppLogger.info(
+      '${insertedModels.length} items agregados a rutina (de ${items.length} solicitados)',
+      tag: 'OfflineRoutines',
+    );
+
+    // 3. Sincronizar cada item
+    for (final model in insertedModels) {
+      await _syncOrQueueItem(userId, model, now);
+    }
+
+    return insertedModels;
+  }
+
+  Future<void> _syncOrQueueItem(String userId, RoutineItemModel item, DateTime now) async {
+    if (await _connectivity.hasConnection()) {
+      try {
+        final docRef = await _itemsRef(userId, item.routineId).add(item.toFirestore());
+        await _db.routineItemsDao.markAsSynced(item.id, firestoreId: docRef.id);
+
+        // Actualizar contador en Firestore
+        final itemCount = await _db.routineItemsDao.countByRoutineId(item.routineId);
+        await _routinesRef(userId).doc(item.routineId).update({
+          'exerciseCount': itemCount,
+          'updatedAt': Timestamp.fromDate(now),
+        });
+      } catch (e) {
+        AppLogger.error(
+          'Error sincronizando item, encolando para retry',
+          tag: 'OfflineRoutines',
+          error: e,
+        );
+        await _queueItemCreate(userId, item, now);
+      }
+    } else {
+      await _queueItemCreate(userId, item, now);
+    }
+  }
+
+  Future<void> _queueItemCreate(String userId, RoutineItemModel item, DateTime now) async {
+    await _syncService.queueOperation(
+      entityType: 'routineItem',
+      entityId: item.id,
+      operation: SyncOperation.create,
+      data: {
+        'userId': userId,
+        'routineId': item.routineId,
+        'exerciseRefType': item.exerciseRefType.name,
+        'exerciseId': item.exerciseId,
+        'exerciseNameSnapshot': item.exerciseNameSnapshot,
+        'muscleGroupSnapshot': item.muscleGroupSnapshot,
+        'addedAt': now.toIso8601String(),
+        'order': item.order,
+      },
+    );
+  }
+
   /// Observa items de una rutina en tiempo real desde cache local.
   Stream<List<RoutineItemModel>> watchRoutineItems(String routineId) {
     return _db.routineItemsDao

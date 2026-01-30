@@ -105,4 +105,70 @@ class RoutineItemsDao extends DatabaseAccessor<AppDatabase>
     final result = await query.getSingle();
     return result.read(count) ?? 0;
   }
+
+  /// Agrega múltiples items a una rutina de forma atómica.
+  /// Retorna los items agregados (excluyendo duplicados).
+  Future<List<RoutineItem>> addMultipleItemsInTransaction({
+    required String routineId,
+    required List<RoutineItemsCompanion> items,
+  }) async {
+    return transaction(() async {
+      final added = <RoutineItem>[];
+      int currentOrder = await _getMaxOrderInTransaction(routineId);
+
+      for (final item in items) {
+        // Verificar duplicado dentro de la transacción
+        final exists = await _existsInRoutineTransaction(
+          routineId: routineId,
+          exerciseId: item.exerciseId.value,
+          exerciseRefType: item.exerciseRefType.value,
+        );
+
+        if (!exists) {
+          currentOrder++;
+          final itemWithOrder = RoutineItemsCompanion(
+            id: item.id,
+            routineId: item.routineId,
+            exerciseRefType: item.exerciseRefType,
+            exerciseId: item.exerciseId,
+            exerciseNameSnapshot: item.exerciseNameSnapshot,
+            muscleGroupSnapshot: item.muscleGroupSnapshot,
+            addedAt: item.addedAt,
+            order: Value(currentOrder),
+            isSynced: item.isSynced,
+            lastSynced: item.lastSynced,
+          );
+          await into(routineItems).insert(itemWithOrder);
+          final inserted = await (select(routineItems)
+                ..where((t) => t.id.equals(item.id.value)))
+              .getSingleOrNull();
+          if (inserted != null) added.add(inserted);
+        }
+      }
+
+      return added;
+    });
+  }
+
+  Future<int> _getMaxOrderInTransaction(String routineId) async {
+    final result = await customSelect(
+      'SELECT MAX("order") as max_order FROM routine_items WHERE routine_id = ?',
+      variables: [Variable.withString(routineId)],
+    ).getSingleOrNull();
+    return (result?.read<int?>('max_order') ?? -1);
+  }
+
+  Future<bool> _existsInRoutineTransaction({
+    required String routineId,
+    required String exerciseId,
+    required String exerciseRefType,
+  }) async {
+    final result = await (select(routineItems)
+          ..where((i) =>
+              i.routineId.equals(routineId) &
+              i.exerciseId.equals(exerciseId) &
+              i.exerciseRefType.equals(exerciseRefType)))
+        .getSingleOrNull();
+    return result != null;
+  }
 }

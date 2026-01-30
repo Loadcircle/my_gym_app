@@ -131,6 +131,12 @@ class SyncService {
       case 'routineCompletion':
         await _syncRoutineCompletion(op.entityId, operation, op.payload);
         break;
+      case 'routine':
+        await _syncRoutine(op.entityId, operation, op.payload);
+        break;
+      case 'routineItem':
+        await _syncRoutineItem(op.entityId, operation, op.payload);
+        break;
       default:
         AppLogger.warning(
           'Tipo de entidad desconocido: ${op.entityType}',
@@ -327,6 +333,221 @@ class SyncService {
 
       case SyncOperation.delete:
         await collection.doc(entityId).delete();
+        break;
+    }
+  }
+
+  Future<void> _syncRoutine(
+    String entityId,
+    SyncOperation operation,
+    String? payload,
+  ) async {
+    if (payload == null && operation != SyncOperation.delete) return;
+
+    final data = payload != null
+        ? jsonDecode(payload) as Map<String, dynamic>
+        : <String, dynamic>{};
+    final userId = data['userId'] as String?;
+
+    if (userId == null) {
+      AppLogger.warning(
+        'UserId no encontrado para sincronizar routine: $entityId',
+        tag: 'Sync',
+      );
+      return;
+    }
+
+    AppLogger.debug(
+      '[SYNC] Procesando routine: $entityId, op=$operation',
+      tag: 'Sync',
+    );
+
+    final collection = _firestore
+        .collection('users')
+        .doc(userId)
+        .collection('routines');
+
+    switch (operation) {
+      case SyncOperation.create:
+        // Convertir date strings a Timestamps
+        final firestoreData = Map<String, dynamic>.from(data);
+        firestoreData.remove('userId'); // userId ya está en el path
+
+        if (firestoreData['createdAt'] != null &&
+            firestoreData['createdAt'] is String) {
+          firestoreData['createdAt'] =
+              Timestamp.fromDate(DateTime.parse(firestoreData['createdAt']));
+        }
+        if (firestoreData['updatedAt'] != null &&
+            firestoreData['updatedAt'] is String) {
+          firestoreData['updatedAt'] =
+              Timestamp.fromDate(DateTime.parse(firestoreData['updatedAt']));
+        }
+
+        // Crear en Firestore y obtener el ID real
+        final docRef = await collection.add(firestoreData);
+
+        // Actualizar el registro local con el ID de Firestore
+        await _db.routinesDao.markAsSynced(entityId, firestoreId: docRef.id);
+
+        AppLogger.info(
+          'Routine sincronizada: $entityId -> ${docRef.id}',
+          tag: 'Sync',
+        );
+        break;
+
+      case SyncOperation.update:
+        final firestoreData = Map<String, dynamic>.from(data);
+        firestoreData.remove('userId');
+
+        if (firestoreData['createdAt'] != null &&
+            firestoreData['createdAt'] is String) {
+          firestoreData['createdAt'] =
+              Timestamp.fromDate(DateTime.parse(firestoreData['createdAt']));
+        }
+        if (firestoreData['updatedAt'] != null &&
+            firestoreData['updatedAt'] is String) {
+          firestoreData['updatedAt'] =
+              Timestamp.fromDate(DateTime.parse(firestoreData['updatedAt']));
+        }
+
+        await collection.doc(entityId).update(firestoreData);
+        await _db.routinesDao.markAsSynced(entityId);
+        break;
+
+      case SyncOperation.delete:
+        // Eliminar items de la rutina primero (cascade)
+        final itemsSnapshot = await collection.doc(entityId).collection('items').get();
+        final batch = _firestore.batch();
+        for (final doc in itemsSnapshot.docs) {
+          batch.delete(doc.reference);
+        }
+        batch.delete(collection.doc(entityId));
+        await batch.commit();
+
+        AppLogger.info(
+          'Routine y ${itemsSnapshot.docs.length} items eliminados de Firestore: $entityId',
+          tag: 'Sync',
+        );
+        break;
+    }
+  }
+
+  Future<void> _syncRoutineItem(
+    String entityId,
+    SyncOperation operation,
+    String? payload,
+  ) async {
+    if (payload == null && operation != SyncOperation.delete) return;
+
+    final data = payload != null
+        ? jsonDecode(payload) as Map<String, dynamic>
+        : <String, dynamic>{};
+    final userId = data['userId'] as String?;
+    final routineId = data['routineId'] as String?;
+
+    if (userId == null || routineId == null) {
+      AppLogger.warning(
+        'UserId o routineId no encontrado para sincronizar routineItem: $entityId',
+        tag: 'Sync',
+      );
+      return;
+    }
+
+    AppLogger.debug(
+      '[SYNC] Procesando routineItem: $entityId, op=$operation',
+      tag: 'Sync',
+    );
+
+    final collection = _firestore
+        .collection('users')
+        .doc(userId)
+        .collection('routines')
+        .doc(routineId)
+        .collection('items');
+
+    final routineRef = _firestore
+        .collection('users')
+        .doc(userId)
+        .collection('routines')
+        .doc(routineId);
+
+    switch (operation) {
+      case SyncOperation.create:
+        // Verificar duplicados en Firestore antes de crear
+        final existingQuery = await collection
+            .where('exerciseId', isEqualTo: data['exerciseId'])
+            .where('exerciseRefType', isEqualTo: data['exerciseRefType'])
+            .limit(1)
+            .get();
+
+        if (existingQuery.docs.isNotEmpty) {
+          AppLogger.warning(
+            'Item duplicado detectado en Firestore, actualizando local con ID existente',
+            tag: 'Sync',
+          );
+          final existingId = existingQuery.docs.first.id;
+          await _db.routineItemsDao.markAsSynced(entityId, firestoreId: existingId);
+          return;
+        }
+
+        // Convertir date strings a Timestamps
+        final firestoreData = <String, dynamic>{
+          'exerciseRefType': data['exerciseRefType'],
+          'exerciseId': data['exerciseId'],
+          'exerciseNameSnapshot': data['exerciseNameSnapshot'],
+          'muscleGroupSnapshot': data['muscleGroupSnapshot'],
+          'order': data['order'] ?? 0,
+        };
+
+        if (data['addedAt'] != null && data['addedAt'] is String) {
+          firestoreData['addedAt'] =
+              Timestamp.fromDate(DateTime.parse(data['addedAt']));
+        } else {
+          firestoreData['addedAt'] = Timestamp.now();
+        }
+
+        // Crear en Firestore y obtener el ID real
+        final docRef = await collection.add(firestoreData);
+
+        // Actualizar el registro local con el ID de Firestore
+        await _db.routineItemsDao.markAsSynced(entityId, firestoreId: docRef.id);
+
+        // Actualizar contador de la rutina en Firestore
+        final itemCount = await _db.routineItemsDao.countByRoutineId(routineId);
+        await routineRef.update({
+          'exerciseCount': itemCount,
+          'updatedAt': Timestamp.now(),
+        });
+
+        AppLogger.info(
+          'RoutineItem sincronizado: $entityId -> ${docRef.id}',
+          tag: 'Sync',
+        );
+        break;
+
+      case SyncOperation.update:
+        // RoutineItems generalmente no se actualizan, solo se agregan/eliminan
+        AppLogger.warning(
+          'Intento de actualizar routineItem, operación ignorada',
+          tag: 'Sync',
+        );
+        break;
+
+      case SyncOperation.delete:
+        await collection.doc(entityId).delete();
+
+        // Actualizar contador de la rutina en Firestore
+        final itemCount = await _db.routineItemsDao.countByRoutineId(routineId);
+        await routineRef.update({
+          'exerciseCount': itemCount,
+          'updatedAt': Timestamp.now(),
+        });
+
+        AppLogger.info(
+          'RoutineItem eliminado de Firestore: $entityId',
+          tag: 'Sync',
+        );
         break;
     }
   }

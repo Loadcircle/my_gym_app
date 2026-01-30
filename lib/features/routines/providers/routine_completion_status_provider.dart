@@ -64,7 +64,8 @@ final routineCompletionStatusProvider =
         ? 'custom_${item.exerciseId}'
         : item.exerciseId;
     if (completedIds.contains(exerciseIdToCheck)) {
-      completedExerciseIdsInRoutine.add(item.exerciseId);
+      // Usar el ID con prefijo para mantener consistencia con todayCompletedExerciseIdsProvider
+      completedExerciseIdsInRoutine.add(exerciseIdToCheck);
     }
   }
 

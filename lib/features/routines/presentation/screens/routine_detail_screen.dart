@@ -488,7 +488,11 @@ class _RoutineDetailScreenState extends ConsumerState<RoutineDetailScreen> {
       itemCount: items.length,
       itemBuilder: (context, index) {
         final item = items[index];
-        final isCompletedToday = status.completedExerciseIds.contains(item.exerciseId);
+        // Usar el ID con prefijo para ejercicios custom (consistente con completedExerciseIds)
+        final exerciseIdForComparison = item.exerciseRefType == ExerciseRefType.custom
+            ? 'custom_${item.exerciseId}'
+            : item.exerciseId;
+        final isCompletedToday = status.completedExerciseIds.contains(exerciseIdForComparison);
 
         return Dismissible(
           key: Key(item.id),

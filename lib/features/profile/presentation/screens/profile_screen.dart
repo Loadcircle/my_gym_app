@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/constants/app_constants.dart';
+import '../../../auth/providers/auth_provider.dart';
 import '../../data/models/user_profile_model.dart';
 import '../../providers/user_profile_provider.dart';
 
@@ -38,12 +39,27 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     super.dispose();
   }
 
-  void _initializeFromProfile(UserProfileModel profile) {
+  void _initializeFromProfile(UserProfileModel profile, String? authDisplayName) {
     if (_isInitialized) return;
     _isInitialized = true;
 
-    _firstNameController.text = profile.firstName ?? '';
-    _lastNameController.text = profile.lastName ?? '';
+    // Si el perfil no tiene nombre, intentar usar el displayName de Firebase Auth
+    String firstName = profile.firstName ?? '';
+    String lastName = profile.lastName ?? '';
+
+    if (firstName.isEmpty && authDisplayName != null && authDisplayName.isNotEmpty) {
+      // Parsear el displayName (puede ser "Nombre Apellido")
+      final parts = authDisplayName.trim().split(' ');
+      if (parts.isNotEmpty) {
+        firstName = parts.first;
+        if (parts.length > 1) {
+          lastName = parts.skip(1).join(' ');
+        }
+      }
+    }
+
+    _firstNameController.text = firstName;
+    _lastNameController.text = lastName;
     _ageController.text = profile.age?.toString() ?? '';
     _heightController.text = profile.height?.toString() ?? '';
     _weightController.text = profile.weight?.toString() ?? '';
@@ -110,6 +126,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     final profileAsync = ref.watch(userProfileProvider);
+    final authState = ref.watch(authStateProvider);
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -152,7 +169,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         ),
         data: (profile) {
           if (profile != null) {
-            _initializeFromProfile(profile);
+            _initializeFromProfile(profile, authState.user?.displayName);
           }
           return _buildForm();
         },

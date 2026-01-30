@@ -270,45 +270,35 @@ class RoutineItemsNotifier extends StateNotifier<AsyncValue<void>> {
     }
   }
 
-  /// Agrega múltiples ejercicios a una rutina.
-  /// Usa un Set local para evitar race conditions y duplicados en el mismo batch.
+  /// Agrega múltiples ejercicios a una rutina de forma atómica.
+  /// Delega al repositorio que maneja transacciones y deduplicación.
   Future<List<RoutineItemModel>> addMultipleExercises({
     required String routineId,
     required List<({String exerciseId, ExerciseRefType refType, String name, String muscleGroup})> exercises,
   }) async {
+    if (exercises.isEmpty) return [];
+
     state = const AsyncValue.loading();
-    final added = <RoutineItemModel>[];
 
     try {
-      // Pre-cargar items existentes al inicio para evitar race conditions
-      final existingItems = await _repository.getRoutineItems(_userId, routineId);
-      final existingKeys = existingItems
-          .map((item) => '${item.exerciseRefType.name}_${item.exerciseId}')
-          .toSet();
+      // Convertir a modelos
+      final items = exercises.map((e) => RoutineItemModel(
+        id: '', // El repo asignará ID
+        routineId: routineId,
+        exerciseRefType: e.refType,
+        exerciseId: e.exerciseId,
+        exerciseNameSnapshot: e.name,
+        muscleGroupSnapshot: e.muscleGroup,
+        addedAt: DateTime.now(),
+        order: 0, // El repo asignará orden
+      )).toList();
 
-      for (final exercise in exercises) {
-        final key = '${exercise.refType.name}_${exercise.exerciseId}';
-
-        // Verificar en el Set local (incluye items ya existentes + agregados en este batch)
-        if (!existingKeys.contains(key)) {
-          final item = RoutineItemModel(
-            id: '',
-            routineId: routineId,
-            exerciseRefType: exercise.refType,
-            exerciseId: exercise.exerciseId,
-            exerciseNameSnapshot: exercise.name,
-            muscleGroupSnapshot: exercise.muscleGroup,
-            addedAt: DateTime.now(),
-            order: 0,
-          );
-
-          final created = await _repository.addItemToRoutine(_userId, item);
-          added.add(created);
-
-          // Agregar al Set para evitar duplicados en el mismo batch
-          existingKeys.add(key);
-        }
-      }
+      // Delegar al repositorio (maneja transacción y deduplicación)
+      final added = await _repository.addMultipleItemsToRoutine(
+        _userId,
+        routineId,
+        items,
+      );
 
       state = const AsyncValue.data(null);
       _invalidateItemProviders(routineId);
@@ -316,7 +306,7 @@ class RoutineItemsNotifier extends StateNotifier<AsyncValue<void>> {
       return added;
     } catch (e, st) {
       state = AsyncValue.error(e, st);
-      return added;
+      return [];
     }
   }
 

@@ -250,6 +250,7 @@ class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
                         : null,
                     label: Text(filter),
                     selected: isSelected,
+                    showCheckmark: !isMyExercises,
                     onSelected: (selected) {
                       setState(() => _selectedFilter = filter);
                     },

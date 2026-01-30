@@ -36,13 +36,18 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 6;
+  int get schemaVersion => 7;
 
   @override
   MigrationStrategy get migration {
     return MigrationStrategy(
       onCreate: (Migrator m) async {
         await m.createAll();
+        // Crear índice único para evitar duplicados en routine_items
+        await customStatement(
+          'CREATE UNIQUE INDEX IF NOT EXISTS idx_routine_items_unique '
+          'ON routine_items(routine_id, exercise_id, exercise_ref_type)',
+        );
       },
       onUpgrade: (Migrator m, int from, int to) async {
         // Migracion v1 -> v2: Agregar tabla CustomExercises
@@ -67,6 +72,13 @@ class AppDatabase extends _$AppDatabase {
         // Migracion v5 -> v6: Agregar tabla UserProfiles
         if (from < 6) {
           await m.createTable(userProfiles);
+        }
+        // Migracion v6 -> v7: Agregar índice único en routine_items para evitar duplicados
+        if (from < 7) {
+          await customStatement(
+            'CREATE UNIQUE INDEX IF NOT EXISTS idx_routine_items_unique '
+            'ON routine_items(routine_id, exercise_id, exercise_ref_type)',
+          );
         }
       },
     );
