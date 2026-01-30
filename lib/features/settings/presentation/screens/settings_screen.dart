@@ -228,7 +228,6 @@ class _SectionHeader extends StatelessWidget {
     );
   }
 }
-
 /// Card con información de la app.
 class _AppInfoCard extends StatelessWidget {
   const _AppInfoCard();
@@ -239,16 +238,18 @@ class _AppInfoCard extends StatelessWidget {
       future: PackageInfo.fromPlatform(),
       builder: (context, snapshot) {
         final info = snapshot.data;
+
+        final appName = info?.appName ?? 'My Gym App';
         final version = info?.version ?? '...';
         final buildNumber = info?.buildNumber ?? '';
-        final appName = info?.appName ?? 'My Gym App';
 
         return Card(
           child: Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(20),
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                // Logo/Icono de la app
+                // Icono / logo
                 Container(
                   width: 64,
                   height: 64,
@@ -264,7 +265,7 @@ class _AppInfoCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 16),
 
-                // Nombre de la app
+                // Nombre
                 Text(
                   appName,
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
@@ -275,9 +276,29 @@ class _AppInfoCard extends StatelessWidget {
 
                 // Versión
                 Text(
-                  'Version $version${buildNumber.isNotEmpty ? ' ($buildNumber)' : ''}',
+                  'Versión $version${buildNumber.isNotEmpty ? ' ($buildNumber)' : ''}',
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: AppColors.textSecondary,
+                      ),
+                ),
+                const SizedBox(height: 12),
+
+                // Descripción corta
+                Text(
+                  'Registra tus entrenamientos, ejercicios y progreso en el gimnasio.',
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: AppColors.textSecondary,
+                      ),
+                ),
+
+                const SizedBox(height: 16),
+
+                // Footer legal mínimo
+                Text(
+                  '© 2026 My Gym App',
+                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                        color: AppColors.textSecondary.withValues(alpha: 0.6),
                       ),
                 ),
               ],

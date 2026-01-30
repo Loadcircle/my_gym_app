@@ -115,21 +115,21 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       backgroundColor: AppColors.background,
       appBar: AppBar(
         title: const Text('Mi Perfil'),
-        actions: [
-          TextButton(
-            onPressed: _isSaving ? null : _saveProfile,
-            child: _isSaving
-                ? const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: AppColors.primary,
-                    ),
-                  )
+      ),
+      bottomNavigationBar: SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: _isSaving ? null : _saveProfile,
+              child: _isSaving
+                ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
                 : const Text('Guardar'),
+            ),
           ),
-        ],
+        ),
       ),
       body: profileAsync.when(
         loading: () => const Center(
@@ -164,7 +164,12 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     return Form(
       key: _formKey,
       child: ListView(
-        padding: const EdgeInsets.all(AppConstants.defaultPadding),
+        padding: const EdgeInsets.fromLTRB(
+          AppConstants.defaultPadding,
+          AppConstants.defaultPadding,
+          AppConstants.defaultPadding,
+          120, // espacio para el botón
+        ),
         children: [
           // Avatar placeholder
           Center(
@@ -184,15 +189,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       ),
                 ),
               ),
-            ),
-          ),
-          const SizedBox(height: 8),
-          Center(
-            child: Text(
-              'Avatar no editable',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: AppColors.textHint,
-                  ),
             ),
           ),
           const SizedBox(height: 32),
@@ -230,7 +226,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               labelText: 'Edad',
               hintText: 'Ej: 25',
               prefixIcon: Icon(Icons.cake_outlined),
-              suffixText: 'anos',
+              suffixText: 'años',
             ),
             keyboardType: TextInputType.number,
             inputFormatters: [
