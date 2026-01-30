@@ -542,10 +542,12 @@ class OfflineWeightRecordsRepository {
             .toList();
       } else if (record.setsData != null) {
         // Fallback: deserializar del JSON backup
+        // Normalizar Map antes de deserializar para evitar error de tipo _Map<String, num>
         final entriesList = jsonDecode(record.setsData!) as List<dynamic>;
-        setEntries = entriesList
-            .map((e) => SetEntryModel.fromJson(e as Map<String, dynamic>))
-            .toList();
+        setEntries = entriesList.map((e) {
+          final map = Map<String, dynamic>.from(e as Map);
+          return SetEntryModel.fromJson(map);
+        }).toList();
       }
     }
 

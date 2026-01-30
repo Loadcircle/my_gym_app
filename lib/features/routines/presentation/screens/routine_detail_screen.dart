@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/constants/app_constants.dart';
+import '../../../../core/utils/muscle_groups.dart';
 import '../../data/models/routine_model.dart';
 import '../../data/models/routine_item_model.dart';
 import '../../data/models/routine_completion_model.dart';
@@ -69,25 +70,6 @@ class _RoutineDetailScreenState extends ConsumerState<RoutineDetailScreen> {
           ),
         );
       }
-    }
-  }
-
-  Color _getMuscleGroupColor(String muscleGroup) {
-    switch (muscleGroup) {
-      case 'Pecho':
-        return AppColors.muscleChest;
-      case 'Espalda':
-        return AppColors.muscleBack;
-      case 'Piernas':
-        return AppColors.muscleLegs;
-      case 'Hombros':
-        return AppColors.muscleShoulders;
-      case 'Brazos':
-        return AppColors.muscleArms;
-      case 'Core':
-        return AppColors.muscleCore;
-      default:
-        return AppColors.primary;
     }
   }
 
@@ -497,7 +479,12 @@ class _RoutineDetailScreenState extends ConsumerState<RoutineDetailScreen> {
     RoutineModel routine,
   ) {
     return ListView.builder(
-      padding: const EdgeInsets.symmetric(horizontal: AppConstants.defaultPadding),
+      padding: const EdgeInsets.fromLTRB(
+        AppConstants.defaultPadding,
+        0,
+        AppConstants.defaultPadding,
+        96, // Extra padding para FAB y safe area
+      ),
       itemCount: items.length,
       itemBuilder: (context, index) {
         final item = items[index];
@@ -525,7 +512,7 @@ class _RoutineDetailScreenState extends ConsumerState<RoutineDetailScreen> {
           ),
           child: _ExerciseItemCard(
             item: item,
-            muscleGroupColor: _getMuscleGroupColor(item.muscleGroupSnapshot),
+            muscleGroupColor: MuscleGroups.getColor(item.muscleGroupSnapshot),
             isCompletedToday: isCompletedToday,
             onTap: () => _navigateToExercise(item),
             onRemove: () => _removeExercise(item),

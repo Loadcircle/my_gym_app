@@ -7,10 +7,10 @@ import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/router/route_names.dart';
 import '../../../../core/config/providers/app_config_provider.dart';
+import '../../../../core/utils/muscle_groups.dart';
 import '../../../../shared/widgets/weight_progress_chart.dart';
 import '../../../routines/presentation/widgets/select_routine_sheet.dart';
 import '../../data/models/custom_exercise_model.dart';
-import '../../data/models/record_mode.dart';
 import '../../data/models/weight_record_model.dart';
 import '../../providers/custom_exercises_provider.dart';
 import '../../providers/weight_records_provider.dart';
@@ -173,25 +173,6 @@ class _CustomExerciseDetailScreenState
     );
   }
 
-  Color _getMuscleGroupColor(String muscleGroup) {
-    switch (muscleGroup) {
-      case 'Pecho':
-        return AppColors.muscleChest;
-      case 'Espalda':
-        return AppColors.muscleBack;
-      case 'Piernas':
-        return AppColors.muscleLegs;
-      case 'Hombros':
-        return AppColors.muscleShoulders;
-      case 'Brazos':
-        return AppColors.muscleArms;
-      case 'Core':
-        return AppColors.muscleCore;
-      default:
-        return AppColors.primary;
-    }
-  }
-
   String _getProposalStatusText(ProposalStatus status) {
     switch (status) {
       case ProposalStatus.none:
@@ -293,7 +274,7 @@ class _CustomExerciseDetailScreenState
     AsyncValue<WeightRecordModel?> lastRecordAsync,
     AsyncValue<List<WeightRecordModel>> historyAsync,
   ) {
-    final muscleColor = _getMuscleGroupColor(exercise.muscleGroup);
+    final muscleColor = MuscleGroups.getColor(exercise.muscleGroup);
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -433,15 +414,6 @@ class _CustomExerciseDetailScreenState
                   // Registro de peso
                   _buildWeightInputCard(exercise),
                   const SizedBox(height: 24),
-
-                  // Historial reciente
-                  historyAsync.when(
-                    loading: () => const SizedBox.shrink(),
-                    error: (error, stack) => const SizedBox.shrink(),
-                    data: (history) => history.isNotEmpty
-                        ? _buildRecentHistory(history.take(5).toList())
-                        : const SizedBox.shrink(),
-                  ),
 
                   // Grafico de evolucion (si hay suficiente historial)
                   historyAsync.when(
@@ -672,16 +644,22 @@ class _CustomExerciseDetailScreenState
           Center(
             child: TextButton.icon(
               onPressed: () async {
-                final result = await context.push<bool>(
+                final result = await context.push<Map<String, dynamic>?>(
                   RouteNames.advancedWeightRecordPath(customExerciseId),
                   extra: {
                     'exerciseName': exercise.name,
                     'muscleGroup': exercise.muscleGroup,
                   },
                 );
-                if (result == true) {
+                if (result != null && mounted) {
                   ref.invalidate(lastWeightRecordProvider(customExerciseId));
                   ref.invalidate(exerciseHistoryProvider(customExerciseId));
+                  // Update controllers directly with returned values
+                  setState(() {
+                    _weightController.text = result['weight'].toString();
+                    _repsController.text = result['reps'].toString();
+                    _setsController.text = result['sets'].toString();
+                  });
                 }
               },
               icon: const Icon(Icons.format_list_numbered, size: 18),
@@ -696,85 +674,4 @@ class _CustomExerciseDetailScreenState
     );
   }
 
-  Widget _buildRecentHistory(List<WeightRecordModel> history) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Historial Reciente',
-          style: Theme.of(context).textTheme.titleLarge,
-        ),
-        const SizedBox(height: 12),
-        ...history.map(
-          (record) => Container(
-            margin: const EdgeInsets.only(bottom: 8),
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: AppColors.surfaceVariant,
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
-                  children: [
-                    Text(
-                      '${record.weight} kg',
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
-                    ),
-                    if (record.mode == RecordMode.advanced) ...[
-                      const SizedBox(width: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: AppColors.primary.withAlpha(26),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: Text(
-                          'Detallado',
-                          style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                                color: AppColors.primary,
-                                fontSize: 10,
-                              ),
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-                Text(
-                  '${record.sets}x${record.reps}',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: AppColors.textSecondary,
-                      ),
-                ),
-                Text(
-                  _formatDate(record.date),
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: AppColors.textHint,
-                      ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  String _formatDate(DateTime date) {
-    final now = DateTime.now();
-    final diff = now.difference(date);
-
-    if (diff.inDays == 0) {
-      return 'Hoy';
-    } else if (diff.inDays == 1) {
-      return 'Ayer';
-    } else if (diff.inDays < 7) {
-      return 'Hace ${diff.inDays} dias';
-    } else {
-      return '${date.day}/${date.month}/${date.year}';
-    }
-  }
 }

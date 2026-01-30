@@ -7,6 +7,7 @@ import 'package:image_picker/image_picker.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/config/providers/app_config_provider.dart';
+import '../../../../core/utils/muscle_groups.dart';
 import '../../../auth/providers/auth_provider.dart';
 import '../../data/models/custom_exercise_model.dart';
 import '../../providers/custom_exercises_provider.dart';
@@ -36,15 +37,6 @@ class _EditCustomExerciseScreenState
   bool _removeCurrentImage = false;
   bool _isLoading = false;
   bool _isInitialized = false;
-
-  static const _muscleGroups = [
-    'Pecho',
-    'Espalda',
-    'Piernas',
-    'Hombros',
-    'Brazos',
-    'Core',
-  ];
 
   @override
   void dispose() {
@@ -267,25 +259,6 @@ class _EditCustomExerciseScreenState
       if (mounted) {
         setState(() => _isLoading = false);
       }
-    }
-  }
-
-  Color _getMuscleGroupColor(String muscleGroup) {
-    switch (muscleGroup) {
-      case 'Pecho':
-        return AppColors.muscleChest;
-      case 'Espalda':
-        return AppColors.muscleBack;
-      case 'Piernas':
-        return AppColors.muscleLegs;
-      case 'Hombros':
-        return AppColors.muscleShoulders;
-      case 'Brazos':
-        return AppColors.muscleArms;
-      case 'Core':
-        return AppColors.muscleCore;
-      default:
-        return AppColors.primary;
     }
   }
 
@@ -551,9 +524,9 @@ class _EditCustomExerciseScreenState
         Wrap(
           spacing: 8,
           runSpacing: 8,
-          children: _muscleGroups.map((group) {
+          children: MuscleGroups.all.map((group) {
             final isSelected = _selectedMuscleGroup == group;
-            final color = _getMuscleGroupColor(group);
+            final color = MuscleGroups.getColor(group);
 
             return FilterChip(
               label: Text(group),

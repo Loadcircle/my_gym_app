@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/constants/app_constants.dart';
+import '../../../../core/utils/muscle_groups.dart';
 import '../../../exercises/data/models/exercise_model.dart';
 import '../../../exercises/data/models/custom_exercise_model.dart';
 import '../../../exercises/providers/exercises_provider.dart';
@@ -30,43 +31,15 @@ class _AddExercisesToRoutineScreenState
   String _selectedFilter = 'Todos';
   final _searchController = TextEditingController();
   String _searchQuery = '';
+  bool _isLoading = false;
 
   // Ejercicios seleccionados para agregar
   final Set<String> _selectedExerciseIds = {};
-
-  static const List<String> _muscleGroups = [
-    'Todos',
-    'Pecho',
-    'Espalda',
-    'Piernas',
-    'Hombros',
-    'Brazos',
-    'Core',
-  ];
 
   @override
   void dispose() {
     _searchController.dispose();
     super.dispose();
-  }
-
-  Color _getMuscleGroupColor(String muscleGroup) {
-    switch (muscleGroup) {
-      case 'Pecho':
-        return AppColors.muscleChest;
-      case 'Espalda':
-        return AppColors.muscleBack;
-      case 'Piernas':
-        return AppColors.muscleLegs;
-      case 'Hombros':
-        return AppColors.muscleShoulders;
-      case 'Brazos':
-        return AppColors.muscleArms;
-      case 'Core':
-        return AppColors.muscleCore;
-      default:
-        return AppColors.primary;
-    }
   }
 
   /// Genera un ID único para un ejercicio (para diferenciar global vs custom).
@@ -79,6 +52,8 @@ class _AddExercisesToRoutineScreenState
       context.pop();
       return;
     }
+
+    setState(() => _isLoading = true);
 
     // Obtener los ejercicios para construir los datos
     final globalExercises = ref.read(exercisesProvider).valueOrNull ?? [];
@@ -152,6 +127,7 @@ class _AddExercisesToRoutineScreenState
             );
 
     if (mounted) {
+      setState(() => _isLoading = false);
       if (added.isNotEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -184,21 +160,40 @@ class _AddExercisesToRoutineScreenState
       backgroundColor: AppColors.background,
       appBar: AppBar(
         title: const Text('Agregar Ejercicios'),
-        actions: [
-          TextButton(
-            onPressed: _addSelectedExercises,
-            child: Text(
-              _selectedExerciseIds.isEmpty
-                  ? 'Listo'
-                  : 'Agregar (${_selectedExerciseIds.length})',
-              style: const TextStyle(
-                color: AppColors.primary,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-        ],
       ),
+      bottomNavigationBar: _selectedExerciseIds.isNotEmpty
+          ? SafeArea(
+              top: false, // importante: solo respeta abajo
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: SizedBox(
+                  height: 52,
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: _isLoading ? null : _addSelectedExercises,
+                    icon: _isLoading
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Icon(Icons.check),
+                    label: Text(
+                      'Agregar (${_selectedExerciseIds.length})',
+                      style: const TextStyle(fontWeight: FontWeight.w600),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      foregroundColor: AppColors.textPrimary,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            )
+          : null,
       body: Column(
         children: [
           // Buscador
@@ -243,9 +238,9 @@ class _AddExercisesToRoutineScreenState
               padding: const EdgeInsets.symmetric(
                 horizontal: AppConstants.defaultPadding,
               ),
-              itemCount: _muscleGroups.length,
+              itemCount: MuscleGroups.withAll.length,
               itemBuilder: (context, index) {
-                final filter = _muscleGroups[index];
+                final filter = MuscleGroups.withAll[index];
                 final isSelected = filter == _selectedFilter;
 
                 return Padding(
@@ -376,7 +371,12 @@ class _AddExercisesToRoutineScreenState
     }
 
     return ListView.builder(
-      padding: const EdgeInsets.all(AppConstants.defaultPadding),
+      padding: const EdgeInsets.fromLTRB(
+        AppConstants.defaultPadding,
+        AppConstants.defaultPadding,
+        AppConstants.defaultPadding,
+        96, // Extra padding para FAB
+      ),
       itemCount: filtered.length,
       itemBuilder: (context, index) {
         final entry = filtered[index];
@@ -385,7 +385,7 @@ class _AddExercisesToRoutineScreenState
         return _ExerciseSelectCard(
           entry: entry,
           isSelected: isSelected,
-          muscleGroupColor: _getMuscleGroupColor(entry.muscleGroup),
+          muscleGroupColor: MuscleGroups.getColor(entry.muscleGroup),
           onToggle: entry.isAlreadyAdded
               ? null
               : () {

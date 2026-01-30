@@ -7,6 +7,7 @@ import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/config/providers/app_config_provider.dart';
 import '../../../../core/router/route_names.dart';
+import '../../../../core/utils/muscle_groups.dart';
 import '../../../../shared/widgets/storage_image.dart';
 import '../../../../shared/widgets/storage_video_player.dart';
 import '../../../../shared/widgets/weight_progress_chart.dart';
@@ -122,26 +123,6 @@ class _ExerciseDetailScreenState extends ConsumerState<ExerciseDetailScreen> {
     );
   }
 
-  // Centralizar muscle groups desde firebase y app config
-  Color _getMuscleGroupColor(String muscleGroup) {
-    switch (muscleGroup) {
-      case 'Pecho':
-        return AppColors.muscleChest;
-      case 'Espalda':
-        return AppColors.muscleBack;
-      case 'Piernas':
-        return AppColors.muscleLegs;
-      case 'Hombros':
-        return AppColors.muscleShoulders;
-      case 'Brazos':
-        return AppColors.muscleArms;
-      case 'Core':
-        return AppColors.muscleCore;
-      default:
-        return AppColors.primary;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final exerciseAsync = ref.watch(exerciseByIdProvider(widget.exerciseId));
@@ -198,7 +179,7 @@ class _ExerciseDetailScreenState extends ConsumerState<ExerciseDetailScreen> {
     AsyncValue<WeightRecordModel?> lastRecordAsync,
     AsyncValue<List<WeightRecordModel>> historyAsync,
   ) {
-    final muscleColor = _getMuscleGroupColor(exercise.muscleGroup);
+    final muscleColor = MuscleGroups.getColor(exercise.muscleGroup);
     final instructions = exercise.instructions.isNotEmpty
         ? exercise.instructions.split('\n')
         : <String>[];

@@ -57,9 +57,13 @@ final routineCompletionStatusProvider =
   final todayCompletion = todayCompletionAsync.valueOrNull;
 
   // Calcular ejercicios completados
+  // Los ejercicios custom se guardan con prefijo 'custom_' en weight records
   final completedExerciseIdsInRoutine = <String>{};
   for (final item in items) {
-    if (completedIds.contains(item.exerciseId)) {
+    final exerciseIdToCheck = item.exerciseRefType == ExerciseRefType.custom
+        ? 'custom_${item.exerciseId}'
+        : item.exerciseId;
+    if (completedIds.contains(exerciseIdToCheck)) {
       completedExerciseIdsInRoutine.add(item.exerciseId);
     }
   }
@@ -77,7 +81,11 @@ final routineCompletionStatusProvider =
 final isRoutineItemCompletedTodayProvider =
     Provider.family<bool, RoutineItemModel>((ref, item) {
   final completedIds = ref.watch(todayCompletedExerciseIdsProvider);
-  return completedIds.contains(item.exerciseId);
+  // Los ejercicios custom se guardan con prefijo 'custom_' en weight records
+  final exerciseIdToCheck = item.exerciseRefType == ExerciseRefType.custom
+      ? 'custom_${item.exerciseId}'
+      : item.exerciseId;
+  return completedIds.contains(exerciseIdToCheck);
 });
 
 // ============ ROUTINE COMPLETIONS PROVIDERS ============

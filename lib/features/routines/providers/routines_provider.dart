@@ -271,6 +271,7 @@ class RoutineItemsNotifier extends StateNotifier<AsyncValue<void>> {
   }
 
   /// Agrega múltiples ejercicios a una rutina.
+  /// Usa un Set local para evitar race conditions y duplicados en el mismo batch.
   Future<List<RoutineItemModel>> addMultipleExercises({
     required String routineId,
     required List<({String exerciseId, ExerciseRefType refType, String name, String muscleGroup})> exercises,
@@ -279,15 +280,17 @@ class RoutineItemsNotifier extends StateNotifier<AsyncValue<void>> {
     final added = <RoutineItemModel>[];
 
     try {
-      for (final exercise in exercises) {
-        // Verificar si ya existe
-        final exists = await _repository.isExerciseInRoutine(
-          routineId: routineId,
-          exerciseId: exercise.exerciseId,
-          exerciseRefType: exercise.refType,
-        );
+      // Pre-cargar items existentes al inicio para evitar race conditions
+      final existingItems = await _repository.getRoutineItems(_userId, routineId);
+      final existingKeys = existingItems
+          .map((item) => '${item.exerciseRefType.name}_${item.exerciseId}')
+          .toSet();
 
-        if (!exists) {
+      for (final exercise in exercises) {
+        final key = '${exercise.refType.name}_${exercise.exerciseId}';
+
+        // Verificar en el Set local (incluye items ya existentes + agregados en este batch)
+        if (!existingKeys.contains(key)) {
           final item = RoutineItemModel(
             id: '',
             routineId: routineId,
@@ -301,6 +304,9 @@ class RoutineItemsNotifier extends StateNotifier<AsyncValue<void>> {
 
           final created = await _repository.addItemToRoutine(_userId, item);
           added.add(created);
+
+          // Agregar al Set para evitar duplicados en el mismo batch
+          existingKeys.add(key);
         }
       }
 

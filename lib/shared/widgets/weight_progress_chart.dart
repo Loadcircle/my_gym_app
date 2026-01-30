@@ -240,27 +240,30 @@ class WeightProgressChart extends StatelessWidget {
       text = '-${percentage.toStringAsFixed(1)}%';
     }
 
-    return Row(
-      children: [
-        Icon(icon, color: color, size: 20),
-        const SizedBox(width: 4),
-        Text(
-          text,
-          style: TextStyle(
-            color: color,
-            fontWeight: FontWeight.w600,
-            fontSize: 14,
+    return SafeArea(
+      top: false,
+      child: Row(
+        children: [
+          Icon(icon, color: color, size: 20),
+          const SizedBox(width: 4),
+          Text(
+            text,
+            style: TextStyle(
+              color: color,
+              fontWeight: FontWeight.w600,
+              fontSize: 14,
+            ),
           ),
-        ),
-        const SizedBox(width: 8),
-        Text(
-          'desde ${records.first.date.day}/${records.first.date.month}',
-          style: const TextStyle(
-            color: AppColors.textHint,
-            fontSize: 12,
+          const SizedBox(width: 8),
+          Text(
+            'desde ${records.first.date.day}/${records.first.date.month}',
+            style: const TextStyle(
+              color: AppColors.textHint,
+              fontSize: 12,
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

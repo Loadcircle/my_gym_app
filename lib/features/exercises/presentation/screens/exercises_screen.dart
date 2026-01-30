@@ -6,6 +6,7 @@ import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/config/providers/app_config_provider.dart';
+import '../../../../core/utils/muscle_groups.dart';
 import '../../../auth/providers/auth_provider.dart';
 import '../../data/models/exercise_model.dart';
 import '../../data/models/custom_exercise_model.dart';
@@ -75,26 +76,15 @@ class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
   // Filtro especial para ejercicios personalizados
   static const String _myExercisesFilter = 'Mis ejercicios';
 
-  // Grupos musculares base (sin "Mis ejercicios")
-  static const List<String> _baseMuscleGroups = [
-    'Todos',
-    'Pecho',
-    'Espalda',
-    'Piernas',
-    'Hombros',
-    'Brazos',
-    'Core',
-  ];
-
   /// Construye la lista de filtros dinámicamente.
   /// Incluye "Mis ejercicios" solo si el usuario tiene ejercicios personalizados.
   List<String> _buildFilterList(bool hasCustomExercises) {
-    if (!hasCustomExercises) return _baseMuscleGroups;
+    if (!hasCustomExercises) return MuscleGroups.withAll;
 
     return [
       'Todos',
       _myExercisesFilter,
-      ..._baseMuscleGroups.skip(1), // Pecho, Espalda, etc.
+      ...MuscleGroups.all,
     ];
   }
 
@@ -170,25 +160,6 @@ class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
           );
         }
       }
-    }
-  }
-
-  Color _getMuscleGroupColor(String muscleGroup) {
-    switch (muscleGroup) {
-      case 'Pecho':
-        return AppColors.muscleChest;
-      case 'Espalda':
-        return AppColors.muscleBack;
-      case 'Piernas':
-        return AppColors.muscleLegs;
-      case 'Hombros':
-        return AppColors.muscleShoulders;
-      case 'Brazos':
-        return AppColors.muscleArms;
-      case 'Core':
-        return AppColors.muscleCore;
-      default:
-        return AppColors.primary;
     }
   }
 
@@ -398,7 +369,7 @@ class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
         final item = combined[index];
         return _ExerciseCard(
           item: item,
-          muscleGroupColor: _getMuscleGroupColor(item.muscleGroup),
+          muscleGroupColor: MuscleGroups.getColor(item.muscleGroup),
           onTap: () => _navigateToExercise(item),
         );
       },

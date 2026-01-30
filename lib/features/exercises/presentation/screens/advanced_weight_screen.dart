@@ -6,6 +6,7 @@ import 'package:uuid/uuid.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../data/models/set_entry_model.dart';
 import '../../providers/weight_records_provider.dart';
+import 'package:flutter/services.dart';
 
 const _uuid = Uuid();
 
@@ -31,10 +32,22 @@ class _AdvancedWeightScreenState extends ConsumerState<AdvancedWeightScreen> {
   bool _didPrefill = false;
   bool _hasChanges = false;
   final _notesController = TextEditingController();
+  final List<FocusNode> _weightFocusNodes = [];
+  final List<TextEditingController> _weightControllers = [];
+  final List<TextEditingController> _repsControllers = [];
 
   @override
   void dispose() {
     _notesController.dispose();
+    for (final node in _weightFocusNodes) {
+      node.dispose();
+    }
+    for (final controller in _weightControllers) {
+      controller.dispose();
+    }
+    for (final controller in _repsControllers) {
+      controller.dispose();
+    }
     super.dispose();
   }
 
@@ -42,11 +55,23 @@ class _AdvancedWeightScreenState extends ConsumerState<AdvancedWeightScreen> {
   void initState() {
     super.initState();
     _sets = [_SetData(id: _uuid.v4(), weight: 0, reps: 10)];
+    _initControllersForSet(0, 0, 10);
 
     // Pre-fill from last record after frame
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadLastRecord();
     });
+  }
+
+  void _initControllersForSet(int index, double weight, int reps) {
+    // Asegurar que hay suficientes controllers y focus nodes
+    while (_weightFocusNodes.length <= index) {
+      _weightFocusNodes.add(FocusNode());
+      _weightControllers.add(TextEditingController());
+      _repsControllers.add(TextEditingController());
+    }
+    _weightControllers[index].text = weight > 0 ? weight.toString() : '';
+    _repsControllers[index].text = reps.toString();
   }
 
   Future<void> _loadLastRecord() async {
@@ -69,6 +94,10 @@ class _AdvancedWeightScreenState extends ConsumerState<AdvancedWeightScreen> {
             weight: entry.weight,
             reps: entry.reps,
           )).toList();
+          // Inicializar controllers para cada set cargado
+          for (int i = 0; i < _sets.length; i++) {
+            _initControllersForSet(i, _sets[i].weight, _sets[i].reps);
+          }
         } else {
           // Quick mode - just use summary weight/reps
           _sets = [
@@ -78,6 +107,7 @@ class _AdvancedWeightScreenState extends ConsumerState<AdvancedWeightScreen> {
               reps: lastRecord.reps,
             ),
           ];
+          _initControllersForSet(0, lastRecord.weight, lastRecord.reps);
         }
       });
     }
@@ -85,16 +115,30 @@ class _AdvancedWeightScreenState extends ConsumerState<AdvancedWeightScreen> {
 
   void _addSet() {
     final last = _sets.isNotEmpty ? _sets.last : null;
+    final newIndex = _sets.length;
+    final newWeight = last?.weight ?? 0;
+    final newReps = last?.reps ?? 10;
+
     setState(() {
       _hasChanges = true;
       _sets = [
         ..._sets,
         _SetData(
           id: _uuid.v4(),
-          weight: last?.weight ?? 0,
-          reps: last?.reps ?? 10,
+          weight: newWeight,
+          reps: newReps,
         ),
       ];
+    });
+
+    // Inicializar controllers para el nuevo set
+    _initControllersForSet(newIndex, newWeight, newReps);
+
+    // Focus en el campo de peso del nuevo set después del frame
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (newIndex < _weightFocusNodes.length) {
+        _weightFocusNodes[newIndex].requestFocus();
+      }
     });
   }
 
@@ -104,6 +148,12 @@ class _AdvancedWeightScreenState extends ConsumerState<AdvancedWeightScreen> {
         _hasChanges = true;
         _sets = List.from(_sets)..removeAt(index);
       });
+      // Nota: Los controllers se mantienen, solo cambia qué set usan
+      // Actualizar los controllers restantes con los valores correctos
+      for (int i = 0; i < _sets.length; i++) {
+        _weightControllers[i].text = _sets[i].weight > 0 ? _sets[i].weight.toString() : '';
+        _repsControllers[i].text = _sets[i].reps.toString();
+      }
     }
   }
 
@@ -222,14 +272,17 @@ class _AdvancedWeightScreenState extends ConsumerState<AdvancedWeightScreen> {
         if (didPop) return;
         final shouldPop = await _onWillPop();
         if (shouldPop && mounted) {
-          context.pop();
+          // Usar Navigator en lugar de context.pop() para evitar conflictos
+          if (Navigator.of(context).canPop()) {
+            Navigator.of(context).pop();
+          }
         }
       },
       child: Scaffold(
         appBar: AppBar(title: const Text('Registro Avanzado')),
         body: Column(
           children: [
-            // Header con fecha
+            // Header con fecha (fijo)
             Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
@@ -238,7 +291,7 @@ class _AdvancedWeightScreenState extends ConsumerState<AdvancedWeightScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(widget.exerciseName, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                      Expanded(child: Text(widget.exerciseName, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold))),
                       Text(_formattedDate, style: TextStyle(color: Colors.grey[400], fontSize: 14)),
                     ],
                   ),
@@ -249,80 +302,83 @@ class _AdvancedWeightScreenState extends ConsumerState<AdvancedWeightScreen> {
               ),
             ),
 
-          const Divider(height: 1),
+            const Divider(height: 1),
 
-          // Lista
-          Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: _sets.length,
-              itemBuilder: (context, index) {
-                return _SimpleSetRow(
-                  key: ValueKey(_sets[index].id),
-                  index: index,
-                  setData: _sets[index],
-                  canDelete: _sets.length > 1,
-                  onWeightChanged: (v) => _updateWeight(index, v),
-                  onRepsChanged: (v) => _updateReps(index, v),
-                  onDelete: () => _removeSet(index),
-                );
-              },
-            ),
-          ),
-
-          // Campo de notas
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Stack(
-              children: [
-                TextField(
-                  controller: _notesController,
-                  maxLines: 5,
-                  minLines: 5,
-                  decoration: const InputDecoration(
-                    hintText: 'Notas (opcional)',
-                    alignLabelWithHint: true,
-                  ),
-                  onChanged: (_) {
-                    setState(() => _hasChanges = true);
-                  },
-                ),
-                if (_notesController.text.isNotEmpty)
-                  Positioned(
-                    right: 4,
-                    bottom: 4,
-                    child: IconButton(
-                      icon: Icon(Icons.delete_outline, size: 20, color: Colors.grey[400]),
-                      onPressed: () {
-                        setState(() {
-                          _notesController.clear();
-                          _hasChanges = true;
-                        });
-                      },
-                    ),
-                  ),
-              ],
-            ),
-          ),
-
-          // Botones
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              children: [
-                Row(
+            // Contenido scrollable
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 96),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        onPressed: _addSet,
-                        icon: const Icon(Icons.add),
-                        label: const Text('Agregar serie'),
-                      ),
+                    // Lista de series
+                    ...List.generate(_sets.length, (index) {
+                      return _SimpleSetRow(
+                        key: ValueKey(_sets[index].id),
+                        index: index,
+                        setData: _sets[index],
+                        canDelete: _sets.length > 1,
+                        weightController: index < _weightControllers.length ? _weightControllers[index] : null,
+                        repsController: index < _repsControllers.length ? _repsControllers[index] : null,
+                        weightFocusNode: index < _weightFocusNodes.length ? _weightFocusNodes[index] : null,
+                        onWeightChanged: (v) => _updateWeight(index, v),
+                        onRepsChanged: (v) => _updateReps(index, v),
+                        onDelete: () => _removeSet(index),
+                      );
+                    }),
+
+                    // Botón agregar serie (debajo de la lista)
+                    const SizedBox(height: 8),
+                    OutlinedButton.icon(
+                      onPressed: _addSet,
+                      icon: const Icon(Icons.add),
+                      label: const Text('Agregar serie'),
+                    ),
+
+                    const SizedBox(height: 24),
+
+                    // Campo de notas
+                    Stack(
+                      children: [
+                        TextField(
+                          controller: _notesController,
+                          maxLines: 5,
+                          minLines: 3,
+                          decoration: const InputDecoration(
+                            hintText: 'Notas (opcional)',
+                            alignLabelWithHint: true,
+                          ),
+                          onChanged: (_) {
+                            setState(() => _hasChanges = true);
+                          },
+                        ),
+                        if (_notesController.text.isNotEmpty)
+                          Positioned(
+                            right: 4,
+                            bottom: 4,
+                            child: IconButton(
+                              icon: Icon(Icons.delete_outline, size: 20, color: Colors.grey[400]),
+                              onPressed: () {
+                                setState(() {
+                                  _notesController.clear();
+                                  _hasChanges = true;
+                                });
+                              },
+                            ),
+                          ),
+                      ],
                     ),
                   ],
                 ),
-                const SizedBox(height: 12),
-                SizedBox(
+              ),
+            ),
+
+            // Botón guardar (fijo abajo)
+            SafeArea(
+              top: false,
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
                     onPressed: _isSaving || !_isValid ? null : _save,
@@ -331,11 +387,10 @@ class _AdvancedWeightScreenState extends ConsumerState<AdvancedWeightScreen> {
                       : const Text('Guardar'),
                   ),
                 ),
-              ],
+              ),
             ),
-          ),
-        ],
-      ),
+          ],
+        ),
       ),
     );
   }
@@ -353,6 +408,9 @@ class _SimpleSetRow extends StatelessWidget {
   final int index;
   final _SetData setData;
   final bool canDelete;
+  final TextEditingController? weightController;
+  final TextEditingController? repsController;
+  final FocusNode? weightFocusNode;
   final ValueChanged<double> onWeightChanged;
   final ValueChanged<int> onRepsChanged;
   final VoidCallback onDelete;
@@ -362,6 +420,9 @@ class _SimpleSetRow extends StatelessWidget {
     required this.index,
     required this.setData,
     required this.canDelete,
+    this.weightController,
+    this.repsController,
+    this.weightFocusNode,
     required this.onWeightChanged,
     required this.onRepsChanged,
     required this.onDelete,
@@ -389,8 +450,13 @@ class _SimpleSetRow extends StatelessWidget {
           // Peso
           Expanded(
             flex: 2,
-            child: TextFormField(
-              initialValue: setData.weight > 0 ? setData.weight.toString() : '',
+            child: TextField(
+              controller: weightController,
+              focusNode: weightFocusNode,
+              inputFormatters: [
+                FilteringTextInputFormatter.digitsOnly,
+                LengthLimitingTextInputFormatter(3),
+              ],
               keyboardType: const TextInputType.numberWithOptions(decimal: true),
               textAlign: TextAlign.center,
               decoration: const InputDecoration(hintText: '0', suffixText: 'kg', isDense: true),
@@ -405,9 +471,14 @@ class _SimpleSetRow extends StatelessWidget {
 
           // Reps
           Expanded(
-            child: TextFormField(
-              initialValue: setData.reps.toString(),
+            flex: 2, 
+            child: TextField(
+              controller: repsController,
               keyboardType: TextInputType.number,
+                inputFormatters: [
+                  FilteringTextInputFormatter.digitsOnly,
+                  LengthLimitingTextInputFormatter(3),
+                ],
               textAlign: TextAlign.center,
               decoration: const InputDecoration(suffixText: 'reps', isDense: true),
               onChanged: (v) => onRepsChanged(int.tryParse(v) ?? 1),
