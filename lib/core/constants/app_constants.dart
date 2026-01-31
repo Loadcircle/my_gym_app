@@ -44,7 +44,7 @@ abstract class AppConstants {
   static const double defaultBorderRadius = 12.0;
   static const double cardBorderRadius = 16.0;
 
-  // Legal URLs - TODO: Actualizar con URLs reales
-  static const String privacyPolicyUrl = 'https://example.com/privacy';
-  static const String termsAndConditionsUrl = 'https://example.com/terms';
+  // Legal URLs
+  static const String privacyPolicyUrl = 'https://loadcircle.github.io/my_gym_app/privacidad/';
+  static const String termsAndConditionsUrl = 'https://loadcircle.github.io/my_gym_app/terminos/';
 }
