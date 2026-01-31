@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/router/route_names.dart';
 import '../../../../core/config/providers/app_config_provider.dart';
@@ -14,6 +13,7 @@ import '../../data/models/custom_exercise_model.dart';
 import '../../data/models/weight_record_model.dart';
 import '../../providers/custom_exercises_provider.dart';
 import '../../providers/weight_records_provider.dart';
+import '../widgets/weight_input_card.dart';
 
 /// Pantalla de detalle de ejercicio personalizado.
 /// Muestra imagen, notas, permite registrar peso y editar/eliminar.
@@ -32,89 +32,7 @@ class CustomExerciseDetailScreen extends ConsumerStatefulWidget {
 
 class _CustomExerciseDetailScreenState
     extends ConsumerState<CustomExerciseDetailScreen> {
-  final _weightController = TextEditingController();
-  final _setsController = TextEditingController(text: '3');
-  final _repsController = TextEditingController(text: '10');
-  bool _isSaving = false;
-  bool _hasPrefilledWeight = false;
   bool _notesExpanded = false;
-
-  @override
-  void dispose() {
-    _weightController.dispose();
-    _setsController.dispose();
-    _repsController.dispose();
-    super.dispose();
-  }
-
-  void _prefillLastWeight(WeightRecordModel? lastRecord) {
-    if (!_hasPrefilledWeight && lastRecord != null) {
-      _weightController.text = lastRecord.weight.toString();
-      _setsController.text = lastRecord.sets.toString();
-      _repsController.text = lastRecord.reps.toString();
-      _hasPrefilledWeight = true;
-    }
-  }
-
-  Future<void> _saveWorkout() async {
-    final weightText = _weightController.text.trim();
-    if (weightText.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Ingresa el peso')),
-      );
-      return;
-    }
-
-    final weight = double.tryParse(weightText);
-    if (weight == null || weight < 0) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Peso invalido')),
-      );
-      return;
-    }
-
-    final sets = int.tryParse(_setsController.text.trim()) ?? 1;
-    final reps = int.tryParse(_repsController.text.trim()) ?? 1;
-
-    setState(() => _isSaving = true);
-
-    try {
-      // Usamos el prefijo 'custom_' para diferenciar ejercicios personalizados
-      final customExerciseId = 'custom_${widget.exerciseId}';
-      final record =
-          await ref.read(weightRecordNotifierProvider.notifier).saveRecord(
-                exerciseId: customExerciseId,
-                weight: weight,
-                sets: sets,
-                reps: reps,
-              );
-
-      if (record != null && mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Guardado: $weight kg x $sets series x $reps reps'),
-            backgroundColor: AppColors.success,
-          ),
-        );
-        // Refrescar el ultimo registro
-        ref.invalidate(lastWeightRecordProvider(customExerciseId));
-        ref.invalidate(exerciseHistoryProvider(customExerciseId));
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error: $e'),
-            backgroundColor: AppColors.error,
-          ),
-        );
-      }
-    } finally {
-      if (mounted) {
-        setState(() => _isSaving = false);
-      }
-    }
-  }
 
   Future<void> _showDeleteDialog(CustomExerciseModel exercise) async {
     final shouldDelete = await showDialog<bool>(
@@ -217,7 +135,6 @@ class _CustomExerciseDetailScreenState
     final exerciseAsync =
         ref.watch(customExerciseByIdProvider(widget.exerciseId));
     final customExerciseId = 'custom_${widget.exerciseId}';
-    final lastRecordAsync = ref.watch(lastWeightRecordProvider(customExerciseId));
     final historyAsync = ref.watch(exerciseHistoryProvider(customExerciseId));
 
     return exerciseAsync.when(
@@ -258,12 +175,7 @@ class _CustomExerciseDetailScreenState
           );
         }
 
-        // Prellenar peso del ultimo registro
-        lastRecordAsync.whenData((lastRecord) {
-          _prefillLastWeight(lastRecord);
-        });
-
-        return _buildContent(context, exercise, lastRecordAsync, historyAsync);
+        return _buildContent(context, exercise, historyAsync);
       },
     );
   }
@@ -271,7 +183,6 @@ class _CustomExerciseDetailScreenState
   Widget _buildContent(
     BuildContext context,
     CustomExerciseModel exercise,
-    AsyncValue<WeightRecordModel?> lastRecordAsync,
     AsyncValue<List<WeightRecordModel>> historyAsync,
   ) {
     final muscleColor = MuscleGroups.getColor(exercise.muscleGroup);
@@ -412,7 +323,12 @@ class _CustomExerciseDetailScreenState
                   const SizedBox(height: 24),
 
                   // Registro de peso
-                  _buildWeightInputCard(exercise),
+                  WeightInputCard(
+                    exerciseId: 'custom_${widget.exerciseId}',
+                    exerciseName: exercise.name,
+                    muscleGroup: exercise.muscleGroup,
+                    isCustomExercise: true,
+                  ),
                   const SizedBox(height: 24),
 
                   // Grafico de evolucion (si hay suficiente historial)
@@ -519,159 +435,4 @@ class _CustomExerciseDetailScreenState
       ),
     );
   }
-
-  Widget _buildWeightInputCard(CustomExerciseModel exercise) {
-    final customExerciseId = 'custom_${widget.exerciseId}';
-
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppColors.cardBackground,
-        borderRadius: BorderRadius.circular(AppConstants.cardBorderRadius),
-        border: Border.all(color: AppColors.border),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Registrar Peso',
-            style: Theme.of(context).textTheme.titleLarge,
-          ),
-          const SizedBox(height: 16),
-
-          // Campo de peso
-          Row(
-            children: [
-              Expanded(
-                flex: 2,
-                child: TextField(
-                  controller: _weightController,
-                  keyboardType: const TextInputType.numberWithOptions(
-                    decimal: true,
-                  ),
-                  style: AppTextStyles.weightValue,
-                  textAlign: TextAlign.center,
-                  decoration: const InputDecoration(
-                    hintText: '0',
-                    border: InputBorder.none,
-                    filled: false,
-                  ),
-                ),
-              ),
-              const Text(
-                'kg',
-                style: AppTextStyles.weightUnit,
-              ),
-            ],
-          ),
-          const Divider(color: AppColors.divider),
-          const SizedBox(height: 16),
-
-          // Series y repeticiones
-          Row(
-            children: [
-              Expanded(
-                child: Column(
-                  children: [
-                    const Text(
-                      'Series',
-                      style: TextStyle(color: AppColors.textSecondary),
-                    ),
-                    const SizedBox(height: 8),
-                    TextField(
-                      controller: _setsController,
-                      keyboardType: TextInputType.number,
-                      textAlign: TextAlign.center,
-                      style: Theme.of(context).textTheme.headlineSmall,
-                      decoration: const InputDecoration(
-                        contentPadding: EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 8,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  children: [
-                    const Text(
-                      'Reps',
-                      style: TextStyle(color: AppColors.textSecondary),
-                    ),
-                    const SizedBox(height: 8),
-                    TextField(
-                      controller: _repsController,
-                      keyboardType: TextInputType.number,
-                      textAlign: TextAlign.center,
-                      style: Theme.of(context).textTheme.headlineSmall,
-                      decoration: const InputDecoration(
-                        contentPadding: EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 8,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 24),
-
-          // Boton guardar
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: _isSaving ? null : _saveWorkout,
-              child: _isSaving
-                  ? const SizedBox(
-                      height: 20,
-                      width: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: AppColors.textPrimary,
-                      ),
-                    )
-                  : const Text('Guardar'),
-            ),
-          ),
-          const SizedBox(height: 12),
-
-          // Link a registro avanzado
-          Center(
-            child: TextButton.icon(
-              onPressed: () async {
-                final result = await context.push<Map<String, dynamic>?>(
-                  RouteNames.advancedWeightRecordPath(customExerciseId),
-                  extra: {
-                    'exerciseName': exercise.name,
-                    'muscleGroup': exercise.muscleGroup,
-                  },
-                );
-                if (result != null && mounted) {
-                  ref.invalidate(lastWeightRecordProvider(customExerciseId));
-                  ref.invalidate(exerciseHistoryProvider(customExerciseId));
-                  // Update controllers directly with returned values
-                  setState(() {
-                    _weightController.text = result['weight'].toString();
-                    _repsController.text = result['reps'].toString();
-                    _setsController.text = result['sets'].toString();
-                  });
-                }
-              },
-              icon: const Icon(Icons.format_list_numbered, size: 18),
-              label: const Text('Registro detallado por series'),
-              style: TextButton.styleFrom(
-                foregroundColor: AppColors.textSecondary,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
 }

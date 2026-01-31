@@ -7,6 +7,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/utils/validators.dart';
 import '../../../../shared/widgets/google_sign_in_button.dart';
+import '../../../../shared/widgets/legal_text.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/auth_state.dart';
 
@@ -275,6 +276,10 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     ),
                   ],
                 ),
+                const SizedBox(height: 24),
+
+                // Legal text
+                const LegalText(),
               ],
             ),
           ),

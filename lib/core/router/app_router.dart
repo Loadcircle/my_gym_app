@@ -14,7 +14,6 @@ import '../../features/exercises/presentation/screens/exercise_detail_screen.dar
 import '../../features/exercises/presentation/screens/add_exercise_screen.dart';
 import '../../features/exercises/presentation/screens/custom_exercise_detail_screen.dart';
 import '../../features/exercises/presentation/screens/edit_custom_exercise_screen.dart';
-import '../../features/exercises/presentation/screens/advanced_weight_screen.dart';
 import '../../features/history/presentation/screens/history_screen.dart';
 import '../../features/routines/presentation/screens/routines_screen.dart';
 import '../../features/routines/presentation/screens/create_routine_screen.dart'
@@ -160,20 +159,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) {
           final exerciseId = state.pathParameters['exerciseId'] ?? '';
           return ExerciseDetailScreen(exerciseId: exerciseId);
-        },
-      ),
-      GoRoute(
-        path: '/exercise/:exerciseId/advanced-record',
-        name: 'advancedWeightRecord',
-        parentNavigatorKey: _rootNavigatorKey,
-        builder: (context, state) {
-          final exerciseId = state.pathParameters['exerciseId'] ?? '';
-          final extra = state.extra as Map<String, String>? ?? {};
-          return AdvancedWeightScreen(
-            exerciseId: exerciseId,
-            exerciseName: extra['exerciseName'] ?? '',
-            muscleGroup: extra['muscleGroup'] ?? '',
-          );
         },
       ),
       GoRoute(

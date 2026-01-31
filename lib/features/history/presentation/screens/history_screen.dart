@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
+import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../shared/widgets/skeletons/history_section_skeleton.dart';
 import '../../../exercises/data/models/record_mode.dart';
 import '../../../exercises/data/models/weight_record_model.dart';
+import '../../../exercises/providers/custom_exercises_provider.dart';
 import '../../../exercises/providers/exercises_provider.dart';
 import '../../../exercises/providers/weight_records_provider.dart';
 import '../../../routines/data/models/routine_completion_model.dart';
@@ -104,6 +107,7 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
   Widget build(BuildContext context) {
     final historyAsync = ref.watch(combinedHistoryProvider);
     final exercisesAsync = ref.watch(exercisesProvider);
+    final customExercisesAsync = ref.watch(customExercisesProvider);
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -128,9 +132,21 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
           final sortedDates = groupedByDate.keys.toList()
             ..sort((a, b) => b.compareTo(a)); // Mas reciente primero
 
-          // Mapa de ejercicios por ID
-          final exercisesMap = exercisesAsync.whenData((exercises) {
-            return {for (var e in exercises) e.id: e};
+          // Mapa de ejercicios por ID (globales + custom)
+          final Map<String, dynamic> exercisesMap = {};
+
+          // Agregar ejercicios globales
+          exercisesAsync.whenData((exercises) {
+            for (var e in exercises) {
+              exercisesMap[e.id] = e;
+            }
+          });
+
+          // Agregar ejercicios custom con prefijo "custom_"
+          customExercisesAsync.whenData((customExercises) {
+            for (var e in customExercises) {
+              exercisesMap['custom_${e.id}'] = e;
+            }
           });
 
           return RefreshIndicator(
@@ -147,7 +163,7 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                 return _DayHistoryCard(
                   dateLabel: _formatDate(date),
                   items: dayItems,
-                  exercisesMap: exercisesMap.value ?? {},
+                  exercisesMap: exercisesMap,
                 );
               },
             ),
@@ -399,11 +415,17 @@ class _RoutineCompletionTile extends StatelessWidget {
 
   const _RoutineCompletionTile({required this.completion});
 
+  void _onTap(BuildContext context) {
+    context.push('${RouteNames.routineDetail}/${completion.routineId}');
+  }
+
   @override
   Widget build(BuildContext context) {
     final isFullyCompleted = completion.wasFullyCompleted;
 
-    return Container(
+    return GestureDetector(
+      onTap: () => _onTap(context),
+      child: Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -511,6 +533,7 @@ class _RoutineCompletionTile extends StatelessWidget {
           ),
         ],
       ),
+      ),
     );
   }
 }
@@ -527,9 +550,23 @@ class _WeightRecordTile extends StatelessWidget {
     required this.muscleGroup,
   });
 
+  void _onTap(BuildContext context) {
+    final exerciseId = record.exerciseId;
+
+    // Check if it's a custom exercise (prefixed with "custom_")
+    if (exerciseId.startsWith('custom_')) {
+      final customId = exerciseId.substring(7); // Remove "custom_" prefix
+      context.push('${RouteNames.customExerciseDetail}/$customId');
+    } else {
+      context.push('${RouteNames.exerciseDetail}/$exerciseId');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Padding(
+    return GestureDetector(
+      onTap: () => _onTap(context),
+      child: Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Row(
         children: [
@@ -626,6 +663,7 @@ class _WeightRecordTile extends StatelessWidget {
             ),
           ),
         ],
+      ),
       ),
     );
   }

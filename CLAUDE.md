@@ -18,7 +18,7 @@ App móvil de gimnasio para registrar pesos por ejercicio/máquina y ver guías 
 | Fase 3.3: Rutinas | ✅ Completa | CRUD rutinas, agregar/quitar ejercicios |
 | Fase 3.4: Routine Completions | ✅ Completa | Progreso de rutinas, auto-completado, historial |
 | Fase 3.5: Perfil y Navegación | ✅ Completa | Perfil usuario, drawer lateral, historial como tab |
-| Fase 4: Pulido | ⏳ Pendiente | Tests, optimizaciones, deploy |
+| Fase 4: Pulido | 🔄 En progreso | Skeletons, pull-to-refresh, optimizaciones, crashlytics |
 
 ## Flow Principal (MVP)
 
@@ -41,7 +41,7 @@ Splash → Login/Register → Bottom Navigation (3 tabs) + Drawer
 
 Drawer Lateral:
     ├── Mi Perfil → Editar datos personales
-    ├── Configuración → Cambiar contraseña, cerrar sesión
+    ├── Configuración → Cambiar contraseña, cerrar sesión, eliminar cuenta
     └── Cerrar Sesión
 ```
 
@@ -168,12 +168,15 @@ Se guardan snapshots de `exerciseName` y `muscleGroup` en cada item para:
 | DB Cloud | Cloud Firestore | ^6.1.1 |
 | Media | Firebase Storage | ^13.0.5 |
 | Monitoreo | Firebase Crashlytics | ^5.0.6 |
+| Cloud Functions | cloud_functions | ^6.0.5 |
 | HTTP | dio | ^5.2.1 |
 | Cache Imágenes | cached_network_image | ^3.4.1 |
 | Video | video_player | ^2.9.2 |
 | Conectividad | connectivity_plus | ^7.0.0 |
 | Google Sign-In | google_sign_in | ^6.2.2 |
 | Info de App | package_info_plus | ^8.0.0 |
+| Shimmer | shimmer | ^3.0.0 |
+| UUID | uuid | ^4.5.1 |
 
 ## Arquitectura de Carpetas
 
@@ -217,17 +220,23 @@ lib/
 │   │   │   ├── exercises_table.dart       # Tabla de ejercicios globales
 │   │   │   ├── custom_exercises_table.dart # Tabla de ejercicios personalizados
 │   │   │   ├── weight_records_table.dart  # Tabla de registros
+│   │   │   ├── workout_sets_table.dart    # Tabla de series por registro
 │   │   │   ├── routines_table.dart        # Tabla de rutinas
 │   │   │   ├── routine_items_table.dart   # Tabla de items de rutina
+│   │   │   ├── routine_completions_table.dart # Tabla de rutinas completadas
 │   │   │   ├── user_profiles_table.dart   # Tabla de perfiles de usuario
+│   │   │   ├── user_preferences_table.dart # Tabla key-value preferencias locales
 │   │   │   └── sync_queue_table.dart      # Cola de sincronización
 │   │   └── daos/
 │   │       ├── exercises_dao.dart         # DAO ejercicios globales
 │   │       ├── custom_exercises_dao.dart  # DAO ejercicios personalizados
 │   │       ├── weight_records_dao.dart    # DAO registros
+│   │       ├── workout_sets_dao.dart      # DAO series por registro
 │   │       ├── routines_dao.dart          # DAO rutinas
 │   │       ├── routine_items_dao.dart     # DAO items de rutina
+│   │       ├── routine_completions_dao.dart # DAO rutinas completadas
 │   │       ├── user_profiles_dao.dart     # DAO perfiles de usuario
+│   │       ├── user_preferences_dao.dart  # DAO preferencias locales
 │   │       └── sync_queue_dao.dart        # DAO cola sync
 │   └── repositories/
 │       ├── offline_exercises_repository.dart        # Repo offline-first ejercicios
@@ -265,10 +274,14 @@ lib/
 │   │   │   ├── custom_exercise_detail_screen.dart # Detalle ejercicio custom
 │   │   │   ├── add_exercise_screen.dart         # Crear ejercicio custom
 │   │   │   └── edit_custom_exercise_screen.dart # Editar ejercicio custom
+│   │   ├── presentation/widgets/
+│   │   │   ├── weight_input_card.dart         # Card registro peso con toggle simple/avanzado
+│   │   │   └── advanced_sets_input.dart       # Input de series múltiples
 │   │   └── providers/
 │   │       ├── exercises_provider.dart        # Providers ejercicios globales
 │   │       ├── custom_exercises_provider.dart # Providers ejercicios custom
-│   │       └── weight_records_provider.dart   # Providers de registros
+│   │       ├── weight_records_provider.dart   # Providers de registros
+│   │       └── user_preferences_provider.dart # Provider modo registro peso
 │   ├── routines/
 │   │   ├── data/
 │   │   │   ├── models/
@@ -310,10 +323,15 @@ lib/
     ├── error_view.dart                    # Vista de error con retry
     ├── empty_state.dart                   # Vista estado vacío
     ├── google_sign_in_button.dart         # Botón Google con logo
-    ├── exercise_image.dart                # Imagen con cache (base)
-    ├── exercise_video_player.dart         # Video player con fullscreen (base)
+    ├── exercise_image.dart                # Imagen con cache optimizado
+    ├── exercise_video_player.dart         # Video player con lifecycle handling
     ├── storage_image.dart                 # Imagen que resuelve path → URL
-    └── storage_video_player.dart          # Video que resuelve path → URL
+    ├── storage_video_player.dart          # Video que resuelve path → URL
+    ├── weight_progress_chart.dart         # Gráfico de progresión de peso
+    └── skeletons/
+        ├── exercise_card_skeleton.dart    # Skeleton para cards de ejercicio
+        ├── routine_card_skeleton.dart     # Skeleton para cards de rutina
+        └── history_section_skeleton.dart  # Skeleton para secciones de historial
 ```
 
 ## Modelos de Datos
@@ -346,16 +364,28 @@ lib/
 
 ### WeightRecordModel (Freezed)
 ```dart
-| Campo      | Tipo     | Descripción              |
-|------------|----------|--------------------------|
-| id         | String   | ID del documento         |
-| exerciseId | String   | ID del ejercicio         |
-| userId     | String   | UID del usuario          |
-| weight     | double   | Peso en kg               |
-| reps       | int      | Repeticiones             |
-| sets       | int      | Series                   |
-| notes      | String?  | Notas opcionales         |
-| date       | DateTime | Fecha del registro       |
+| Campo      | Tipo              | Descripción                          |
+|------------|-------------------|--------------------------------------|
+| id         | String            | ID del documento                     |
+| exerciseId | String            | ID del ejercicio                     |
+| userId     | String            | UID del usuario                      |
+| weight     | double            | Peso máximo en kg (resumen)          |
+| reps       | int               | Reps del peso máximo (resumen)       |
+| sets       | int               | Número de series                     |
+| notes      | String?           | Notas opcionales                     |
+| date       | DateTime          | Fecha del registro                   |
+| mode       | RecordMode        | simple o advanced                    |
+| setEntries | List<SetEntry>    | Series detalladas (modo avanzado)    |
+```
+
+### SetEntryModel (Freezed)
+```dart
+| Campo     | Tipo   | Descripción              |
+|-----------|--------|--------------------------|
+| id        | String | ID único de la serie     |
+| setNumber | int    | Número de serie (1-based)|
+| weight    | double | Peso en kg               |
+| reps      | int    | Repeticiones             |
 ```
 
 ### CustomExerciseModel (Freezed)
@@ -436,12 +466,29 @@ lib/
 |-------|-----------|
 | `Exercises` | Cache de ejercicios globales de Firestore |
 | `CustomExercises` | Ejercicios personalizados del usuario |
-| `WeightRecords` | Registros de peso con flag `isSynced` |
+| `WeightRecords` | Registros de peso con flag `isSynced` y modo (simple/advanced) |
+| `WorkoutSets` | Series individuales de registros avanzados |
 | `Routines` | Rutinas del usuario con contador ejercicios |
 | `RoutineItems` | Items de rutina (relación rutina-ejercicio) |
 | `RoutineCompletions` | Registros de rutinas completadas |
 | `UserProfiles` | Perfiles de usuario con datos personales |
+| `UserPreferences` | Preferencias locales key-value (modo registro, etc.) |
 | `SyncQueue` | Cola de operaciones pendientes de sync |
+
+### Schema Version
+
+Versión actual: **8**
+
+| Versión | Cambios |
+|---------|---------|
+| 1 | Tablas iniciales (Exercises, WeightRecords, SyncQueue) |
+| 2 | CustomExercises |
+| 3 | Routines, RoutineItems |
+| 4 | RoutineCompletions |
+| 5 | WorkoutSets, columnas mode/setsData en WeightRecords |
+| 6 | UserProfiles |
+| 7 | Índice único en RoutineItems |
+| 8 | UserPreferences |
 
 ### Patrón Offline-First
 
@@ -528,6 +575,13 @@ ESCRITURA:
 | `userProfileStreamProvider` | StreamProvider | Stream del perfil en tiempo real |
 | `userProfileNotifierProvider` | StateNotifierProvider | Guardar cambios de perfil |
 | `offlineUserProfileRepositoryProvider` | Provider | Repo offline-first |
+
+### User Preferences
+| Provider | Tipo | Descripción |
+|----------|------|-------------|
+| `userPreferencesDaoProvider` | Provider | DAO de preferencias locales |
+| `weightInputModeProvider` | StreamProvider | Observa modo registro (simple/avanzado) |
+| `weightInputModeNotifierProvider` | StateNotifierProvider | Cambia modo registro globalmente |
 
 ### Core
 | Provider | Tipo | Descripción |
@@ -745,12 +799,192 @@ Cuando se invalida el provider base, los derivados se recalculan automáticament
 - **Imágenes públicas** (`exercises/**`): URL directa sin token
 - **Imágenes de usuario** (`users/**`): Requiere `getDownloadURL()` para obtener URL con token
 
+## Registro de Peso
+
+### Modos de Registro
+
+El registro de peso soporta dos modos, seleccionables mediante un Switch en el card:
+
+| Modo | Descripción | Campos |
+|------|-------------|--------|
+| **Simple (Rápido)** | Un solo peso/series/reps | weight, sets, reps |
+| **Avanzado (Por series)** | Peso/reps por cada serie individual | Lista de SetEntry |
+
+### Toggle Global
+
+El modo seleccionado persiste globalmente en `UserPreferences` (Drift):
+- Cambiar en un ejercicio afecta a todos
+- Se mantiene entre sesiones de la app
+- Key: `weight_input_mode_advanced`
+
+### Widgets
+
+| Widget | Archivo | Descripción |
+|--------|---------|-------------|
+| `WeightInputCard` | `weight_input_card.dart` | Card unificado con Switch y ambos modos |
+| `AdvancedSetsInput` | `advanced_sets_input.dart` | Lista de series con add/remove |
+
+### Prefill
+
+Al abrir el detalle de un ejercicio, los campos se prellenan con el último registro:
+- **Modo simple**: weight, sets, reps directos
+- **Modo avanzado**: Reconstruye lista de series desde `setEntries`
+
+## Patrones de UI
+
+### Loading States (Skeletons)
+
+Todas las pantallas principales usan shimmer skeletons en lugar de `CircularProgressIndicator`:
+
+| Widget | Uso |
+|--------|-----|
+| `ExerciseListSkeleton` | Lista de ejercicios (6 cards) |
+| `RoutineListSkeleton` | Lista de rutinas (4 cards) |
+| `HistoryListSkeleton` | Historial (3 secciones) |
+
+```dart
+// Colores definidos en AppColors
+static const Color shimmerBase = Color(0xFF2C2C2C);
+static const Color shimmerHighlight = Color(0xFF3C3C3C);
+```
+
+### Pull-to-Refresh
+
+Implementado en todas las pantallas con listas:
+
+| Pantalla | Providers Invalidados |
+|----------|----------------------|
+| `exercises_screen` | `exercisesByMuscleGroupProvider`, `customExercisesProvider` |
+| `routines_screen` | `routinesProvider` |
+| `history_screen` | `allHistoryProvider`, `routineCompletionsProvider` |
+| `routine_detail_screen` | `routineByIdProvider`, `routineItemsProvider` |
+
+```dart
+RefreshIndicator(
+  onRefresh: _onRefresh,
+  color: AppColors.primary,
+  backgroundColor: AppColors.cardBackground,
+  child: ListView.builder(...),
+)
+```
+
+### Optimización de Imágenes
+
+`ExerciseImage` y `StorageImage` tienen constructores optimizados:
+
+| Constructor | Cache Size | Uso |
+|-------------|------------|-----|
+| `.list()` | 120px | Thumbnails en listas |
+| `.detail()` | 400px | Pantallas de detalle |
+| default | 300px | Uso general |
+
+```dart
+CachedNetworkImage(
+  memCacheHeight: cacheSize,
+  memCacheWidth: cacheSize,
+  filterQuality: FilterQuality.medium,
+)
+```
+
+### Video Lifecycle
+
+`ExerciseVideoPlayer` implementa `WidgetsBindingObserver` para manejar el ciclo de vida:
+
+| Estado de App | Acción del Video |
+|---------------|------------------|
+| `paused` / `inactive` | Pausa video, guarda estado |
+| `resumed` | Reanuda si estaba reproduciendo |
+| `detached` / `hidden` | Sin acción |
+
+## Crashlytics
+
+### Errores Capturados
+
+| Tipo | Handler | Severidad |
+|------|---------|-----------|
+| Flutter Framework Errors | `FlutterError.onError` | Fatal |
+| Dart Async/Isolate Errors | `PlatformDispatcher.instance.onError` | Fatal |
+| Sync Operation Failures (3+ retries) | `sync_service.dart` | Non-fatal |
+| Firestore Sync Errors | `sync_service.dart` | Non-fatal |
+
+### Configuración por Entorno
+
+```dart
+// Solo habilitado en producción
+if (AppConfig.enableCrashlytics) {
+  FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
+  PlatformDispatcher.instance.onError = (error, stack) {
+    FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
+    return true;
+  };
+}
+```
+
+## Eliminacion de Cuenta
+
+### Flujo UX
+
+```
+Settings → "Eliminar cuenta" (boton rojo)
+    ↓
+Modal 1 (Informacion):
+  "Al eliminar la cuenta, se eliminan todos los datos
+   personales y de entrenamiento. Esta accion no se puede deshacer."
+  [Continuar]
+    ↓
+Modal 2 (Confirmacion fuerte):
+  "¿Eliminar cuenta definitivamente?"
+  [Cancelar] [Eliminar definitivamente] (rojo)
+    ↓
+Loading overlay
+    ↓
+Cloud Function deleteAccount()
+    ↓
+Exito: signOut → Login + Toast "Cuenta eliminada"
+Error: Modal con mensaje de error
+```
+
+### Cloud Function
+
+La eliminacion de cuenta se realiza mediante una Cloud Function callable (`deleteAccount`) que:
+
+1. Verifica autenticacion del usuario
+2. Borra subcolecciones en Firestore:
+   - `users/{uid}/customExercises`
+   - `users/{uid}/routines/{routineId}/items`
+   - `users/{uid}/routines`
+   - `users/{uid}/routineCompletions`
+   - `users/{uid}` (documento principal)
+3. Borra registros de peso: `weightRecords` donde `userId == uid`
+4. Borra archivos de Storage: `users/{uid}/**`
+5. Elimina usuario de Firebase Auth
+
+### Archivos Involucrados
+
+| Archivo | Proposito |
+|---------|-----------|
+| `functions/src/functions/auth/deleteAccount.ts` | Cloud Function callable |
+| `lib/features/auth/data/auth_repository.dart` | Metodo `deleteAccount()` |
+| `lib/features/auth/providers/auth_provider.dart` | Metodo `deleteAccount(database)` |
+| `lib/data/local/database.dart` | Metodo `clearAllUserData()` |
+| `lib/features/settings/presentation/screens/settings_screen.dart` | UI de eliminacion |
+
+### Deploy
+
+```bash
+cd functions
+npm run build
+firebase deploy --only functions:deleteAccount
+```
+
 ## Features Futuras (Post-MVP)
 
 > No implementar aún, arquitectura preparada para:
 
 - [x] Rutinas personalizadas (implementado en Fase 3.3)
 - [x] Gráficos de progresión (implementado en detalle de ejercicio)
+- [x] Registro avanzado por series (implementado con toggle en Fase 4)
+- [x] Skeletons y pull-to-refresh (implementado en Fase 4)
 - [ ] Reordenar ejercicios en rutina (drag & drop)
 - [ ] Notificaciones/recordatorios
 - [ ] Compartir progreso

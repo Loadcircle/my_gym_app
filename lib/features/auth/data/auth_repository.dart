@@ -1,3 +1,4 @@
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -250,6 +251,23 @@ class AuthRepository {
     } catch (e) {
       AppLogger.error('Error actualizando perfil', tag: _tag, error: e);
       throw AuthException('No se pudo actualizar el perfil. Intenta de nuevo.');
+    }
+  }
+
+  /// Elimina la cuenta del usuario actual llamando a Cloud Function.
+  /// Borra todos los datos en Firestore, Storage y Auth.
+  Future<void> deleteAccount() async {
+    try {
+      AppLogger.info('Iniciando eliminacion de cuenta', tag: _tag);
+      final callable = FirebaseFunctions.instance.httpsCallable('deleteAccount');
+      await callable.call();
+      AppLogger.info('Cuenta eliminada exitosamente', tag: _tag);
+    } on FirebaseFunctionsException catch (e) {
+      AppLogger.error('Error de Cloud Function al eliminar cuenta: ${e.code}', tag: _tag, error: e);
+      throw AuthException(e.message ?? 'Error al eliminar cuenta');
+    } catch (e) {
+      AppLogger.error('Error inesperado al eliminar cuenta', tag: _tag, error: e);
+      throw AuthException('Error al eliminar cuenta: $e');
     }
   }
 

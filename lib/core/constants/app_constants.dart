@@ -43,4 +43,8 @@ abstract class AppConstants {
   static const double largePadding = 24.0;
   static const double defaultBorderRadius = 12.0;
   static const double cardBorderRadius = 16.0;
+
+  // Legal URLs - TODO: Actualizar con URLs reales
+  static const String privacyPolicyUrl = 'https://example.com/privacy';
+  static const String termsAndConditionsUrl = 'https://example.com/terms';
 }

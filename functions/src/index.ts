@@ -3,3 +3,4 @@ admin.initializeApp();
 
 // re-export por feature
 export * from "./functions/exercises";
+export * from "./functions/auth";

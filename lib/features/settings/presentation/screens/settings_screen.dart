@@ -2,11 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../core/router/route_names.dart';
+import '../../../../core/services/sync_service.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../auth/providers/auth_provider.dart';
+import '../../../exercises/providers/custom_exercises_provider.dart';
+import '../../../exercises/providers/weight_records_provider.dart';
+import '../../../profile/providers/user_profile_provider.dart';
+import '../../../routines/providers/routines_provider.dart';
+import '../../../routines/providers/routine_completion_status_provider.dart';
 
 /// Pantalla de configuración de la cuenta.
 class SettingsScreen extends ConsumerStatefulWidget {
@@ -18,6 +25,7 @@ class SettingsScreen extends ConsumerStatefulWidget {
 
 class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   bool _isSendingResetEmail = false;
+  bool _isDeletingAccount = false;
 
   Future<void> _showChangePasswordDialog() async {
     final authState = ref.read(authStateProvider);
@@ -82,6 +90,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     }
   }
 
+  Future<void> _launchUrl(String url) async {
+    final uri = Uri.parse(url);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    }
+  }
+
   Future<void> _showLogoutDialog() async {
     final shouldLogout = await showDialog<bool>(
       context: context,
@@ -123,87 +138,253 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     }
   }
 
+  Future<void> _showDeleteAccountFlow() async {
+    // Modal 1: Informacion
+    final shouldContinue = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Eliminar cuenta'),
+        content: const Text(
+          'Al eliminar la cuenta, se eliminan todos los datos personales '
+          'y de entrenamiento asociados.\n\n'
+          'Esta accion no se puede deshacer.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancelar'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Continuar'),
+          ),
+        ],
+      ),
+    );
+
+    if (shouldContinue != true || !mounted) return;
+
+    // Modal 2: Confirmacion fuerte
+    final shouldDelete = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('¿Eliminar cuenta definitivamente?'),
+        content: const Text(
+          'Se eliminaran todos tus ejercicios, rutinas, '
+          'registros de peso y datos personales.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancelar'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: TextButton.styleFrom(
+              foregroundColor: AppColors.error,
+            ),
+            child: const Text('Eliminar definitivamente'),
+          ),
+        ],
+      ),
+    );
+
+    if (shouldDelete != true || !mounted) return;
+
+    // Ejecutar eliminacion
+    await _deleteAccount();
+  }
+
+  Future<void> _deleteAccount() async {
+    setState(() => _isDeletingAccount = true);
+
+    try {
+      final database = ref.read(appDatabaseProvider);
+      await ref.read(authStateProvider.notifier).deleteAccount(database);
+
+      // Invalidar providers para limpiar datos en memoria
+      ref.invalidate(customExercisesProvider);
+      ref.invalidate(routinesProvider);
+      ref.invalidate(allHistoryProvider);
+      ref.invalidate(userProfileProvider);
+      ref.invalidate(routineCompletionsProvider);
+
+      if (mounted) {
+        context.go(RouteNames.login);
+        // Mostrar toast despues de navegar
+        Future.microtask(() {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Cuenta eliminada'),
+                backgroundColor: AppColors.success,
+              ),
+            );
+          }
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isDeletingAccount = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error: $e'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authStateProvider);
     final email = authState.user?.email ?? '';
 
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: const Text('Configuracion'),
-      ),
-      body: ListView(
-        padding: const EdgeInsets.all(AppConstants.defaultPadding),
-        children: [
-          // Sección Cuenta
-          _SectionHeader(title: 'Cuenta'),
-          const SizedBox(height: 8),
+    return Stack(
+      children: [
+        Scaffold(
+          backgroundColor: AppColors.background,
+          appBar: AppBar(
+            title: const Text('Configuracion'),
+          ),
+          body: ListView(
+            padding: const EdgeInsets.all(AppConstants.defaultPadding),
+            children: [
+              // Seccion Cuenta
+              const _SectionHeader(title: 'Cuenta'),
+              const SizedBox(height: 8),
 
-          // Email (solo lectura)
-          Card(
-            child: ListTile(
-              leading: const Icon(Icons.email_outlined, color: AppColors.textSecondary),
-              title: const Text('Email'),
-              subtitle: Text(
-                email,
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: AppColors.textSecondary,
+              // Email (solo lectura)
+              Card(
+                child: ListTile(
+                  leading: const Icon(Icons.email_outlined, color: AppColors.textSecondary),
+                  title: const Text('Email'),
+                  subtitle: Text(
+                    email,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: AppColors.textSecondary,
+                        ),
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 8),
+
+              // Cambiar contrasena
+              Card(
+                child: ListTile(
+                  leading: _isSendingResetEmail
+                      ? const SizedBox(
+                          width: 24,
+                          height: 24,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: AppColors.primary,
+                          ),
+                        )
+                      : const Icon(Icons.lock_outline, color: AppColors.textSecondary),
+                  title: const Text('Cambiar contrasena'),
+                  subtitle: const Text('Se enviara un email con instrucciones'),
+                  trailing: const Icon(Icons.chevron_right, color: AppColors.textHint),
+                  onTap: _isSendingResetEmail ? null : _showChangePasswordDialog,
+                ),
+              ),
+
+              const SizedBox(height: 24),
+
+              // Seccion Sesion
+              const _SectionHeader(title: 'Sesion'),
+              const SizedBox(height: 8),
+
+              Card(
+                child: ListTile(
+                  leading: const Icon(Icons.logout, color: AppColors.error),
+                  title: Text(
+                    'Cerrar sesion',
+                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                          color: AppColors.error,
+                        ),
+                  ),
+                  onTap: _showLogoutDialog,
+                ),
+              ),
+
+              const SizedBox(height: 24),
+
+              // Seccion Legal
+              const _SectionHeader(title: 'Legal'),
+              const SizedBox(height: 8),
+
+              Card(
+                child: Column(
+                  children: [
+                    ListTile(
+                      leading: const Icon(Icons.privacy_tip_outlined, color: AppColors.textSecondary),
+                      title: const Text('Politica de privacidad'),
+                      trailing: const Icon(Icons.open_in_new, size: 18, color: AppColors.textHint),
+                      onTap: () => _launchUrl(AppConstants.privacyPolicyUrl),
                     ),
+                    const Divider(height: 1),
+                    ListTile(
+                      leading: const Icon(Icons.description_outlined, color: AppColors.textSecondary),
+                      title: const Text('Terminos y condiciones'),
+                      trailing: const Icon(Icons.open_in_new, size: 18, color: AppColors.textHint),
+                      onTap: () => _launchUrl(AppConstants.termsAndConditionsUrl),
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 24),
+
+              // Seccion Zona de peligro
+              const _SectionHeader(title: 'Zona de peligro'),
+              const SizedBox(height: 8),
+
+              Card(
+                child: ListTile(
+                  leading: const Icon(Icons.delete_forever, color: AppColors.error),
+                  title: Text(
+                    'Eliminar cuenta',
+                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                          color: AppColors.error,
+                        ),
+                  ),
+                  subtitle: const Text('Elimina permanentemente tu cuenta y datos'),
+                  onTap: _showDeleteAccountFlow,
+                ),
+              ),
+
+              const SizedBox(height: 24),
+
+              // Seccion Acerca de
+              const _SectionHeader(title: 'Acerca de'),
+              const SizedBox(height: 8),
+
+              const _AppInfoCard(),
+            ],
+          ),
+        ),
+        // Loading overlay
+        if (_isDeletingAccount)
+          Container(
+            color: Colors.black54,
+            child: const Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  CircularProgressIndicator(color: AppColors.primary),
+                  SizedBox(height: 16),
+                  Text(
+                    'Eliminando cuenta...',
+                    style: TextStyle(color: Colors.white),
+                  ),
+                ],
               ),
             ),
           ),
-
-          const SizedBox(height: 8),
-
-          // Cambiar contraseña
-          Card(
-            child: ListTile(
-              leading: _isSendingResetEmail
-                  ? const SizedBox(
-                      width: 24,
-                      height: 24,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: AppColors.primary,
-                      ),
-                    )
-                  : const Icon(Icons.lock_outline, color: AppColors.textSecondary),
-              title: const Text('Cambiar contrasena'),
-              subtitle: const Text('Se enviara un email con instrucciones'),
-              trailing: const Icon(Icons.chevron_right, color: AppColors.textHint),
-              onTap: _isSendingResetEmail ? null : _showChangePasswordDialog,
-            ),
-          ),
-
-          const SizedBox(height: 24),
-
-          // Sección Sesión
-          _SectionHeader(title: 'Sesion'),
-          const SizedBox(height: 8),
-
-          Card(
-            child: ListTile(
-              leading: const Icon(Icons.logout, color: AppColors.error),
-              title: Text(
-                'Cerrar sesion',
-                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      color: AppColors.error,
-                    ),
-              ),
-              onTap: _showLogoutDialog,
-            ),
-          ),
-
-          const SizedBox(height: 24),
-
-          // Sección Acerca de
-          _SectionHeader(title: 'Acerca de'),
-          const SizedBox(height: 8),
-
-          _AppInfoCard(),
-        ],
-      ),
+      ],
     );
   }
 }

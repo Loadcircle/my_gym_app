@@ -14,6 +14,7 @@ import 'tables/routine_items_table.dart';
 import 'tables/routine_completions_table.dart';
 import 'tables/workout_sets_table.dart';
 import 'tables/user_profiles_table.dart';
+import 'tables/user_preferences_table.dart';
 import 'daos/exercises_dao.dart';
 import 'daos/weight_records_dao.dart';
 import 'daos/sync_queue_dao.dart';
@@ -23,20 +24,35 @@ import 'daos/routine_items_dao.dart';
 import 'daos/routine_completions_dao.dart';
 import 'daos/workout_sets_dao.dart';
 import 'daos/user_profiles_dao.dart';
+import 'daos/user_preferences_dao.dart';
 
 part 'database.g.dart';
 
 /// Base de datos local usando Drift (SQLite).
 /// Almacena ejercicios, registros de peso y cola de sincronizacion.
 @DriftDatabase(
-  tables: [Exercises, WeightRecords, SyncQueue, CustomExercises, Routines, RoutineItems, RoutineCompletions, WorkoutSets, UserProfiles],
-  daos: [ExercisesDao, WeightRecordsDao, SyncQueueDao, CustomExercisesDao, RoutinesDao, RoutineItemsDao, RoutineCompletionsDao, WorkoutSetsDao, UserProfilesDao],
+  tables: [Exercises, WeightRecords, SyncQueue, CustomExercises, Routines, RoutineItems, RoutineCompletions, WorkoutSets, UserProfiles, UserPreferences],
+  daos: [ExercisesDao, WeightRecordsDao, SyncQueueDao, CustomExercisesDao, RoutinesDao, RoutineItemsDao, RoutineCompletionsDao, WorkoutSetsDao, UserProfilesDao, UserPreferencesDao],
 )
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 7;
+  int get schemaVersion => 8;
+
+  /// Limpia todos los datos de usuario de la base de datos local.
+  /// Llamado al eliminar cuenta o cerrar sesion.
+  Future<void> clearAllUserData() async {
+    await delete(weightRecords).go();
+    await delete(workoutSets).go();
+    await delete(customExercises).go();
+    await delete(routines).go();
+    await delete(routineItems).go();
+    await delete(routineCompletions).go();
+    await delete(userProfiles).go();
+    await delete(syncQueue).go();
+    // Nota: exercises (globales) y userPreferences se mantienen
+  }
 
   @override
   MigrationStrategy get migration {
@@ -79,6 +95,10 @@ class AppDatabase extends _$AppDatabase {
             'CREATE UNIQUE INDEX IF NOT EXISTS idx_routine_items_unique '
             'ON routine_items(routine_id, exercise_id, exercise_ref_type)',
           );
+        }
+        // Migracion v7 -> v8: Agregar tabla UserPreferences
+        if (from < 8) {
+          await m.createTable(userPreferences);
         }
       },
     );

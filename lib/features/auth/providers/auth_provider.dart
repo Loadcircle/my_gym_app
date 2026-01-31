@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 import '../../../core/utils/logger.dart';
+import '../../../data/local/database.dart';
 import '../data/auth_repository.dart';
 import '../data/models/user_model.dart';
 import 'auth_state.dart';
@@ -221,6 +222,42 @@ class AuthNotifier extends StateNotifier<AuthState> {
         isLoading: false,
         errorMessage: 'Ocurrio un error inesperado',
         status: AuthStatus.error,
+      );
+      rethrow;
+    }
+  }
+
+  /// Elimina la cuenta del usuario.
+  /// 1. Llama Cloud Function para borrar datos remotos
+  /// 2. Limpia base de datos local
+  /// 3. Cierra sesion
+  Future<void> deleteAccount(AppDatabase database) async {
+    try {
+      state = state.copyWith(isLoading: true, errorMessage: null);
+
+      // 1. Llamar Cloud Function
+      await _repository.deleteAccount();
+
+      // 2. Limpiar datos locales
+      await database.clearAllUserData();
+
+      // 3. Sign out (el usuario ya fue eliminado en Auth, pero limpiamos estado local)
+      await _repository.signOut();
+
+      state = AuthState.unauthenticated();
+      AppLogger.info('Cuenta eliminada exitosamente', tag: _tag);
+    } on AuthException catch (e) {
+      AppLogger.error('Error eliminando cuenta: ${e.message}', tag: _tag);
+      state = state.copyWith(
+        isLoading: false,
+        errorMessage: e.message,
+      );
+      rethrow;
+    } catch (e) {
+      AppLogger.error('Error inesperado eliminando cuenta', tag: _tag, error: e);
+      state = state.copyWith(
+        isLoading: false,
+        errorMessage: 'Error al eliminar cuenta',
       );
       rethrow;
     }
