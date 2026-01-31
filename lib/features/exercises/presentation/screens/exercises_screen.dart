@@ -7,6 +7,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/config/providers/app_config_provider.dart';
 import '../../../../core/utils/muscle_groups.dart';
+import '../../../../shared/widgets/skeletons/exercise_card_skeleton.dart';
 import '../../data/models/exercise_model.dart';
 import '../../data/models/custom_exercise_model.dart';
 import '../../providers/exercises_provider.dart';
@@ -71,6 +72,21 @@ class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
   String _selectedFilter = 'Todos';
   final _searchController = TextEditingController();
   String _searchQuery = '';
+
+  Future<void> _onRefresh() async {
+    // Invalidar providers base - los derivados se actualizan automáticamente
+    final muscleFilter =
+        (_selectedFilter == 'Todos' || _selectedFilter == _myExercisesFilter)
+            ? 'Todos'
+            : _selectedFilter;
+    ref.invalidate(exercisesByMuscleGroupProvider(muscleFilter));
+    ref.invalidate(customExercisesProvider);
+    // Esperar a que se recarguen
+    await Future.wait([
+      ref.read(exercisesByMuscleGroupProvider(muscleFilter).future),
+      ref.read(customExercisesProvider.future),
+    ]);
+  }
 
   // Filtro especial para ejercicios personalizados
   static const String _myExercisesFilter = 'Mis ejercicios';
@@ -291,11 +307,9 @@ class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
     AsyncValue<List<ExerciseModel>> globalAsync,
     AsyncValue<List<CustomExerciseModel>> customAsync,
   ) {
-    // Si ambos están cargando, mostrar loading
+    // Si ambos están cargando, mostrar skeleton
     if (globalAsync.isLoading && customAsync.isLoading) {
-      return const Center(
-        child: CircularProgressIndicator(color: AppColors.primary),
-      );
+      return const ExerciseListSkeleton();
     }
 
     // Si hay error en globales, mostrar error (custom puede fallar silenciosamente)
@@ -314,17 +328,22 @@ class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
       return _buildEmptyState();
     }
 
-    return ListView.builder(
-      padding: const EdgeInsets.all(AppConstants.defaultPadding),
-      itemCount: combined.length,
-      itemBuilder: (context, index) {
-        final item = combined[index];
-        return _ExerciseCard(
-          item: item,
-          muscleGroupColor: MuscleGroups.getColor(item.muscleGroup),
-          onTap: () => _navigateToExercise(item),
-        );
-      },
+    return RefreshIndicator(
+      onRefresh: _onRefresh,
+      color: AppColors.primary,
+      backgroundColor: AppColors.cardBackground,
+      child: ListView.builder(
+        padding: const EdgeInsets.all(AppConstants.defaultPadding),
+        itemCount: combined.length,
+        itemBuilder: (context, index) {
+          final item = combined[index];
+          return _ExerciseCard(
+            item: item,
+            muscleGroupColor: MuscleGroups.getColor(item.muscleGroup),
+            onTap: () => _navigateToExercise(item),
+          );
+        },
+      ),
     );
   }
 

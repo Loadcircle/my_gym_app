@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/constants/app_constants.dart';
+import '../../../../shared/widgets/skeletons/history_section_skeleton.dart';
 import '../../../exercises/data/models/record_mode.dart';
 import '../../../exercises/data/models/weight_record_model.dart';
 import '../../../exercises/providers/exercises_provider.dart';
@@ -84,11 +85,23 @@ final combinedHistoryProvider = Provider<AsyncValue<List<HistoryItem>>>((ref) {
 
 /// Pantalla de historial de entrenamientos.
 /// Muestra registros de peso y rutinas completadas, agrupados por fecha.
-class HistoryScreen extends ConsumerWidget {
+class HistoryScreen extends ConsumerStatefulWidget {
   const HistoryScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<HistoryScreen> createState() => _HistoryScreenState();
+}
+
+class _HistoryScreenState extends ConsumerState<HistoryScreen> {
+  Future<void> _onRefresh() async {
+    ref.invalidate(allHistoryProvider);
+    ref.invalidate(routineCompletionsProvider);
+    // Wait for streams to emit new data
+    await Future.delayed(const Duration(milliseconds: 500));
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final historyAsync = ref.watch(combinedHistoryProvider);
     final exercisesAsync = ref.watch(exercisesProvider);
 
@@ -101,22 +114,10 @@ class HistoryScreen extends ConsumerWidget {
           tooltip: 'Menu',
         ),
         title: const Text('Historial'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: () {
-              ref.invalidate(allHistoryProvider);
-              ref.invalidate(routineCompletionsProvider);
-              ref.invalidate(combinedHistoryProvider);
-            },
-          ),
-        ],
       ),
       body: historyAsync.when(
-        loading: () => const Center(
-          child: CircularProgressIndicator(color: AppColors.primary),
-        ),
-        error: (error, stack) => _buildErrorState(context, error, ref),
+        loading: () => const HistoryListSkeleton(),
+        error: (error, stack) => _buildErrorState(context, error),
         data: (items) {
           if (items.isEmpty) {
             return _buildEmptyState(context);
@@ -132,19 +133,24 @@ class HistoryScreen extends ConsumerWidget {
             return {for (var e in exercises) e.id: e};
           });
 
-          return ListView.builder(
-            padding: const EdgeInsets.all(AppConstants.defaultPadding),
-            itemCount: sortedDates.length,
-            itemBuilder: (context, index) {
-              final date = sortedDates[index];
-              final dayItems = groupedByDate[date]!;
+          return RefreshIndicator(
+            onRefresh: _onRefresh,
+            color: AppColors.primary,
+            backgroundColor: AppColors.cardBackground,
+            child: ListView.builder(
+              padding: const EdgeInsets.all(AppConstants.defaultPadding),
+              itemCount: sortedDates.length,
+              itemBuilder: (context, index) {
+                final date = sortedDates[index];
+                final dayItems = groupedByDate[date]!;
 
-              return _DayHistoryCard(
-                dateLabel: _formatDate(date),
-                items: dayItems,
-                exercisesMap: exercisesMap.value ?? {},
-              );
-            },
+                return _DayHistoryCard(
+                  dateLabel: _formatDate(date),
+                  items: dayItems,
+                  exercisesMap: exercisesMap.value ?? {},
+                );
+              },
+            ),
           );
         },
       ),
@@ -228,8 +234,7 @@ class HistoryScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildErrorState(
-      BuildContext context, Object error, WidgetRef ref) {
+  Widget _buildErrorState(BuildContext context, Object error) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -262,7 +267,6 @@ class HistoryScreen extends ConsumerWidget {
             onPressed: () {
               ref.invalidate(allHistoryProvider);
               ref.invalidate(routineCompletionsProvider);
-              ref.invalidate(combinedHistoryProvider);
             },
             icon: const Icon(Icons.refresh),
             label: const Text('Reintentar'),

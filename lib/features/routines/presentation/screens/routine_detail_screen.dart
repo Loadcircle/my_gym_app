@@ -34,6 +34,15 @@ class _RoutineDetailScreenState extends ConsumerState<RoutineDetailScreen> {
     super.initState();
   }
 
+  Future<void> _onRefresh() async {
+    ref.invalidate(routineByIdProvider(widget.routineId));
+    ref.invalidate(routineItemsProvider(widget.routineId));
+    await Future.wait([
+      ref.read(routineByIdProvider(widget.routineId).future),
+      Future.delayed(const Duration(milliseconds: 300)),
+    ]);
+  }
+
   Future<void> _removeExercise(RoutineItemModel item) async {
     final shouldRemove = await showDialog<bool>(
       context: context,
@@ -478,51 +487,56 @@ class _RoutineDetailScreenState extends ConsumerState<RoutineDetailScreen> {
     RoutineCompletionStatus status,
     RoutineModel routine,
   ) {
-    return ListView.builder(
-      padding: const EdgeInsets.fromLTRB(
-        AppConstants.defaultPadding,
-        0,
-        AppConstants.defaultPadding,
-        96, // Extra padding para FAB y safe area
-      ),
-      itemCount: items.length,
-      itemBuilder: (context, index) {
-        final item = items[index];
-        // Usar el ID con prefijo para ejercicios custom (consistente con completedExerciseIds)
-        final exerciseIdForComparison = item.exerciseRefType == ExerciseRefType.custom
-            ? 'custom_${item.exerciseId}'
-            : item.exerciseId;
-        final isCompletedToday = status.completedExerciseIds.contains(exerciseIdForComparison);
+    return RefreshIndicator(
+      onRefresh: _onRefresh,
+      color: AppColors.primary,
+      backgroundColor: AppColors.cardBackground,
+      child: ListView.builder(
+        padding: const EdgeInsets.fromLTRB(
+          AppConstants.defaultPadding,
+          0,
+          AppConstants.defaultPadding,
+          96, // Extra padding para FAB y safe area
+        ),
+        itemCount: items.length,
+        itemBuilder: (context, index) {
+          final item = items[index];
+          // Usar el ID con prefijo para ejercicios custom (consistente con completedExerciseIds)
+          final exerciseIdForComparison = item.exerciseRefType == ExerciseRefType.custom
+              ? 'custom_${item.exerciseId}'
+              : item.exerciseId;
+          final isCompletedToday = status.completedExerciseIds.contains(exerciseIdForComparison);
 
-        return Dismissible(
-          key: Key(item.id),
-          direction: DismissDirection.endToStart,
-          confirmDismiss: (_) async {
-            await _removeExercise(item);
-            return false; // Manejamos la eliminación manualmente
-          },
-          background: Container(
-            alignment: Alignment.centerRight,
-            padding: const EdgeInsets.only(right: 20),
-            margin: const EdgeInsets.only(bottom: 12),
-            decoration: BoxDecoration(
-              color: AppColors.error,
-              borderRadius: BorderRadius.circular(AppConstants.cardBorderRadius),
+          return Dismissible(
+            key: Key(item.id),
+            direction: DismissDirection.endToStart,
+            confirmDismiss: (_) async {
+              await _removeExercise(item);
+              return false; // Manejamos la eliminación manualmente
+            },
+            background: Container(
+              alignment: Alignment.centerRight,
+              padding: const EdgeInsets.only(right: 20),
+              margin: const EdgeInsets.only(bottom: 12),
+              decoration: BoxDecoration(
+                color: AppColors.error,
+                borderRadius: BorderRadius.circular(AppConstants.cardBorderRadius),
+              ),
+              child: const Icon(
+                Icons.delete_outline,
+                color: AppColors.textPrimary,
+              ),
             ),
-            child: const Icon(
-              Icons.delete_outline,
-              color: AppColors.textPrimary,
+            child: _ExerciseItemCard(
+              item: item,
+              muscleGroupColor: MuscleGroups.getColor(item.muscleGroupSnapshot),
+              isCompletedToday: isCompletedToday,
+              onTap: () => _navigateToExercise(item),
+              onRemove: () => _removeExercise(item),
             ),
-          ),
-          child: _ExerciseItemCard(
-            item: item,
-            muscleGroupColor: MuscleGroups.getColor(item.muscleGroupSnapshot),
-            isCompletedToday: isCompletedToday,
-            onTap: () => _navigateToExercise(item),
-            onRemove: () => _removeExercise(item),
-          ),
-        );
-      },
+          );
+        },
+      ),
     );
   }
 

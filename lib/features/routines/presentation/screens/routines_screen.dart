@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/constants/app_constants.dart';
+import '../../../../shared/widgets/skeletons/routine_card_skeleton.dart';
 import '../../data/models/routine_model.dart';
 import '../../providers/routines_provider.dart';
 
@@ -17,6 +18,11 @@ class RoutinesScreen extends ConsumerStatefulWidget {
 }
 
 class _RoutinesScreenState extends ConsumerState<RoutinesScreen> {
+  Future<void> _onRefresh() async {
+    ref.invalidate(routinesProvider);
+    await ref.read(routinesProvider.future);
+  }
+
   Future<void> _showDeleteDialog(RoutineModel routine) async {
     final shouldDelete = await showDialog<bool>(
       context: context,
@@ -119,9 +125,7 @@ class _RoutinesScreenState extends ConsumerState<RoutinesScreen> {
         child: const Icon(Icons.add, color: AppColors.textPrimary),
       ),
       body: routinesAsync.when(
-        loading: () => const Center(
-          child: CircularProgressIndicator(color: AppColors.primary),
-        ),
+        loading: () => const RoutineListSkeleton(),
         error: (error, stack) => _buildErrorState(error.toString()),
         data: (routines) {
           if (routines.isEmpty) {
@@ -212,18 +216,23 @@ class _RoutinesScreenState extends ConsumerState<RoutinesScreen> {
   }
 
   Widget _buildRoutinesList(List<RoutineModel> routines) {
-    return ListView.builder(
-      padding: const EdgeInsets.all(AppConstants.defaultPadding),
-      itemCount: routines.length,
-      itemBuilder: (context, index) {
-        final routine = routines[index];
-        return _RoutineCard(
-          routine: routine,
-          onTap: () => context.push('${RouteNames.routineDetail}/${routine.id}'),
-          onRename: () => _showRenameDialog(routine),
-          onDelete: () => _showDeleteDialog(routine),
-        );
-      },
+    return RefreshIndicator(
+      onRefresh: _onRefresh,
+      color: AppColors.primary,
+      backgroundColor: AppColors.cardBackground,
+      child: ListView.builder(
+        padding: const EdgeInsets.all(AppConstants.defaultPadding),
+        itemCount: routines.length,
+        itemBuilder: (context, index) {
+          final routine = routines[index];
+          return _RoutineCard(
+            routine: routine,
+            onTap: () => context.push('${RouteNames.routineDetail}/${routine.id}'),
+            onRename: () => _showRenameDialog(routine),
+            onDelete: () => _showDeleteDialog(routine),
+          );
+        },
+      ),
     );
   }
 }

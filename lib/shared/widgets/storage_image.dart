@@ -9,6 +9,7 @@ import 'exercise_image.dart';
 /// Widget que muestra una imagen desde Firebase Storage.
 /// Acepta un path relativo y lo resuelve a URL usando getDownloadURL().
 /// Si recibe una URL completa, la usa directamente.
+/// Optimizado con constraints de memoria para listas.
 class StorageImage extends ConsumerWidget {
   final String? path;
   final double? width;
@@ -17,6 +18,8 @@ class StorageImage extends ConsumerWidget {
   final BorderRadius? borderRadius;
   final Widget? placeholder;
   final Widget? errorWidget;
+  /// Tamaño máximo en memoria para el cache. Default 300 para imágenes grandes, 120 para listas.
+  final int? memCacheSize;
 
   const StorageImage({
     super.key,
@@ -27,7 +30,32 @@ class StorageImage extends ConsumerWidget {
     this.borderRadius,
     this.placeholder,
     this.errorWidget,
+    this.memCacheSize,
   });
+
+  /// Constructor optimizado para listas (menor uso de memoria).
+  const StorageImage.list({
+    super.key,
+    this.path,
+    this.width,
+    this.height,
+    this.fit = BoxFit.cover,
+    this.borderRadius,
+    this.placeholder,
+    this.errorWidget,
+  }) : memCacheSize = 120;
+
+  /// Constructor para imágenes de detalle (mayor calidad).
+  const StorageImage.detail({
+    super.key,
+    this.path,
+    this.width,
+    this.height,
+    this.fit = BoxFit.cover,
+    this.borderRadius,
+    this.placeholder,
+    this.errorWidget,
+  }) : memCacheSize = 400;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -35,6 +63,10 @@ class StorageImage extends ConsumerWidget {
     if (path == null || path!.isEmpty) {
       return _buildPlaceholder();
     }
+
+    // Calcular el tamaño de cache basado en el widget o usar el default
+    final cacheSize = memCacheSize ??
+        (width != null && width! <= 100 ? 120 : 300);
 
     // Si ya es una URL completa, usar directamente
     if (StorageService.isFullUrl(path)) {
@@ -46,6 +78,7 @@ class StorageImage extends ConsumerWidget {
         borderRadius: borderRadius,
         placeholder: placeholder ?? _buildPlaceholder(),
         errorWidget: errorWidget ?? _buildError(),
+        memCacheSize: cacheSize,
       );
     }
 
@@ -67,6 +100,7 @@ class StorageImage extends ConsumerWidget {
           borderRadius: borderRadius,
           placeholder: placeholder ?? _buildPlaceholder(),
           errorWidget: errorWidget ?? _buildError(),
+          memCacheSize: cacheSize,
         );
       },
     );

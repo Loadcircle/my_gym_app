@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -51,8 +53,16 @@ Future<void> _initializeFirebase() async {
 
     // Configurar Crashlytics
     if (AppConfig.enableCrashlytics) {
+      // Capturar errores de Flutter framework
       FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
-      AppLogger.info('Crashlytics habilitado', tag: 'Main');
+
+      // Capturar errores de Dart (async, isolates, etc.)
+      PlatformDispatcher.instance.onError = (error, stack) {
+        FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
+        return true;
+      };
+
+      AppLogger.info('Crashlytics habilitado (Flutter + Dart errors)', tag: 'Main');
     } else {
       // En dev, solo imprimir errores
       FlutterError.onError = (details) {
@@ -62,6 +72,17 @@ Future<void> _initializeFirebase() async {
           error: details.exception,
           stackTrace: details.stack,
         );
+      };
+
+      // Capturar errores Dart en dev también para logging
+      PlatformDispatcher.instance.onError = (error, stack) {
+        AppLogger.error(
+          'Dart Error: $error',
+          tag: 'DartError',
+          error: error,
+          stackTrace: stack,
+        );
+        return true;
       };
     }
   } catch (e, stackTrace) {

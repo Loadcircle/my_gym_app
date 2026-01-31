@@ -3,11 +3,13 @@ import 'dart:convert';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:drift/drift.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../data/local/database.dart';
 import '../../data/local/tables/sync_queue_table.dart';
+import '../config/app_config.dart';
 import '../utils/logger.dart';
 import 'connectivity_service.dart';
 
@@ -97,13 +99,22 @@ class SyncService {
             'Operacion ${op.id} sincronizada exitosamente',
             tag: 'Sync',
           );
-        } catch (e) {
+        } catch (e, stackTrace) {
           AppLogger.error(
             'Error sincronizando operacion ${op.id}',
             tag: 'Sync',
             error: e,
           );
           await _db.syncQueueDao.incrementRetryCount(op.id, e.toString());
+
+          // Reportar a Crashlytics si el error persiste (3+ reintentos)
+          if (op.retryCount >= 2 && AppConfig.enableCrashlytics) {
+            FirebaseCrashlytics.instance.recordError(
+              e,
+              stackTrace,
+              reason: 'Sync failed for ${op.entityType}/${op.entityId} after ${op.retryCount + 1} attempts',
+            );
+          }
         }
       }
 
@@ -584,12 +595,19 @@ class SyncService {
         '${exercises.length} ejercicios sincronizados',
         tag: 'Sync',
       );
-    } catch (e) {
+    } catch (e, stackTrace) {
       AppLogger.error(
         'Error sincronizando ejercicios',
         tag: 'Sync',
         error: e,
       );
+      if (AppConfig.enableCrashlytics) {
+        FirebaseCrashlytics.instance.recordError(
+          e,
+          stackTrace,
+          reason: 'Failed to sync exercises from Firestore',
+        );
+      }
     }
   }
 
@@ -664,12 +682,19 @@ class SyncService {
         '${snapshot.docs.length} registros sincronizados',
         tag: 'Sync',
       );
-    } catch (e) {
+    } catch (e, stackTrace) {
       AppLogger.error(
         'Error sincronizando registros',
         tag: 'Sync',
         error: e,
       );
+      if (AppConfig.enableCrashlytics) {
+        FirebaseCrashlytics.instance.recordError(
+          e,
+          stackTrace,
+          reason: 'Failed to sync weight records from Firestore for user: $userId',
+        );
+      }
     }
   }
 

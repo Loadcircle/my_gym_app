@@ -26,17 +26,47 @@ class ExerciseVideoPlayer extends StatefulWidget {
   State<ExerciseVideoPlayer> createState() => _ExerciseVideoPlayerState();
 }
 
-class _ExerciseVideoPlayerState extends State<ExerciseVideoPlayer> {
+class _ExerciseVideoPlayerState extends State<ExerciseVideoPlayer>
+    with WidgetsBindingObserver {
   VideoPlayerController? _controller;
   bool _isInitialized = false;
   bool _isPlaying = false;
   bool _hasError = false;
   bool _showControls = true;
+  bool _wasPlayingBeforeBackground = false;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _initializeVideo();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+
+    if (_controller == null || !_isInitialized) return;
+
+    switch (state) {
+      case AppLifecycleState.paused:
+      case AppLifecycleState.inactive:
+        // App va a background - pausar video y recordar estado
+        _wasPlayingBeforeBackground = _controller!.value.isPlaying;
+        if (_wasPlayingBeforeBackground) {
+          _controller!.pause();
+        }
+        break;
+      case AppLifecycleState.resumed:
+        // App vuelve a foreground - resumir si estaba reproduciendo
+        if (_wasPlayingBeforeBackground) {
+          _controller!.play();
+        }
+        break;
+      case AppLifecycleState.detached:
+      case AppLifecycleState.hidden:
+        break;
+    }
   }
 
   @override
@@ -136,6 +166,7 @@ class _ExerciseVideoPlayerState extends State<ExerciseVideoPlayer> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _disposeController();
     super.dispose();
   }
