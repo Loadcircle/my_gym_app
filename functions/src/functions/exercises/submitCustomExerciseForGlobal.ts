@@ -2,11 +2,11 @@
 import * as functions from "firebase-functions";
 import * as admin from "firebase-admin";
 
-import { reviewCustomExerciseWithLLM } from "../../llm/exerciseReviewer";
-import { getActiveMuscleGroupIds, findExerciseCandidates } from "../../retrieval/exerciseCatalog";
-import { validateReviewResult } from "../../utils/guardrails";
-import { buildNameTokens, normalizeText, slugifyId } from "../../utils/normalize";
-import { createInAppNotification } from "../../services/notifications";
+import {reviewCustomExerciseWithLLM} from "../../llm/exerciseReviewer";
+import {getActiveMuscleGroupIds, findExerciseCandidates} from "../../retrieval/exerciseCatalog";
+import {validateReviewResult} from "../../utils/guardrails";
+import {buildNameTokens, normalizeText, slugifyId} from "../../utils/normalize";
+import {createInAppNotification} from "../../services/notifications";
 
 admin.initializeApp();
 const db = admin.firestore();
@@ -23,7 +23,7 @@ export const submitCustomExerciseForGlobal = functions.https.onCall(async (data,
   }
 
   const customRef = db.doc(`users/${uid}/customExercises/${customId}`);
-  console.log("[submitCustomExerciseForGlobal] START", { uid, customId });
+  console.log("[submitCustomExerciseForGlobal] START", {uid, customId});
 
   const customSnap = await customRef.get();
   if (!customSnap.exists) {
@@ -35,8 +35,8 @@ export const submitCustomExerciseForGlobal = functions.https.onCall(async (data,
 
   // Solo una solicitud
   if (status !== "none") {
-    console.log("[submitCustomExerciseForGlobal] ALREADY", { uid, customId, status });
-    return { ok: true, alreadySubmitted: true, status };
+    console.log("[submitCustomExerciseForGlobal] ALREADY", {uid, customId, status});
+    return {ok: true, alreadySubmitted: true, status};
   }
 
   // pasa a processing
@@ -67,7 +67,7 @@ export const submitCustomExerciseForGlobal = functions.https.onCall(async (data,
     await customRef.update({
       proposalStatus: "rejected",
       proposalResolvedAt: admin.firestore.FieldValue.serverTimestamp(),
-      proposalResult: { decision: "reject", reason: guard.reason },
+      proposalResult: {decision: "reject", reason: guard.reason},
     });
 
     await createInAppNotification({
@@ -79,8 +79,11 @@ export const submitCustomExerciseForGlobal = functions.https.onCall(async (data,
       customId,
     });
 
-    console.log("[submitCustomExerciseForGlobal] GUARDRAIL_REJECT", { uid, customId, reason: guard.reason });
-    return { ok: true, decision: "reject", reason: guard.reason };
+    console.log(
+        "[submitCustomExerciseForGlobal] GUARDRAIL_REJECT",
+        {uid, customId, reason: guard.reason}
+    );
+    return {ok: true, decision: "reject", reason: guard.reason};
   }
 
   // guardrail extra: si el LLM dice duplicate, debe venir duplicateOfId
@@ -108,7 +111,7 @@ export const submitCustomExerciseForGlobal = functions.https.onCall(async (data,
       customId,
     });
 
-    return { ok: true, decision: "reject", reason: "duplicateOfId faltante" };
+    return {ok: true, decision: "reject", reason: "duplicateOfId faltante"};
   }
 
 
@@ -119,7 +122,11 @@ export const submitCustomExerciseForGlobal = functions.https.onCall(async (data,
     await customRef.update({
       proposalStatus: "published",
       proposalResolvedAt: admin.firestore.FieldValue.serverTimestamp(),
-      proposalResult: { decision: "reject", reason: llmResult.reason, duplicateOfId: existingGlobalId },
+      proposalResult: {
+        decision: "reject",
+        reason: llmResult.reason,
+        duplicateOfId: existingGlobalId,
+      },
       publishedGlobalId: existingGlobalId,
       isDuplicateOfGlobal: true,
     });
@@ -129,13 +136,13 @@ export const submitCustomExerciseForGlobal = functions.https.onCall(async (data,
       uid,
       type: "exercise_global_duplicate",
       title: "Ese ejercicio ya existe en el catálogo",
-      body: `Ya existe una versión global. Puedes cambiarte al ejercicio global.`,
+      body: "Ya existe una versión global. Puedes cambiarte al ejercicio global.",
       customId,
       globalId: existingGlobalId,
     });
 
-    console.log("[submitCustomExerciseForGlobal] DUPLICATE", { uid, customId, existingGlobalId });
-    return { ok: true, decision: "duplicate", globalId: existingGlobalId };
+    console.log("[submitCustomExerciseForGlobal] DUPLICATE", {uid, customId, existingGlobalId});
+    return {ok: true, decision: "duplicate", globalId: existingGlobalId};
   }
 
   // reject normal
@@ -143,7 +150,7 @@ export const submitCustomExerciseForGlobal = functions.https.onCall(async (data,
     await customRef.update({
       proposalStatus: "rejected",
       proposalResolvedAt: admin.firestore.FieldValue.serverTimestamp(),
-      proposalResult: { decision: "reject", reason: llmResult.reason },
+      proposalResult: {decision: "reject", reason: llmResult.reason},
     });
 
     await createInAppNotification({
@@ -155,8 +162,12 @@ export const submitCustomExerciseForGlobal = functions.https.onCall(async (data,
       customId,
     });
 
-    console.log("[submitCustomExerciseForGlobal] REJECT", { uid, customId, reason: llmResult.reason });
-    return { ok: true, decision: "reject", reason: llmResult.reason };
+    console.log("[submitCustomExerciseForGlobal] REJECT", {
+      uid,
+      customId,
+      reason: llmResult.reason,
+    });
+    return {ok: true, decision: "reject", reason: llmResult.reason};
   }
 
   // approve: crear global
@@ -193,7 +204,7 @@ export const submitCustomExerciseForGlobal = functions.https.onCall(async (data,
   await customRef.update({
     proposalStatus: "published",
     proposalResolvedAt: admin.firestore.FieldValue.serverTimestamp(),
-    proposalResult: { decision: "approve", globalId },
+    proposalResult: {decision: "approve", globalId},
     publishedGlobalId: globalId,
     isDuplicateOfGlobal: false,
   });
@@ -208,6 +219,6 @@ export const submitCustomExerciseForGlobal = functions.https.onCall(async (data,
     globalId,
   });
 
-  console.log("[submitCustomExerciseForGlobal] APPROVED", { uid, customId, globalId });
-  return { ok: true, decision: "approve", globalId };
+  console.log("[submitCustomExerciseForGlobal] APPROVED", {uid, customId, globalId});
+  return {ok: true, decision: "approve", globalId};
 });

@@ -31,7 +31,7 @@ export type CandidateCompact = {
   description?: string;
 };
 
-const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+const client = new OpenAI({apiKey: process.env.OPENAI_API_KEY});
 
 const OUTPUT_SCHEMA = {
   name: "exercise_review_result",
@@ -39,22 +39,22 @@ const OUTPUT_SCHEMA = {
     type: "object",
     additionalProperties: false,
     properties: {
-      decision: { type: "string", enum: ["approve", "reject"] },
-      reason: { type: "string" },
+      decision: {type: "string", enum: ["approve", "reject"]},
+      reason: {type: "string"},
 
-      isDuplicate: { type: "boolean" },
-      duplicateOfId: { type: ["string", "null"] },
+      isDuplicate: {type: "boolean"},
+      duplicateOfId: {type: ["string", "null"]},
 
       globalDraft: {
         type: ["object", "null"],
         additionalProperties: false,
         properties: {
-          name: { type: "string" },
-          muscleGroup: { type: "string" },
-          description: { type: "string" },
-          instructions: { type: "string" },
-          imageUrl: { type: ["string", "null"] },
-          videoUrl: { type: ["string", "null"] },
+          name: {type: "string"},
+          muscleGroup: {type: "string"},
+          description: {type: "string"},
+          instructions: {type: "string"},
+          imageUrl: {type: ["string", "null"]},
+          videoUrl: {type: ["string", "null"]},
         },
         required: ["name", "muscleGroup", "description", "instructions", "imageUrl", "videoUrl"],
       },
@@ -79,7 +79,7 @@ function buildPrompt(params: {
   candidates: CandidateCompact[];
   activeMuscleGroupIds: string[];
 }) {
-  const { custom, candidates, activeMuscleGroupIds } = params;
+  const {custom, candidates, activeMuscleGroupIds} = params;
 
   const name = String(custom?.name || "").trim();
   const muscleGroup = String(custom?.muscleGroup || "").trim();

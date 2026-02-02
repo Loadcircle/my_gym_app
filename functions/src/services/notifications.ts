@@ -10,7 +10,7 @@ export async function createInAppNotification(params: {
   customId?: string;
   globalId?: string;
 }) {
-  const { db, uid, type, title, body, customId, globalId } = params;
+  const {db, uid, type, title, body, customId, globalId} = params;
 
   await db.collection(`users/${uid}/notifications`).add({
     type,

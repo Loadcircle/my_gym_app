@@ -9,8 +9,8 @@ export const deleteAccount = functions.https.onCall(async (data, context) => {
   // 1. Verificar autenticacion
   if (!context.auth) {
     throw new functions.https.HttpsError(
-      "unauthenticated",
-      "Usuario no autenticado"
+        "unauthenticated",
+        "Usuario no autenticado"
     );
   }
 
@@ -49,8 +49,8 @@ export const deleteAccount = functions.https.onCall(async (data, context) => {
 
     // 3. Borrar weightRecords del usuario (coleccion root)
     const weightRecords = await db.collection("weightRecords")
-      .where("userId", "==", uid)
-      .get();
+        .where("userId", "==", uid)
+        .get();
     for (const doc of weightRecords.docs) {
       await doc.ref.delete();
     }
@@ -68,8 +68,8 @@ export const deleteAccount = functions.https.onCall(async (data, context) => {
   } catch (error) {
     console.error("Error eliminando cuenta:", error);
     throw new functions.https.HttpsError(
-      "internal",
-      "Error al eliminar la cuenta. Intenta de nuevo."
+        "internal",
+        "Error al eliminar la cuenta. Intenta de nuevo."
     );
   }
 });

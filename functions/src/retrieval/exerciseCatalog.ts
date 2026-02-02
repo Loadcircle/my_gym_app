@@ -1,11 +1,11 @@
 // functions/src/retrieval/exerciseCatalog.ts
 import * as admin from "firebase-admin";
-import { buildNameTokens } from "../utils/normalize";
+import {buildNameTokens} from "../utils/normalize";
 
 export type MuscleGroup = {
-  id: string;        // doc id, ej: "arms"
-  name?: string;     // "Brazos"
-  nameEn?: string;   // "Arms"
+  id: string; // doc id, ej: "arms"
+  name?: string; // "Brazos"
+  nameEn?: string; // "Arms"
   isActive?: boolean;
 };
 
@@ -29,18 +29,18 @@ export async function getActiveMuscleGroupIds(db: admin.firestore.Firestore): Pr
  * (Los nuevos globales ya lo tendrán; los antiguos puedes backfillear luego)
  */
 export async function findExerciseCandidates(
-  db: admin.firestore.Firestore,
-  customName: string,
-  limit = 20
+    db: admin.firestore.Firestore,
+    customName: string,
+    limit = 20
 ): Promise<ExerciseCandidate[]> {
   const tokens = buildNameTokens(customName).slice(0, 10); // Firestore array-contains-any max 10
 
   if (tokens.length === 0) return [];
 
   const q = db
-    .collection("exercises")
-    .where("nameTokens", "array-contains-any", tokens)
-    .limit(limit);
+      .collection("exercises")
+      .where("nameTokens", "array-contains-any", tokens)
+      .limit(limit);
 
   const snap = await q.get();
 

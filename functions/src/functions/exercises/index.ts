@@ -1,1 +1,1 @@
-export { submitCustomExerciseForGlobal } from "./submitCustomExerciseForGlobal";
+export {submitCustomExerciseForGlobal} from "./submitCustomExerciseForGlobal";
