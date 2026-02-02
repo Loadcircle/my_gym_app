@@ -262,16 +262,11 @@ class AuthRepository {
       final callable = FirebaseFunctions.instance.httpsCallable('deleteAccount');
       await callable.call();
       AppLogger.info('Cuenta eliminada exitosamente', tag: _tag);
-      print('Cuenta eliminada exitosamente  ${_tag}');
     } on FirebaseFunctionsException catch (e) {
       AppLogger.error('Error de Cloud Function al eliminar cuenta: ${e.code}', tag: _tag, error: e);
-      print('Error de Cloud Function al eliminar cuenta: ');
-      print(e);
       throw AuthException(e.message ?? 'Error al eliminar cuenta');
     } catch (e) {
       AppLogger.error('Error inesperado al eliminar cuenta', tag: _tag, error: e);
-      print('Error inesperado al eliminar cuenta');
-      print(e);
       throw AuthException('Error al eliminar cuenta: $e');
     }
   }

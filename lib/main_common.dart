@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+import 'package:firebase_app_check/firebase_app_check.dart';
 
 import 'core/config/app_config.dart';
 import 'core/theme/app_theme.dart';
@@ -40,6 +41,16 @@ Future<void> _initializeFirebase() async {
   try {
     await Firebase.initializeApp();
 
+    if(AppConfig.environment.name == 'dev'){
+      await FirebaseAppCheck.instance.activate(
+        androidProvider: AndroidProvider.debug,
+      );
+    } else {
+      await FirebaseAppCheck.instance.activate(
+        androidProvider: AndroidProvider.playIntegrity,
+      );
+    }
+
     final app = Firebase.app();
 
     AppLogger.info('Firebase inicializado correctamente', tag: 'Main');
@@ -51,6 +62,7 @@ Future<void> _initializeFirebase() async {
     AppLogger.info('Firebase projectId: ${app.options.projectId}', tag: 'Firebase');
     AppLogger.info('Firebase storageBucket: ${app.options.storageBucket}', tag: 'Firebase');
 
+  
     // Configurar Crashlytics
     if (AppConfig.enableCrashlytics) {
       // Capturar errores de Flutter framework

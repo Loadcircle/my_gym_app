@@ -1,5 +1,6 @@
 import * as functions from "firebase-functions";
 import * as admin from "firebase-admin";
+const PROJECT_ID = process.env.GCLOUD_PROJECT;
 
 /**
  * Cloud Function callable para eliminar cuenta de usuario.
@@ -16,7 +17,8 @@ export const deleteAccount = functions.https.onCall(async (data, context) => {
 
   const uid = context.auth.uid;
   const db = admin.firestore();
-  const storage = admin.storage().bucket();
+  const storageBucket = "my-gym-app-fd1db.firebasestorage.app"; // Siempre usar el bucket fijo
+  const storage = admin.storage().bucket(storageBucket);
 
   try {
     // 2. Borrar subcolecciones de usuario en Firestore
@@ -56,9 +58,14 @@ export const deleteAccount = functions.https.onCall(async (data, context) => {
     }
 
     // 4. Borrar archivos de Storage del usuario
-    const [files] = await storage.getFiles({prefix: `users/${uid}/`});
-    for (const file of files) {
-      await file.delete();
+    const SHOULD_DELETE_STORAGE = PROJECT_ID === "my-gym-app-fd1db"; // prod project id
+    if (SHOULD_DELETE_STORAGE) {
+      const [files] = await storage.getFiles({prefix: `users/${uid}/`});
+      for (const file of files) {
+        await file.delete();
+      }
+    } else {
+      console.log("Skipping storage delete in dev");
     }
 
     // 5. Eliminar usuario de Firebase Auth

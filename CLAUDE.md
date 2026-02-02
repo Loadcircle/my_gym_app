@@ -1,993 +1,141 @@
 # My Gym App
 
-## Descripción
+App móvil de gimnasio: registrar pesos por ejercicio, ver guías (imagen + video + instrucciones). Arquitectura offline-first con sync automática.
 
-App móvil de gimnasio para registrar pesos por ejercicio/máquina y ver guías (imagen + video + instrucciones). Implementa arquitectura offline-first con sincronización automática.
+**Estado**: MVP ~100% completo. Fase 4 (pulido) en progreso.
 
-## Estado del Proyecto
+## Stack
 
-**MVP: ~100% Completo**
+Flutter 3.8+ | Riverpod | go_router | Drift (SQLite) | Firebase (Auth, Firestore, Storage, Crashlytics, Functions) | freezed
 
-| Fase | Estado | Descripción |
-|------|--------|-------------|
-| Fase 1: Setup | ✅ Completa | Proyecto Flutter, Firebase, arquitectura base |
-| Fase 2: Auth | ✅ Completa | Email/password, Google Sign-In, recuperación |
-| Fase 3: Ejercicios | ✅ Completa | Lista, detalle, filtros, registro de peso |
-| Fase 3.1: Offline + Media | ✅ Completa | Drift cache, sync queue, video player |
-| Fase 3.2: Ejercicios Custom | ✅ Completa | CRUD ejercicios personalizados, subida imágenes |
-| Fase 3.3: Rutinas | ✅ Completa | CRUD rutinas, agregar/quitar ejercicios |
-| Fase 3.4: Routine Completions | ✅ Completa | Progreso de rutinas, auto-completado, historial |
-| Fase 3.5: Perfil y Navegación | ✅ Completa | Perfil usuario, drawer lateral, historial como tab |
-| Fase 4: Pulido | 🔄 En progreso | Skeletons, pull-to-refresh, optimizaciones, crashlytics |
-
-## Flow Principal (MVP)
-
-```
-Splash → Login/Register → Bottom Navigation (3 tabs) + Drawer
-                                    │
-                    ┌───────────────┼───────────────┐
-                    ▼               ▼               ▼
-            Tab: Ejercicios   Tab: Rutinas   Tab: Historial
-                    │               │               │
-    Lista ejercicios (filtro)  Lista rutinas   Registros + Completados
-                    │               │
-           ┌───────┴───────┐       │
-           ▼               ▼       ▼
-    Detalle global   Detalle custom   Detalle rutina
-           │               │               │
-    Registrar peso   Editar/Eliminar   Agregar ejercicios
-           │                               │
-         Botón "Agregar a Rutina" ─────────┘
-
-Drawer Lateral:
-    ├── Mi Perfil → Editar datos personales
-    ├── Configuración → Cambiar contraseña, cerrar sesión, eliminar cuenta
-    └── Cerrar Sesión
-```
-
-## Flujo de Rutinas (Detalle)
-
-### Descripción
-Las rutinas permiten al usuario organizar ejercicios en grupos personalizados para facilitar sus entrenamientos. Cada rutina puede contener ejercicios globales y/o personalizados.
-
-### Pantallas
-
-| Pantalla | Archivo | Descripción |
-|----------|---------|-------------|
-| Lista de Rutinas | `routines_screen.dart` | Tab principal, muestra todas las rutinas del usuario |
-| Crear Rutina | `create_routine_screen.dart` | Formulario para crear nueva rutina |
-| Detalle de Rutina | `routine_detail_screen.dart` | Muestra ejercicios de la rutina, permite quitar |
-| Agregar Ejercicios | `add_exercises_to_routine_screen.dart` | Multi-select de ejercicios para agregar |
-| Selector de Rutina | `select_routine_sheet.dart` | Bottom sheet para agregar desde detalle ejercicio |
-
-### Flujos de Usuario
-
-#### Crear Rutina
-```
-Tab Rutinas → FAB (+) → CreateRoutineScreen
-    ↓
-Ingresar nombre → Validar (min 1 char)
-    ↓
-Crear en Drift + Firestore → Navegar a RoutineDetailScreen
-```
-
-#### Agregar Ejercicios (desde Rutina)
-```
-RoutineDetailScreen → FAB "Agregar" → AddExercisesToRoutineScreen
-    ↓
-Filtrar por músculo → Seleccionar ejercicios (checkbox)
-    ↓
-Ejercicios ya agregados aparecen deshabilitados con ✓
-    ↓
-Botón "Agregar (N)" → Guardar items → Volver a detalle
-```
-
-#### Agregar Ejercicio (desde Detalle de Ejercicio)
-```
-ExerciseDetailScreen / CustomExerciseDetailScreen
-    ↓
-Botón "Rutina" → SelectRoutineSheet (bottom sheet)
-    ↓
-Lista de rutinas existentes + "Crear nueva"
-    ↓
-Tap en rutina → Agregar item → SnackBar "Agregado a {rutina} ✓"
-```
-
-#### Quitar Ejercicio
-```
-RoutineDetailScreen → Swipe left en ejercicio
-    ↓
-Aparece fondo rojo con icono delete
-    ↓
-Confirmar swipe → Eliminar item + actualizar contador
-```
-
-#### Renombrar/Eliminar Rutina
-```
-RoutineDetailScreen → Menú (⋮) → Renombrar / Eliminar
-    ↓
-Diálogo de confirmación → Ejecutar acción
-```
-
-### Modelo de Datos
-
-#### Firestore Structure
-```
-users/{uid}/routines/{routineId}
-├── name: "Mi Rutina"
-├── exerciseCount: 5
-├── createdAt: timestamp
-├── updatedAt: timestamp
-└── /items/{itemId}
-    ├── exerciseRefType: "global" | "custom"
-    ├── exerciseId: "abc123"
-    ├── exerciseNameSnapshot: "Press Banca"
-    ├── muscleGroupSnapshot: "Pecho"
-    ├── addedAt: timestamp
-    └── order: 0
-```
-
-#### Snapshots
-Se guardan snapshots de `exerciseName` y `muscleGroup` en cada item para:
-- Evitar joins/queries adicionales al mostrar la lista
-- Mantener el nombre histórico si el ejercicio se renombra
-- Funcionar offline sin cargar todos los ejercicios
-
-### Validaciones (Firestore Rules)
-
-| Campo | Validación |
-|-------|------------|
-| `name` | String, no vacío |
-| `exerciseCount` | Number >= 0 |
-| `userId` | Debe coincidir con auth.uid |
-| `exerciseRefType` | Debe ser 'global' o 'custom' |
-| `order` | Number >= 0 |
-
-### Consideraciones Técnicas
-
-1. **Contador Denormalizado**: `exerciseCount` se mantiene en la rutina para mostrar "X ejercicios" sin query adicional
-
-2. **Prevención de Duplicados**: Antes de agregar, se verifica si el ejercicio ya existe en la rutina (mismo `exerciseId` + `exerciseRefType`)
-
-3. **Orden de Items**: Cada item tiene un `order` numérico para futuro reordenamiento (drag & drop)
-
-4. **Offline-First**: Todas las operaciones se guardan primero en Drift, luego se sincronizan con Firestore
-
-5. **Bottom Navigation**: Se usa `StatefulShellRoute` para preservar el estado de cada tab al cambiar
-
-## Stack Tecnológico
-
-| Categoría | Tecnología | Versión |
-|-----------|------------|---------|
-| Framework | Flutter | SDK ^3.8.0 |
-| Estado | flutter_riverpod | ^2.6.1 |
-| Navegación | go_router | ^17.0.1 |
-| Modelos | freezed + json_serializable | ^2.4.1 / ^6.7.1 |
-| DB Local | Drift (SQLite) | ^2.8.0 |
-| Auth | Firebase Auth | ^6.1.3 |
-| DB Cloud | Cloud Firestore | ^6.1.1 |
-| Media | Firebase Storage | ^13.0.5 |
-| Monitoreo | Firebase Crashlytics | ^5.0.6 |
-| Cloud Functions | cloud_functions | ^6.0.5 |
-| HTTP | dio | ^5.2.1 |
-| Cache Imágenes | cached_network_image | ^3.4.1 |
-| Video | video_player | ^2.9.2 |
-| Conectividad | connectivity_plus | ^7.0.0 |
-| Google Sign-In | google_sign_in | ^6.2.2 |
-| Info de App | package_info_plus | ^8.0.0 |
-| Shimmer | shimmer | ^3.0.0 |
-| UUID | uuid | ^4.5.1 |
-
-## Arquitectura de Carpetas
+## Arquitectura
 
 ```
 lib/
-├── main.dart                              # Entry point default (usa dart-define)
-├── main_dev.dart                          # Entry point para flavor dev
-├── main_prod.dart                         # Entry point para flavor prod
-├── main_common.dart                       # Código compartido de inicialización
+├── main_dev.dart / main_prod.dart    # Entry points por flavor
 ├── core/
-│   ├── config/
-│   │   ├── app_config.dart                # Configuración por entorno (dev/prod)
-│   │   ├── models/
-│   │   │   └── app_config_model.dart      # Modelos de config remota (Freezed)
-│   │   ├── repositories/
-│   │   │   └── app_config_repository.dart # Repo para config desde Firestore
-│   │   └── providers/
-│   │       └── app_config_provider.dart   # Providers de config + StorageService
-│   ├── constants/
-│   │   ├── app_constants.dart             # Constantes globales, nombres de colecciones
-│   │   └── storage_constants.dart         # URLs default de Firebase Storage
-│   ├── router/
-│   │   ├── app_router.dart                # Configuración go_router con protección
-│   │   └── route_names.dart               # Nombres de rutas centralizados
-│   ├── services/
-│   │   ├── connectivity_service.dart      # Monitoreo de conexión a internet
-│   │   ├── storage_service.dart           # Firebase Storage: URLs públicas + upload/delete usuario
-│   │   └── sync_service.dart              # Sincronización offline-first
-│   ├── theme/
-│   │   ├── app_colors.dart                # Paleta de colores (tema oscuro)
-│   │   ├── app_text_styles.dart           # Estilos tipográficos
-│   │   └── app_theme.dart                 # ThemeData Material 3
-│   └── utils/
-│       ├── logger.dart                    # Utilidad de logging
-│       └── validators.dart                # Validadores de formularios
+│   ├── config/          # AppConfig, providers de config
+│   ├── constants/       # Constantes, nombres de colecciones
+│   ├── router/          # go_router con protección de rutas
+│   ├── services/        # connectivity, storage, sync
+│   ├── theme/           # AppColors, AppTheme (tema oscuro)
+│   └── utils/           # logger, validators
 ├── data/
-│   ├── local/
-│   │   ├── database.dart                  # Clase AppDatabase (Drift)
-│   │   ├── database.g.dart                # Código generado
-│   │   ├── tables/
-│   │   │   ├── exercises_table.dart       # Tabla de ejercicios globales
-│   │   │   ├── custom_exercises_table.dart # Tabla de ejercicios personalizados
-│   │   │   ├── weight_records_table.dart  # Tabla de registros
-│   │   │   ├── workout_sets_table.dart    # Tabla de series por registro
-│   │   │   ├── routines_table.dart        # Tabla de rutinas
-│   │   │   ├── routine_items_table.dart   # Tabla de items de rutina
-│   │   │   ├── routine_completions_table.dart # Tabla de rutinas completadas
-│   │   │   ├── user_profiles_table.dart   # Tabla de perfiles de usuario
-│   │   │   ├── user_preferences_table.dart # Tabla key-value preferencias locales
-│   │   │   └── sync_queue_table.dart      # Cola de sincronización
-│   │   └── daos/
-│   │       ├── exercises_dao.dart         # DAO ejercicios globales
-│   │       ├── custom_exercises_dao.dart  # DAO ejercicios personalizados
-│   │       ├── weight_records_dao.dart    # DAO registros
-│   │       ├── workout_sets_dao.dart      # DAO series por registro
-│   │       ├── routines_dao.dart          # DAO rutinas
-│   │       ├── routine_items_dao.dart     # DAO items de rutina
-│   │       ├── routine_completions_dao.dart # DAO rutinas completadas
-│   │       ├── user_profiles_dao.dart     # DAO perfiles de usuario
-│   │       ├── user_preferences_dao.dart  # DAO preferencias locales
-│   │       └── sync_queue_dao.dart        # DAO cola sync
-│   └── repositories/
-│       ├── offline_exercises_repository.dart        # Repo offline-first ejercicios
-│       ├── offline_custom_exercises_repository.dart # Repo offline-first custom
-│       ├── offline_weight_records_repository.dart   # Repo offline-first registros
-│       ├── offline_routines_repository.dart         # Repo offline-first rutinas
-│       └── offline_user_profile_repository.dart     # Repo offline-first perfil
+│   ├── local/           # Drift: database.dart, tables/, daos/
+│   └── repositories/    # Repos offline-first
 ├── features/
-│   ├── auth/
-│   │   ├── data/
-│   │   │   ├── auth_repository.dart       # Firebase Auth + Google Sign-In
-│   │   │   └── models/
-│   │   │       └── user_model.dart        # Modelo de usuario (Freezed)
-│   │   ├── presentation/screens/
-│   │   │   ├── splash_screen.dart         # Splash con verificación de auth
-│   │   │   ├── login_screen.dart          # Login email + Google
-│   │   │   ├── register_screen.dart       # Registro + Google
-│   │   │   └── forgot_password_screen.dart
-│   │   └── providers/
-│   │       ├── auth_provider.dart         # AuthNotifier + providers
-│   │       └── auth_state.dart            # Estado de auth (Freezed)
-│   ├── exercises/
-│   │   ├── data/
-│   │   │   ├── models/
-│   │   │   │   ├── exercise_model.dart      # Modelo ejercicio global (Freezed)
-│   │   │   │   ├── custom_exercise_model.dart # Modelo ejercicio custom (Freezed)
-│   │   │   │   └── weight_record_model.dart # Modelo registro (Freezed)
-│   │   │   └── repositories/
-│   │   │       ├── exercises_repository.dart        # Repo Firestore directo
-│   │   │       ├── custom_exercises_repository.dart # Repo custom Firestore
-│   │   │       └── weight_records_repository.dart   # Repo Firestore directo
-│   │   ├── presentation/screens/
-│   │   │   ├── exercises_screen.dart            # Lista con filtro (globales + custom)
-│   │   │   ├── exercise_detail_screen.dart      # Detalle ejercicio global
-│   │   │   ├── custom_exercise_detail_screen.dart # Detalle ejercicio custom
-│   │   │   ├── add_exercise_screen.dart         # Crear ejercicio custom
-│   │   │   └── edit_custom_exercise_screen.dart # Editar ejercicio custom
-│   │   ├── presentation/widgets/
-│   │   │   ├── weight_input_card.dart         # Card registro peso con toggle simple/avanzado
-│   │   │   └── advanced_sets_input.dart       # Input de series múltiples
-│   │   └── providers/
-│   │       ├── exercises_provider.dart        # Providers ejercicios globales
-│   │       ├── custom_exercises_provider.dart # Providers ejercicios custom
-│   │       ├── weight_records_provider.dart   # Providers de registros
-│   │       └── user_preferences_provider.dart # Provider modo registro peso
-│   ├── routines/
-│   │   ├── data/
-│   │   │   ├── models/
-│   │   │   │   ├── routine_model.dart         # Modelo rutina (Freezed)
-│   │   │   │   └── routine_item_model.dart    # Modelo item de rutina (Freezed)
-│   │   │   └── repositories/
-│   │   │       ├── routines_repository.dart       # Repo Firestore directo
-│   │   │       └── routine_items_repository.dart  # Repo items Firestore
-│   │   ├── presentation/
-│   │   │   ├── screens/
-│   │   │   │   ├── routines_screen.dart              # Lista de rutinas
-│   │   │   │   ├── create_routine_screen.dart        # Crear rutina
-│   │   │   │   ├── routine_detail_screen.dart        # Detalle con ejercicios
-│   │   │   │   └── add_exercises_to_routine_screen.dart # Agregar ejercicios
-│   │   │   └── widgets/
-│   │   │       └── select_routine_sheet.dart     # Bottom sheet selección
-│   │   └── providers/
-│   │       └── routines_provider.dart        # Providers de rutinas
-│   ├── history/
-│   │   └── presentation/screens/
-│   │       └── history_screen.dart        # Historial agrupado por fecha (tab)
-│   ├── profile/
-│   │   ├── data/
-│   │   │   ├── models/
-│   │   │   │   └── user_profile_model.dart  # Modelo perfil (Freezed)
-│   │   │   └── repositories/
-│   │   │       └── user_profile_repository.dart  # Repo Firestore
-│   │   ├── presentation/screens/
-│   │   │   └── profile_screen.dart        # Editar datos personales
-│   │   └── providers/
-│   │       └── user_profile_provider.dart # Providers de perfil
-│   └── settings/
-│       └── presentation/screens/
-│           └── settings_screen.dart       # Configuración de cuenta
-└── shared/widgets/
-    ├── main_shell.dart                    # Bottom navigation shell + drawer
-    ├── app_drawer.dart                    # Drawer lateral con perfil
-    ├── loading_indicator.dart             # Indicador de carga
-    ├── error_view.dart                    # Vista de error con retry
-    ├── empty_state.dart                   # Vista estado vacío
-    ├── google_sign_in_button.dart         # Botón Google con logo
-    ├── exercise_image.dart                # Imagen con cache optimizado
-    ├── exercise_video_player.dart         # Video player con lifecycle handling
-    ├── storage_image.dart                 # Imagen que resuelve path → URL
-    ├── storage_video_player.dart          # Video que resuelve path → URL
-    ├── weight_progress_chart.dart         # Gráfico de progresión de peso
-    └── skeletons/
-        ├── exercise_card_skeleton.dart    # Skeleton para cards de ejercicio
-        ├── routine_card_skeleton.dart     # Skeleton para cards de rutina
-        └── history_section_skeleton.dart  # Skeleton para secciones de historial
+│   ├── auth/            # Firebase Auth + Google Sign-In
+│   ├── exercises/       # Globales + Custom + WeightRecords
+│   ├── routines/        # CRUD rutinas + items
+│   ├── history/         # Historial (tab)
+│   ├── profile/         # Perfil usuario
+│   └── settings/        # Config cuenta, eliminar cuenta
+└── shared/widgets/      # Componentes reutilizables, skeletons
 ```
 
-## Modelos de Datos
+## Modelos Principales (Freezed)
 
-### UserModel (Freezed)
-```dart
-| Campo          | Tipo      | Descripción                |
-|----------------|-----------|----------------------------|
-| uid            | String    | ID de Firebase Auth        |
-| email          | String    | Email del usuario          |
-| displayName    | String?   | Nombre para mostrar        |
-| photoUrl       | String?   | URL foto de perfil         |
-| createdAt      | DateTime? | Fecha de creación          |
-| emailVerified  | bool      | Si verificó email          |
-```
+| Modelo | Campos clave |
+|--------|-------------|
+| `ExerciseModel` | id, name, muscleGroup, imageUrl, videoUrl |
+| `CustomExerciseModel` | id, userId, name, muscleGroup, imageUrl |
+| `WeightRecordModel` | exerciseId, weight, reps, sets, mode (simple/advanced), setEntries |
+| `RoutineModel` | id, userId, name, exerciseCount |
+| `RoutineItemModel` | routineId, exerciseId, exerciseRefType (global/custom) |
+| `UserProfileModel` | userId, firstName, lastName, age, height, weight, sex |
 
-### ExerciseModel (Freezed)
-```dart
-| Campo        | Tipo    | Descripción                         |
-|--------------|---------|-------------------------------------|
-| id           | String  | ID documento Firestore              |
-| name         | String  | Nombre del ejercicio                |
-| muscleGroup  | String  | Grupo muscular                      |
-| description  | String  | Descripción                         |
-| instructions | String  | Instrucciones (separadas \n)        |
-| imageUrl     | String? | Path relativo en Storage (no URL)   |
-| videoUrl     | String? | Path relativo en Storage (no URL)   |
-| order        | int     | Orden dentro del grupo              |
-```
+## Drift (SQLite)
 
-### WeightRecordModel (Freezed)
-```dart
-| Campo      | Tipo              | Descripción                          |
-|------------|-------------------|--------------------------------------|
-| id         | String            | ID del documento                     |
-| exerciseId | String            | ID del ejercicio                     |
-| userId     | String            | UID del usuario                      |
-| weight     | double            | Peso máximo en kg (resumen)          |
-| reps       | int               | Reps del peso máximo (resumen)       |
-| sets       | int               | Número de series                     |
-| notes      | String?           | Notas opcionales                     |
-| date       | DateTime          | Fecha del registro                   |
-| mode       | RecordMode        | simple o advanced                    |
-| setEntries | List<SetEntry>    | Series detalladas (modo avanzado)    |
-```
+**Versión schema**: 8
 
-### SetEntryModel (Freezed)
-```dart
-| Campo     | Tipo   | Descripción              |
-|-----------|--------|--------------------------|
-| id        | String | ID único de la serie     |
-| setNumber | int    | Número de serie (1-based)|
-| weight    | double | Peso en kg               |
-| reps      | int    | Repeticiones             |
-```
+Tablas: Exercises, CustomExercises, WeightRecords, WorkoutSets, Routines, RoutineItems, RoutineCompletions, UserProfiles, UserPreferences, SyncQueue
 
-### CustomExerciseModel (Freezed)
-```dart
-| Campo          | Tipo           | Descripción                           |
-|----------------|----------------|---------------------------------------|
-| id             | String         | ID documento Firestore                |
-| userId         | String         | UID del usuario propietario           |
-| name           | String         | Nombre del ejercicio                  |
-| muscleGroup    | String         | Grupo muscular                        |
-| notes          | String?        | Notas/instrucciones personales        |
-| imageUrl       | String?        | Path relativo en Storage (users/...)  |
-| proposalStatus | ProposalStatus | Estado de propuesta (none/pending/approved/rejected) |
-| createdAt      | DateTime       | Fecha de creación                     |
-| updatedAt      | DateTime       | Fecha de última modificación          |
-```
-
-### UserProfileModel (Freezed)
-```dart
-| Campo     | Tipo      | Descripción                                     |
-|-----------|-----------|------------------------------------------------|
-| userId    | String    | ID del usuario (mismo que Firebase Auth UID)    |
-| firstName | String?   | Nombre del usuario                              |
-| lastName  | String?   | Apellido del usuario                            |
-| age       | int?      | Edad del usuario                                |
-| height    | double?   | Altura en centímetros                           |
-| weight    | double?   | Peso en kilogramos                              |
-| sex       | Sex?      | Sexo (male, female, preferNotToSay)             |
-| createdAt | DateTime  | Fecha de creación del perfil                    |
-| updatedAt | DateTime  | Fecha de última actualización                   |
-```
-
-### RoutineModel (Freezed)
-```dart
-| Campo          | Tipo     | Descripción                        |
-|----------------|----------|-----------------------------------|
-| id             | String   | ID documento Firestore             |
-| userId         | String   | UID del usuario propietario        |
-| name           | String   | Nombre de la rutina                |
-| exerciseCount  | int      | Cantidad de ejercicios (denormalizado) |
-| createdAt      | DateTime | Fecha de creación                  |
-| updatedAt      | DateTime | Fecha de última modificación       |
-```
-
-### RoutineItemModel (Freezed)
-```dart
-| Campo                 | Tipo            | Descripción                    |
-|-----------------------|-----------------|--------------------------------|
-| id                    | String          | ID documento Firestore         |
-| routineId             | String          | ID de la rutina padre          |
-| exerciseRefType       | ExerciseRefType | Tipo: global o custom          |
-| exerciseId            | String          | ID del ejercicio referenciado  |
-| exerciseNameSnapshot  | String          | Snapshot nombre del ejercicio  |
-| muscleGroupSnapshot   | String          | Snapshot grupo muscular        |
-| addedAt               | DateTime        | Fecha en que se agregó         |
-| order                 | int             | Orden dentro de la rutina      |
-```
-
-### RoutineCompletionModel (Freezed)
-```dart
-| Campo                   | Tipo           | Descripción                         |
-|-------------------------|----------------|-------------------------------------|
-| id                      | String         | ID documento Firestore              |
-| routineId               | String         | ID de la rutina completada          |
-| userId                  | String         | ID del usuario                      |
-| routineNameSnapshot     | String         | Snapshot nombre de la rutina        |
-| exerciseCountSnapshot   | int            | Total ejercicios al completar       |
-| exercisesCompletedCount | int            | Ejercicios con weight record        |
-| completedAt             | DateTime       | Fecha/hora de completado            |
-| completionType          | CompletionType | auto (100%) o manual (botón)        |
-```
-
-## Base de Datos Local (Drift)
-
-### Tablas
-
-| Tabla | Propósito |
-|-------|-----------|
-| `Exercises` | Cache de ejercicios globales de Firestore |
-| `CustomExercises` | Ejercicios personalizados del usuario |
-| `WeightRecords` | Registros de peso con flag `isSynced` y modo (simple/advanced) |
-| `WorkoutSets` | Series individuales de registros avanzados |
-| `Routines` | Rutinas del usuario con contador ejercicios |
-| `RoutineItems` | Items de rutina (relación rutina-ejercicio) |
-| `RoutineCompletions` | Registros de rutinas completadas |
-| `UserProfiles` | Perfiles de usuario con datos personales |
-| `UserPreferences` | Preferencias locales key-value (modo registro, etc.) |
-| `SyncQueue` | Cola de operaciones pendientes de sync |
-
-### Schema Version
-
-Versión actual: **8**
-
-| Versión | Cambios |
-|---------|---------|
-| 1 | Tablas iniciales (Exercises, WeightRecords, SyncQueue) |
-| 2 | CustomExercises |
-| 3 | Routines, RoutineItems |
-| 4 | RoutineCompletions |
-| 5 | WorkoutSets, columnas mode/setsData en WeightRecords |
-| 6 | UserProfiles |
-| 7 | Índice único en RoutineItems |
-| 8 | UserPreferences |
-
-### Patrón Offline-First
-
-```
-LECTURA:
-  1. Retorna datos de Drift (inmediato)
-  2. Sincroniza con Firestore en background
-  3. Actualiza Drift si hay cambios
-
-ESCRITURA:
-  1. Guarda en Drift (siempre)
-  2. Intenta sync con Firestore
-  3. Si falla → encola en SyncQueue
-  4. Al recuperar conexión → procesa cola
-```
-
-## Providers (Riverpod)
-
-### Auth
-| Provider | Tipo | Descripción |
-|----------|------|-------------|
-| `authStateProvider` | StateNotifierProvider | Estado principal de auth |
-| `isAuthenticatedProvider` | Provider<bool> | Si está autenticado |
-| `currentUserProvider` | Provider<UserModel?> | Usuario actual |
-
-### Exercises (Globales)
-| Provider | Tipo | Descripción |
-|----------|------|-------------|
-| `exercisesProvider` | FutureProvider | Todos los ejercicios |
-| `exercisesByMuscleGroupProvider` | FutureProvider.family | Por grupo muscular |
-| `exerciseByIdProvider` | FutureProvider.family | Por ID |
-| `offlineExercisesRepositoryProvider` | Provider | Repo offline-first |
-
-### Custom Exercises (Personalizados)
-| Provider | Tipo | Descripción |
-|----------|------|-------------|
-| `customExercisesProvider` | FutureProvider | Todos los custom del usuario |
-| `customExercisesByMuscleGroupProvider` | Provider.family | **Derivado** - filtra por músculo |
-| `customExerciseByIdProvider` | FutureProvider.family | Por ID |
-| `customExerciseNotifierProvider` | StateNotifierProvider | CRUD de ejercicios custom |
-| `offlineCustomExercisesRepositoryProvider` | Provider | Repo offline-first |
-
-> **Patrón Providers Derivados**: `customExercisesByMuscleGroupProvider` depende de
-> `customExercisesProvider` y filtra en memoria. Esto permite invalidación automática
-> en cascada cuando se crea/edita/elimina un ejercicio.
-
-### Weight Records
-| Provider | Tipo | Descripción |
-|----------|------|-------------|
-| `lastWeightRecordProvider` | FutureProvider.family | Último registro por ejercicio |
-| `exerciseHistoryProvider` | FutureProvider.family | Historial por ejercicio |
-| `allHistoryProvider` | FutureProvider | Todo el historial |
-| `weightRecordNotifierProvider` | StateNotifierProvider | Para guardar registros |
-| `offlineWeightRecordsRepositoryProvider` | Provider | Repo offline-first |
-
-### Routines
-| Provider | Tipo | Descripción |
-|----------|------|-------------|
-| `routinesProvider` | FutureProvider | Todas las rutinas del usuario |
-| `routineByIdProvider` | FutureProvider.family | Rutina por ID |
-| `routineItemsProvider` | FutureProvider.family | Items de una rutina |
-| `routinesStreamProvider` | StreamProvider | Stream de rutinas en tiempo real |
-| `routineItemsStreamProvider` | StreamProvider.family | Stream de items en tiempo real |
-| `routineNotifierProvider` | StateNotifierProvider | CRUD de rutinas |
-| `routineItemsNotifierProvider` | StateNotifierProvider | Agregar/quitar items |
-| `offlineRoutinesRepositoryProvider` | Provider | Repo offline-first |
-
-### Routine Completions
-| Provider | Tipo | Descripción |
-|----------|------|-------------|
-| `todayWeightRecordsProvider` | StreamProvider | Records de peso de hoy |
-| `todayCompletedExerciseIdsProvider` | Provider | Set de IDs de ejercicios completados hoy |
-| `routineCompletionStatusProvider` | Provider.family | Estado de progreso de rutina (%, completedIds) |
-| `todayRoutineCompletionProvider` | FutureProvider.family | Completion de hoy para una rutina |
-| `routineCompletionsProvider` | FutureProvider | Todos los registros de completado |
-| `routineCompletionsStreamProvider` | StreamProvider | Stream de completados en tiempo real |
-| `routineCompletionNotifierProvider` | StateNotifierProvider | Crear registros de completado |
-| `offlineRoutineCompletionsRepositoryProvider` | Provider | Repo offline-first |
-
-### User Profile
-| Provider | Tipo | Descripción |
-|----------|------|-------------|
-| `userProfileProvider` | FutureProvider | Perfil del usuario actual |
-| `userProfileStreamProvider` | StreamProvider | Stream del perfil en tiempo real |
-| `userProfileNotifierProvider` | StateNotifierProvider | Guardar cambios de perfil |
-| `offlineUserProfileRepositoryProvider` | Provider | Repo offline-first |
-
-### User Preferences
-| Provider | Tipo | Descripción |
-|----------|------|-------------|
-| `userPreferencesDaoProvider` | Provider | DAO de preferencias locales |
-| `weightInputModeProvider` | StreamProvider | Observa modo registro (simple/avanzado) |
-| `weightInputModeNotifierProvider` | StateNotifierProvider | Cambia modo registro globalmente |
-
-### Core
-| Provider | Tipo | Descripción |
-|----------|------|-------------|
-| `appDatabaseProvider` | Provider | Base de datos Drift |
-| `syncServiceProvider` | Provider | Servicio de sync |
-| `pendingSyncCountProvider` | StreamProvider | Operaciones pendientes |
-| `isConnectedProvider` | StreamProvider | Estado de conexión |
-| `mediaConfigProvider` | FutureProvider | Config de media desde Firestore |
-| `storageServiceProvider` | Provider | Servicio Firebase Storage |
-| `imageUrlProvider` | FutureProvider.family | Resuelve path → URL imagen (público) |
-| `videoUrlProvider` | FutureProvider.family | Resuelve path → URL video (público) |
-| `userImageUrlProvider` | FutureProvider.family | Resuelve path → URL imagen de usuario (con token) |
-
-> **Nota sobre URLs de imágenes**: Las imágenes en `exercises/**` son públicas y usan
-> URL directa. Las imágenes en `users/**` requieren autenticación, por lo que
-> `userImageUrlProvider` usa `getDownloadURL()` para obtener URL con token.
-
-## Navegación (go_router)
-
-| Ruta | Path | Protegida |
-|------|------|-----------|
-| splash | `/` | No |
-| login | `/login` | No |
-| register | `/register` | No |
-| forgotPassword | `/forgot-password` | No |
-| exercises | `/exercises` | Sí (Tab 0) |
-| exerciseDetail | `/exercise/:exerciseId` | Sí |
-| customExerciseDetail | `/custom-exercise/:exerciseId` | Sí |
-| addExercise | `/add-exercise` | Sí |
-| routines | `/routines` | Sí (Tab 1) |
-| createRoutine | `/create-routine` | Sí |
-| routineDetail | `/routine/:routineId` | Sí |
-| addExercisesToRoutine | `/routine/:routineId/add-exercises` | Sí |
-| editCustomExercise | `/edit-custom-exercise/:exerciseId` | Sí |
-| history | `/history` | Sí (Tab 2) |
-| profile | `/profile` | Sí |
-| settings | `/settings` | Sí |
+**Patrón offline-first**: Guarda en Drift → intenta sync Firestore → si falla encola en SyncQueue
 
 ## Firebase
 
-### Entornos (Flavors)
+| Entorno | Proyecto | Uso |
+|---------|----------|-----|
+| dev | my-gym-app-dev | Desarrollo |
+| prod | my-gym-app-fd1db | Producción |
 
-La app soporta dos entornos configurados con Flutter flavors:
+Storage bucket compartido. Config en `android/app/src/{dev,prod}/google-services.json`
 
-| Entorno | Firebase Project | Firestore DB | Storage Bucket | Uso |
-|---------|-----------------|--------------|----------------|-----|
-| **dev** | `my-gym-app-dev` | my-gym-app-dev | my-gym-app-fd1db (compartido) | Desarrollo y testing |
-| **prod** | `my-gym-app-fd1db` | my-gym-app-fd1db | my-gym-app-fd1db | Producción |
-
-**Nota**: El Storage bucket es compartido entre ambos entornos (imágenes/videos son los mismos).
-
-### Configuración Android
+**Firestore**:
 ```
-android/app/src/
-├── dev/google-services.json     # Config Firebase dev
-├── prod/google-services.json    # Config Firebase prod
-├── main/                        # Código común
-└── debug/profile/               # Manifests por build type
+exercises/                           # Globales (públicos)
+weightRecords/                       # Records de todos los usuarios (filtrar por userId)
+users/{uid}/
+  ├── customExercises/
+  ├── routines/{routineId}/items/    # Items tienen snapshots de exerciseName y muscleGroup
+  └── routineCompletions/
 ```
 
-### Proyecto Principal
-- **Android Package**: `com.example.my_gym_app`
-- **Storage Bucket (compartido)**: `my-gym-app-fd1db.firebasestorage.app`
+**Storage**: `exercises/**` público, `users/{uid}/**` privado (requiere auth)
 
-### Colecciones Firestore
-| Colección | Descripción |
-|-----------|-------------|
-| `app_config` | Configuración remota de la app |
-| `app_config/media` | Paths por defecto de imagen/video |
-| `exercises` | Catálogo de ejercicios globales |
-| `weightRecords` | Registros de peso de usuarios |
-| `users/{userId}` | Datos de usuario |
-| `users/{userId}/customExercises` | Ejercicios personalizados del usuario |
-| `users/{userId}/routines` | Rutinas del usuario |
-| `users/{userId}/routines/{routineId}/items` | Items de cada rutina |
-| `users/{userId}/routineCompletions` | Registros de rutinas completadas |
+## Navegación
 
-### Estructura Storage
-```
-/exercises/
-  /images/      # Imágenes de ejercicios globales (lectura pública)
-  /videos/      # Videos de ejercicios globales (lectura pública)
-  /default/     # Media por defecto (lectura pública)
-/users/{userId}/
-  /exercises/
-    /images/    # Imágenes de ejercicios custom (requiere auth)
-```
+Tabs: `/exercises` (0), `/routines` (1), `/history` (2)
+Drawer: Mi Perfil, Configuración, Cerrar Sesión
+Rutas protegidas requieren auth.
 
-### Storage Rules
-```
-/exercises/**     → allow read: true (público)
-/users/{userId}/** → allow read/write: if auth.uid == userId (privado)
-```
-
-### Auth Habilitado
-- Email/Password
-- Google Sign-In (con account linking)
-- Recuperación de contraseña
-
-## Convenciones de Código
+## Convenciones
 
 - Archivos: `snake_case.dart`
 - Clases: `PascalCase`
-- Variables/funciones: `camelCase`
-- Providers: sufijo `Provider` (ej: `exercisesProvider`)
-- Modelos Freezed: sufijo `Model` (ej: `ExerciseModel`)
-- Repositorios: sufijo `Repository`
-- DAOs: sufijo `Dao`
+- Providers: sufijo `Provider`
+- Modelos: sufijo `Model`
 
-## Comandos Útiles
-
-### Ejecutar App (Flavors)
+## Comandos
 
 ```bash
-# Desarrollo (recomendado para día a día)
+# Dev
 flutter run --flavor dev -t lib/main_dev.dart
 
-# Producción
+# Prod
 flutter run --flavor prod -t lib/main_prod.dart
 
-# Sin flavor (usa dart-define, default: dev)
-flutter run
-```
-
-### Build APK
-
-```bash
-# APK Debug - Dev
-flutter build apk --flavor dev -t lib/main_dev.dart --debug
-
-# APK Release - Dev
-flutter build apk --flavor dev -t lib/main_dev.dart --release
-
-# APK Release - Prod
+# Build APK Release
 flutter build apk --flavor prod -t lib/main_prod.dart --release
-```
 
-### Generación de Código
-
-```bash
-# Generar código (freezed, json_serializable, drift)
+# Generar código (freezed, drift)
 dart run build_runner build --delete-conflicting-outputs
 
-# Watch mode para generación
-dart run build_runner watch --delete-conflicting-outputs
-
-# Limpiar y regenerar
-flutter clean && flutter pub get && dart run build_runner build --delete-conflicting-outputs
-```
-
-### Firebase CLI
-
-```bash
-# Deploy rules a Dev (default)
-firebase deploy --only firestore:rules,storage:rules
-
-# Deploy rules a Prod
+# Deploy Firebase
 firebase deploy --only firestore:rules,storage:rules --project prod
 
-# Cambiar proyecto activo
-firebase use dev    # Cambiar a dev
-firebase use prod   # Cambiar a prod
-
-# Ver proyecto activo
-firebase use
+# Deploy Cloud Function
+cd functions && npm run build && firebase deploy --only functions:deleteAccount
 ```
 
-### Tests
+## Providers Principales
 
-```bash
-flutter test
-```
+| Datos | Provider |
+|-------|----------|
+| Auth | `authStateProvider`, `currentUserProvider` |
+| Ejercicios | `exercisesProvider`, `exercisesByMuscleGroupProvider(muscle)` |
+| Custom | `customExercisesProvider`, `customExerciseNotifierProvider` |
+| Records | `lastWeightRecordProvider(exerciseId)`, `allHistoryProvider` |
+| Rutinas | `routinesProvider`, `routineItemsProvider(routineId)` |
+| Perfil | `userProfileProvider`, `userProfileNotifierProvider` |
 
-## Notas Importantes
+Patrón: Los providers `*NotifierProvider` son StateNotifier para mutaciones (create/update/delete).
 
-### Problemas Conocidos
-1. **iOS no configurado**: Falta `GoogleService-Info.plist` para ambos entornos
+## Patrones Clave
 
-### Configuración de Entornos
-- **AppConfig** (`lib/core/config/app_config.dart`): Detecta el entorno y expone configuración
-- **StorageService**: Siempre usa el bucket de prod (media compartido)
-- **VS Code**: Configuraciones de launch en `.vscode/launch.json`
+- **Offline-first**: Drift primero, sync Firestore en background, SyncQueue para fallos
+- **Providers derivados**: `customExercisesByMuscleGroupProvider` depende de `customExercisesProvider` para invalidación automática en cascada
+- **Storage URLs**: `exercises/**` URL directa, `users/**` requieren `getDownloadURL()` con token
+- **Skeletons**: Shimmer (AppColors.shimmerBase/shimmerHighlight) en lugar de spinners
+- **Pull-to-refresh**: Invalida providers correspondientes
 
-### Principios de Desarrollo
-- **Offline-first**: Siempre funcional sin conexión
-- **Iteraciones pequeñas**: MVP primero, features después
-- **Sin over-engineering**: Mantener simple
-- **Tema oscuro**: UI optimizada para uso en gimnasio
+## Cloud Functions
 
-### Patrones Arquitectónicos
+`functions/src/functions/auth/deleteAccount.ts` - Callable que borra todos los datos del usuario (Firestore, Storage, Auth).
 
-#### Providers Derivados (Riverpod)
-Para evitar problemas de invalidación manual, usamos providers que derivan de un provider base:
+## Pendiente
 
-```dart
-// Provider BASE - carga datos del repositorio
-final customExercisesProvider = FutureProvider<List<CustomExerciseModel>>(...);
-
-// Provider DERIVADO - filtra en memoria, se invalida automáticamente
-final customExercisesByMuscleGroupProvider = Provider.family<AsyncValue<...>, String>(
-  (ref, muscleGroup) {
-    final allExercises = ref.watch(customExercisesProvider);  // Dependencia
-    return allExercises.when(
-      data: (list) => AsyncValue.data(list.where(...).toList()),
-      ...
-    );
-  }
-);
-```
-
-Cuando se invalida el provider base, los derivados se recalculan automáticamente.
-
-#### URLs de Storage con Autenticación
-- **Imágenes públicas** (`exercises/**`): URL directa sin token
-- **Imágenes de usuario** (`users/**`): Requiere `getDownloadURL()` para obtener URL con token
-
-## Registro de Peso
-
-### Modos de Registro
-
-El registro de peso soporta dos modos, seleccionables mediante un Switch en el card:
-
-| Modo | Descripción | Campos |
-|------|-------------|--------|
-| **Simple (Rápido)** | Un solo peso/series/reps | weight, sets, reps |
-| **Avanzado (Por series)** | Peso/reps por cada serie individual | Lista de SetEntry |
-
-### Toggle Global
-
-El modo seleccionado persiste globalmente en `UserPreferences` (Drift):
-- Cambiar en un ejercicio afecta a todos
-- Se mantiene entre sesiones de la app
-- Key: `weight_input_mode_advanced`
-
-### Widgets
-
-| Widget | Archivo | Descripción |
-|--------|---------|-------------|
-| `WeightInputCard` | `weight_input_card.dart` | Card unificado con Switch y ambos modos |
-| `AdvancedSetsInput` | `advanced_sets_input.dart` | Lista de series con add/remove |
-
-### Prefill
-
-Al abrir el detalle de un ejercicio, los campos se prellenan con el último registro:
-- **Modo simple**: weight, sets, reps directos
-- **Modo avanzado**: Reconstruye lista de series desde `setEntries`
-
-## Patrones de UI
-
-### Loading States (Skeletons)
-
-Todas las pantallas principales usan shimmer skeletons en lugar de `CircularProgressIndicator`:
-
-| Widget | Uso |
-|--------|-----|
-| `ExerciseListSkeleton` | Lista de ejercicios (6 cards) |
-| `RoutineListSkeleton` | Lista de rutinas (4 cards) |
-| `HistoryListSkeleton` | Historial (3 secciones) |
-
-```dart
-// Colores definidos en AppColors
-static const Color shimmerBase = Color(0xFF2C2C2C);
-static const Color shimmerHighlight = Color(0xFF3C3C3C);
-```
-
-### Pull-to-Refresh
-
-Implementado en todas las pantallas con listas:
-
-| Pantalla | Providers Invalidados |
-|----------|----------------------|
-| `exercises_screen` | `exercisesByMuscleGroupProvider`, `customExercisesProvider` |
-| `routines_screen` | `routinesProvider` |
-| `history_screen` | `allHistoryProvider`, `routineCompletionsProvider` |
-| `routine_detail_screen` | `routineByIdProvider`, `routineItemsProvider` |
-
-```dart
-RefreshIndicator(
-  onRefresh: _onRefresh,
-  color: AppColors.primary,
-  backgroundColor: AppColors.cardBackground,
-  child: ListView.builder(...),
-)
-```
-
-### Optimización de Imágenes
-
-`ExerciseImage` y `StorageImage` tienen constructores optimizados:
-
-| Constructor | Cache Size | Uso |
-|-------------|------------|-----|
-| `.list()` | 120px | Thumbnails en listas |
-| `.detail()` | 400px | Pantallas de detalle |
-| default | 300px | Uso general |
-
-```dart
-CachedNetworkImage(
-  memCacheHeight: cacheSize,
-  memCacheWidth: cacheSize,
-  filterQuality: FilterQuality.medium,
-)
-```
-
-### Video Lifecycle
-
-`ExerciseVideoPlayer` implementa `WidgetsBindingObserver` para manejar el ciclo de vida:
-
-| Estado de App | Acción del Video |
-|---------------|------------------|
-| `paused` / `inactive` | Pausa video, guarda estado |
-| `resumed` | Reanuda si estaba reproduciendo |
-| `detached` / `hidden` | Sin acción |
-
-## Crashlytics
-
-### Errores Capturados
-
-| Tipo | Handler | Severidad |
-|------|---------|-----------|
-| Flutter Framework Errors | `FlutterError.onError` | Fatal |
-| Dart Async/Isolate Errors | `PlatformDispatcher.instance.onError` | Fatal |
-| Sync Operation Failures (3+ retries) | `sync_service.dart` | Non-fatal |
-| Firestore Sync Errors | `sync_service.dart` | Non-fatal |
-
-### Configuración por Entorno
-
-```dart
-// Solo habilitado en producción
-if (AppConfig.enableCrashlytics) {
-  FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
-  PlatformDispatcher.instance.onError = (error, stack) {
-    FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
-    return true;
-  };
-}
-```
-
-## Eliminacion de Cuenta
-
-### Flujo UX
-
-```
-Settings → "Eliminar cuenta" (boton rojo)
-    ↓
-Modal 1 (Informacion):
-  "Al eliminar la cuenta, se eliminan todos los datos
-   personales y de entrenamiento. Esta accion no se puede deshacer."
-  [Continuar]
-    ↓
-Modal 2 (Confirmacion fuerte):
-  "¿Eliminar cuenta definitivamente?"
-  [Cancelar] [Eliminar definitivamente] (rojo)
-    ↓
-Loading overlay
-    ↓
-Cloud Function deleteAccount()
-    ↓
-Exito: signOut → Login + Toast "Cuenta eliminada"
-Error: Modal con mensaje de error
-```
-
-### Cloud Function
-
-La eliminacion de cuenta se realiza mediante una Cloud Function callable (`deleteAccount`) que:
-
-1. Verifica autenticacion del usuario
-2. Borra subcolecciones en Firestore:
-   - `users/{uid}/customExercises`
-   - `users/{uid}/routines/{routineId}/items`
-   - `users/{uid}/routines`
-   - `users/{uid}/routineCompletions`
-   - `users/{uid}` (documento principal)
-3. Borra registros de peso: `weightRecords` donde `userId == uid`
-4. Borra archivos de Storage: `users/{uid}/**`
-5. Elimina usuario de Firebase Auth
-
-### Archivos Involucrados
-
-| Archivo | Proposito |
-|---------|-----------|
-| `functions/src/functions/auth/deleteAccount.ts` | Cloud Function callable |
-| `lib/features/auth/data/auth_repository.dart` | Metodo `deleteAccount()` |
-| `lib/features/auth/providers/auth_provider.dart` | Metodo `deleteAccount(database)` |
-| `lib/data/local/database.dart` | Metodo `clearAllUserData()` |
-| `lib/features/settings/presentation/screens/settings_screen.dart` | UI de eliminacion |
-
-### Deploy
-
-```bash
-cd functions
-npm run build
-firebase deploy --only functions:deleteAccount
-```
-
-## Features Futuras (Post-MVP)
-
-> No implementar aún, arquitectura preparada para:
-
-- [x] Rutinas personalizadas (implementado en Fase 3.3)
-- [x] Gráficos de progresión (implementado en detalle de ejercicio)
-- [x] Registro avanzado por series (implementado con toggle en Fase 4)
-- [x] Skeletons y pull-to-refresh (implementado en Fase 4)
-- [ ] Reordenar ejercicios en rutina (drag & drop)
-- [ ] Notificaciones/recordatorios
-- [ ] Compartir progreso
-- [ ] Soporte iOS
-- [ ] Tests unitarios y de integración
-- [ ] Proponer ejercicio custom como global (flujo de aprobación)
+- Drag & drop en rutinas
+- Notificaciones
+- iOS
+- Tests
