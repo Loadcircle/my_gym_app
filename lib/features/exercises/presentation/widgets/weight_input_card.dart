@@ -252,16 +252,10 @@ class _WeightInputCardState extends ConsumerState<WeightInputCard> {
           Row(
             children: [
               Text(
-                'Registrar Peso',
+                isAdvanced ? 'Registrar series' : 'Registro rápido',
                 style: Theme.of(context).textTheme.titleLarge,
               ),
               const Spacer(),
-              Text(
-                isAdvanced ? 'Registro rápido' : 'Registrar por series',
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: AppColors.textSecondary,
-                    ),
-              ),
               const SizedBox(width: 8),
               SizedBox(
                 height: 24,

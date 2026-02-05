@@ -69,16 +69,33 @@ class _AdvancedSetsInputState extends State<AdvancedSetsInput> {
   @override
   void didUpdateWidget(AdvancedSetsInput oldWidget) {
     super.didUpdateWidget(oldWidget);
-    // Si las series iniciales cambiaron externamente, actualizar
+    // Solo actualizar si los IDs de las series cambiaron (carga externa, no edición del usuario)
     if (widget.initialSets != oldWidget.initialSets &&
         widget.initialSets.isNotEmpty) {
-      _sets = List.from(widget.initialSets);
-      // Actualizar controllers
-      for (int i = 0; i < _sets.length; i++) {
-        _initControllersForSet(i, _sets[i].weight, _sets[i].reps);
+      final oldIds = oldWidget.initialSets.map((s) => s.id).toSet();
+      final newIds = widget.initialSets.map((s) => s.id).toSet();
+
+      // Solo sincronizar si hay series nuevas o eliminadas externamente
+      if (!_setsEqual(oldIds, newIds)) {
+        _sets = List.from(widget.initialSets);
+        // Limpiar controllers extra si hay menos series
+        while (_weightControllers.length > _sets.length) {
+          _weightControllers.removeLast().dispose();
+          _repsControllers.removeLast().dispose();
+          _weightFocusNodes.removeLast().dispose();
+        }
+        // Actualizar controllers
+        for (int i = 0; i < _sets.length; i++) {
+          _initControllersForSet(i, _sets[i].weight, _sets[i].reps);
+        }
+        setState(() {});
       }
-      setState(() {});
     }
+  }
+
+  bool _setsEqual(Set<String> a, Set<String> b) {
+    if (a.length != b.length) return false;
+    return a.containsAll(b);
   }
 
   @override
@@ -101,8 +118,16 @@ class _AdvancedSetsInputState extends State<AdvancedSetsInput> {
       _repsControllers.add(TextEditingController());
       _weightFocusNodes.add(FocusNode());
     }
-    _weightControllers[index].text = weight > 0 ? weight.toString() : '';
+    // Formatear peso sin decimales innecesarios (60.0 → "60", 60.5 → "60.5")
+    _weightControllers[index].text = weight > 0 ? _formatWeight(weight) : '';
     _repsControllers[index].text = reps.toString();
+  }
+
+  String _formatWeight(double weight) {
+    if (weight == weight.truncateToDouble()) {
+      return weight.toInt().toString();
+    }
+    return weight.toString();
   }
 
   void _addSet() {
@@ -137,7 +162,7 @@ class _AdvancedSetsInputState extends State<AdvancedSetsInput> {
       // Actualizar controllers restantes
       for (int i = 0; i < _sets.length; i++) {
         _weightControllers[i].text =
-            _sets[i].weight > 0 ? _sets[i].weight.toString() : '';
+            _sets[i].weight > 0 ? _formatWeight(_sets[i].weight) : '';
         _repsControllers[i].text = _sets[i].reps.toString();
       }
       widget.onSetsChanged(_sets);
@@ -260,8 +285,8 @@ class _SetRow extends StatelessWidget {
               controller: weightController,
               focusNode: weightFocusNode,
               inputFormatters: [
-                FilteringTextInputFormatter.digitsOnly,
-                LengthLimitingTextInputFormatter(3),
+                FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
+                LengthLimitingTextInputFormatter(6),
               ],
               keyboardType: const TextInputType.numberWithOptions(decimal: true),
               textAlign: TextAlign.center,

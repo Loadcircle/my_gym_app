@@ -362,7 +362,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               const _SectionHeader(title: 'Acerca de'),
               const SizedBox(height: 8),
 
-              const _AppInfoCard(),
+              SafeArea(child:  _AppInfoCard()),
             ],
           ),
         ),

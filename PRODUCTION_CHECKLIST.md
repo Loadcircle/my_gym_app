@@ -36,7 +36,7 @@
 - [x] Mover secrets a Firebase Secrets o variables de entorno seguras
 
 ### Recomendado
-- [ ] Test completo de flujo de login/logout en prod
+- [x] Test completo de flujo de login/logout en prod
 - [ ] Test de deleteAccount en prod
 - [ ] Verificar Crashlytics recibe errores
 - [ ] Probar build release: `flutter build apk --flavor prod -t lib/main_prod.dart --release`
