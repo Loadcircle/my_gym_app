@@ -42,6 +42,9 @@ flutter build apk --flavor dev -t lib/main_dev.dart --release
 
 # APK Release - Prod
 flutter build apk --flavor prod -t lib/main_prod.dart --release
+
+# AAB Bundle for google play
+flutter build appbundle --flavor prod -t lib/main_prod.dart --release
 ```
 
 ### Generación de Código
