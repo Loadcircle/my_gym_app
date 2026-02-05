@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 import 'app_colors.dart';
 import 'app_text_styles.dart';
 
-/// Tema principal de la aplicacion My Gym App.
+/// Tema principal de la aplicacion GymVault.
 /// Tema oscuro con acentos energeticos (naranja).
 abstract class AppTheme {
   /// Tema oscuro principal de la app

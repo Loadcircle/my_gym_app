@@ -1,6 +1,8 @@
-# My Gym App
+# GymVault
 
 App móvil de gimnasio: registrar pesos por ejercicio, ver guías (imagen + video + instrucciones). Arquitectura offline-first con sync automática.
+
+**Package**: `gymvault` | **Android**: `com.gymvault.app` | **iOS**: `com.gymvault.app`
 
 **Estado**: MVP ~100% completo. Fase 4 (pulido) en progreso.
 

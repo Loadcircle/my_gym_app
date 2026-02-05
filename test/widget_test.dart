@@ -1,4 +1,4 @@
-// Basic Flutter widget test for My Gym App.
+// Basic Flutter widget test for GymVault.
 //
 // Tests will be expanded as features are implemented.
 // For now, this is a placeholder to ensure the test framework works.

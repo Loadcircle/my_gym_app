@@ -1,5 +1,5 @@
-name: my_gym_app
-description: App de gimnasio para registrar pesos y ver guias de ejercicios.
+name: gymvault
+description: GymVault - App de gimnasio para registrar pesos y ver guias de ejercicios.
 publish_to: 'none'
 version: 1.0.0+1
 

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'app_colors.dart';
 
-/// Estilos de texto de la aplicacion My Gym App.
+/// Estilos de texto de la aplicacion GymVault.
 /// Optimizados para legibilidad en ambiente de gimnasio (botones grandes, texto claro).
 abstract class AppTextStyles {
   // Font family base

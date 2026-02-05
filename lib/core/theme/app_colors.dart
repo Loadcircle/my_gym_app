@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-/// Paleta de colores de la aplicacion My Gym App.
+/// Paleta de colores de la aplicacion GymVault.
 /// Colores oscuros y energeticos para ambiente de gimnasio.
 abstract class AppColors {
   // Primary - Naranja energetico

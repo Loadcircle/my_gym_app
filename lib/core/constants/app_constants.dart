@@ -1,7 +1,7 @@
 /// Constantes globales de la aplicacion.
 abstract class AppConstants {
   // App Info
-  static const String appName = 'My Gym App';
+  static const String appName = 'GymVault';
   static const String appVersion = '1.0.0';
 
   // Firestore Collections

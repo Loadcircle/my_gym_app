@@ -420,7 +420,7 @@ class _AppInfoCard extends StatelessWidget {
       builder: (context, snapshot) {
         final info = snapshot.data;
 
-        final appName = info?.appName ?? 'My Gym App';
+        final appName = info?.appName ?? 'GymVault';
         final version = info?.version ?? '...';
         final buildNumber = info?.buildNumber ?? '';
 
@@ -430,18 +430,14 @@ class _AppInfoCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                // Icono / logo
-                Container(
-                  width: 64,
-                  height: 64,
-                  decoration: BoxDecoration(
-                    color: AppColors.primary.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: const Icon(
-                    Icons.fitness_center,
-                    size: 32,
-                    color: AppColors.primary,
+                // Logo
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(16),
+                  child: Image.asset(
+                    'assets/images/logo.png',
+                    width: 64,
+                    height: 64,
+                    fit: BoxFit.cover,
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -477,7 +473,7 @@ class _AppInfoCard extends StatelessWidget {
 
                 // Footer legal mínimo
                 Text(
-                  '© 2026 My Gym App',
+                  '© 2026 GymVault',
                   style: Theme.of(context).textTheme.labelSmall?.copyWith(
                         color: AppColors.textSecondary.withValues(alpha: 0.6),
                       ),

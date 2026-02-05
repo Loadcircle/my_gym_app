@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     id("kotlin-android")
@@ -6,8 +8,15 @@ plugins {
     id("com.google.gms.google-services")
 }
 
+// Read android/key.properties
+val keystoreProperties = Properties()
+val keystorePropertiesFile = rootProject.file("key.properties")
+if (keystorePropertiesFile.exists()) {
+    keystoreProperties.load(keystorePropertiesFile.inputStream())
+}
+
 android {
-    namespace = "com.example.my_gym_app"
+    namespace = "com.gymvault.app"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -21,35 +30,42 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.example.my_gym_app"
+        applicationId = "com.gymvault.app"
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
     }
 
+    // ✅ Signing config for release
+    signingConfigs {
+        create("release") {
+            if (keystorePropertiesFile.exists()) {
+                storeFile = file(keystoreProperties["storeFile"] as String)
+                storePassword = keystoreProperties["storePassword"] as String
+                keyAlias = keystoreProperties["keyAlias"] as String
+                keyPassword = keystoreProperties["keyPassword"] as String
+            }
+        }
+    }
     // Product Flavors para dev y prod
     flavorDimensions += "environment"
 
     productFlavors {
         create("dev") {
             dimension = "environment"
-            // Sin applicationIdSuffix para usar el mismo google-services.json
-            // Si quieres que dev y prod coexistan en el dispositivo,
-            // registra una nueva app en Firebase con package com.example.my_gym_app.dev
-            resValue("string", "app_name", "My Gym App (Dev)")
+            applicationIdSuffix = ".dev"
+            resValue("string", "app_name", "GymVault (Dev)")
         }
         create("prod") {
             dimension = "environment"
-            resValue("string", "app_name", "My Gym App")
+            resValue("string", "app_name", "GymVault")
         }
     }
 
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = signingConfigs.getByName("release")
         }
     }
 }

@@ -96,26 +96,25 @@ class _ExerciseDetailScreenState extends ConsumerState<ExerciseDetailScreen> {
         ? exercise.instructions.split('\n')
         : <String>[];
     final mediaHelper = ref.watch(mediaUrlHelperProvider);
+    final hasImage = mediaHelper.isValidUrl(exercise.imageUrl);
 
     return Scaffold(
       backgroundColor: AppColors.background,
       body: CustomScrollView(
         slivers: [
-          // App Bar con imagen
+          // App Bar (expandido solo si hay imagen)
           SliverAppBar(
-            expandedHeight: 180,
+            expandedHeight: hasImage ? 180 : null,
             pinned: true,
             backgroundColor: AppColors.background,
-            flexibleSpace: FlexibleSpaceBar(
-              background: mediaHelper.shouldShowImage(exercise.imageUrl)
-                  ? StorageImage(
-                      path: mediaHelper.getImagePath(exercise.imageUrl),
+            flexibleSpace: hasImage
+                ? FlexibleSpaceBar(
+                    background: StorageImage(
+                      path: exercise.imageUrl!,
                       fit: BoxFit.cover,
-                      placeholder: _buildImagePlaceholder(),
-                      errorWidget: _buildImagePlaceholder(),
-                    )
-                  : _buildImagePlaceholder(),
-            ),
+                    ),
+                  )
+                : null,
           ),
 
           // Content
@@ -198,14 +197,14 @@ class _ExerciseDetailScreenState extends ConsumerState<ExerciseDetailScreen> {
                           const SizedBox(height: 24),
                         ],
 
-                        // Video del ejercicio
-                        if (mediaHelper.shouldShowVideo(exercise.videoUrl))
+                        // Video del ejercicio (solo si tiene video propio)
+                        if (mediaHelper.isValidUrl(exercise.videoUrl))
                           StorageVideoPlayer(
-                            path: mediaHelper.getVideoPath(exercise.videoUrl),
+                            path: exercise.videoUrl!,
                             height: 200,
                             showControls: true,
                           ),
-                        if (mediaHelper.shouldShowVideo(exercise.videoUrl))
+                        if (mediaHelper.isValidUrl(exercise.videoUrl))
                           const SizedBox(height: 24),
 
                         // Instrucciones
@@ -285,16 +284,4 @@ class _ExerciseDetailScreenState extends ConsumerState<ExerciseDetailScreen> {
     );
   }
 
-  Widget _buildImagePlaceholder() {
-    return Container(
-      color: AppColors.surfaceVariant,
-      child: const Center(
-        child: Icon(
-          Icons.fitness_center,
-          size: 80,
-          color: AppColors.primary,
-        ),
-      ),
-    );
-  }
 }

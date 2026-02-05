@@ -44,9 +44,9 @@ class AppConfig {
   static String get appName {
     switch (environment) {
       case Environment.prod:
-        return 'My Gym App';
+        return 'GymVault';
       case Environment.dev:
-        return 'My Gym App (Dev)';
+        return 'GymVault (Dev)';
     }
   }
 
