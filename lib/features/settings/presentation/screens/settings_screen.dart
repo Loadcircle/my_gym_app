@@ -434,7 +434,7 @@ class _AppInfoCard extends StatelessWidget {
                 ClipRRect(
                   borderRadius: BorderRadius.circular(16),
                   child: Image.asset(
-                    'assets/images/logo.png',
+                    'assets/icons/app_icon.png',
                     width: 64,
                     height: 64,
                     fit: BoxFit.cover,
