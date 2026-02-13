@@ -54,8 +54,8 @@
     {
       "id": "deadlift",
       "name": "Peso Muerto",
-      "muscleGroup": "Espalda",
-      "description": "Ejercicio compuesto que trabaja toda la cadena posterior del cuerpo.",
+      "muscleGroup": "Piernas",
+      "description": "Ejercicio compuesto que trabaja toda la cadena posterior inferior del cuerpo.",
       "instructions": "1. Coloca los pies al ancho de las caderas con la barra sobre el medio del pie\n2. Flexiona las caderas y rodillas para agarrar la barra\n3. Manten la espalda recta y el pecho elevado\n4. Levanta la barra extendiendo caderas y rodillas simultaneamente\n5. Termina con caderas y rodillas completamente extendidas\n6. Baja la barra de manera controlada",
       "imageUrl": null,
       "videoUrl": null,
@@ -274,7 +274,6 @@
       "videoUrl": null,
       "order": 5
     },
-
     {
       "id": "cable_crunch_machine",
       "name": "Crunch en Maquina",
@@ -284,6 +283,1018 @@
       "imageUrl": null,
       "videoUrl": null,
       "order": 1
+    },
+    {
+      "id": "decline_bench_press_barbell",
+      "name": "Press Declinado con Barra",
+      "muscleGroup": "Pecho",
+      "description": "Variante del press que enfatiza la porcion inferior del pecho, con apoyo estable del banco.",
+      "instructions": "1. Ajusta el banco declinado y asegura los pies\n2. Agarra la barra con agarre medio a ligeramente ancho\n3. Desbloquea y lleva la barra sobre la linea media del pecho\n4. Baja controlado hasta cerca del pecho\n5. Empuja hacia arriba hasta extender los brazos sin bloquear fuerte\n6. Mantén omoplatos retraidos y codos a ~45 grados",
+      "imageUrl": null,
+      "videoUrl": null,
+      "order": 29
+    },
+    {
+      "id": "decline_dumbbell_press",
+      "name": "Press Declinado con Mancuernas",
+      "muscleGroup": "Pecho",
+      "description": "Press declinado con mayor rango y trabajo unilateral por lado usando mancuernas.",
+      "instructions": "1. Ajusta el banco declinado y asegura los pies\n2. Sube las mancuernas a la posicion inicial sobre el pecho\n3. Baja las mancuernas controladas hacia los lados del pecho\n4. Mantén muñecas neutras y codos a ~45 grados\n5. Empuja arriba juntando ligeramente sin chocar mancuernas\n6. Repite manteniendo el tronco estable",
+      "imageUrl": null,
+      "videoUrl": null,
+      "order": 30
+    },
+    {
+      "id": "incline_machine_press_converging",
+      "name": "Press Inclinado en Maquina Convergente",
+      "muscleGroup": "Pecho",
+      "description": "Press inclinado guiado que enfatiza la parte superior del pecho con trayectoria convergente.",
+      "instructions": "1. Ajusta asiento para que manerales queden a la altura del pecho alto\n2. Coloca espalda y gluteos firmes contra el respaldo\n3. Toma los manerales y retrae omoplatos\n4. Empuja hacia adelante y arriba sin despegar hombros\n5. Vuelve controlado hasta sentir estiramiento sin perder postura\n6. Mantén respiracion: exhala al empujar, inhala al bajar",
+      "imageUrl": null,
+      "videoUrl": null,
+      "order": 31
+    },
+    {
+      "id": "flat_dumbbell_press",
+      "name": "Press Plano con Mancuernas",
+      "muscleGroup": "Pecho",
+      "description": "Press plano con mancuernas que mejora rango de movimiento y estabilidad del hombro.",
+      "instructions": "1. Acuestate en banco plano con pies firmes\n2. Sube mancuernas a la posicion inicial sobre el pecho\n3. Baja controlado hasta que los codos pasen ligeramente el plano del torso\n4. Mantén muñecas alineadas y codos a ~45 grados\n5. Empuja arriba hasta extension controlada\n6. No rebotes al fondo y mantén pecho elevado",
+      "imageUrl": null,
+      "videoUrl": null,
+      "order": 32
+    },
+    {
+      "id": "cable_fly_high_to_low",
+      "name": "Aperturas en Poleas (Alto a Bajo)",
+      "muscleGroup": "Pecho",
+      "description": "Cruce de poleas que enfatiza el pecho inferior y control de aduccion horizontal.",
+      "instructions": "1. Ajusta poleas altas y toma manijas\n2. Da un paso al frente y fija el tronco\n3. Con codos ligeramente flexionados, lleva manos hacia abajo y al centro\n4. Aprieta el pecho 1 segundo en la parte final\n5. Regresa lento hasta sentir estiramiento sin abrir de mas los hombros\n6. Mantén cuello neutral y hombros abajo",
+      "imageUrl": null,
+      "videoUrl": null,
+      "order": 33
+    },
+    {
+      "id": "cable_fly_low_to_high",
+      "name": "Aperturas en Poleas (Bajo a Alto)",
+      "muscleGroup": "Pecho",
+      "description": "Cruce de poleas que enfatiza la porcion superior del pecho con trayectoria ascendente.",
+      "instructions": "1. Ajusta poleas bajas y toma manijas\n2. Da un paso al frente y estabiliza el core\n3. Lleva las manos hacia arriba y al centro con codos semi-flexionados\n4. Mantén el movimiento controlado sin balanceo\n5. Regresa lento hasta el inicio con estiramiento comodo\n6. Evita elevar hombros hacia las orejas",
+      "imageUrl": null,
+      "videoUrl": null,
+      "order": 34
+    },
+    {
+      "id": "incline_dumbbell_fly",
+      "name": "Aperturas en Banco Inclinado con Mancuernas",
+      "muscleGroup": "Pecho",
+      "description": "Aperturas en inclinacion para trabajar la parte superior del pecho con buen estiramiento.",
+      "instructions": "1. Ajusta banco a 30-45 grados\n2. Inicia con mancuernas arriba, palmas enfrentadas o semi-pronas\n3. Abre los brazos en arco manteniendo codos ligeramente flexionados\n4. Baja hasta sentir estiramiento controlado en pecho\n5. Cierra el arco llevando mancuernas arriba sin chocar\n6. Mantén omoplatos retraidos durante todo el set",
+      "imageUrl": null,
+      "videoUrl": null,
+      "order": 35
+    },
+    {
+      "id": "smith_machine_bench_press",
+      "name": "Press en Multipower (Smith)",
+      "muscleGroup": "Pecho",
+      "description": "Press guiado en multipower para estabilidad y enfoque en el pecho controlando la trayectoria.",
+      "instructions": "1. Coloca el banco bajo la barra y ajusta la altura\n2. Alinea la barra con la linea media del pecho\n3. Agarra con agarre medio y retrae omoplatos\n4. Desbloquea y baja controlado hasta cerca del pecho\n5. Empuja hacia arriba manteniendo la trayectoria estable\n6. Bloquea con control y vuelve a enganchar al finalizar",
+      "imageUrl": null,
+      "videoUrl": null,
+      "order": 36
+    },
+    {
+      "id": "parallel_bar_dips_chest",
+      "name": "Fondos en Paralelas (Enfocado en Pecho)",
+      "muscleGroup": "Pecho",
+      "description": "Fondos con inclinacion del torso para enfatizar el pecho, manteniendo control del hombro.",
+      "instructions": "1. Sujeta paralelas y sube a la posicion inicial\n2. Inclina el torso ligeramente hacia adelante\n3. Baja controlado hasta que el pecho se acerque a las manos\n4. Mantén codos abriendo moderado, sin dolor de hombro\n5. Empuja hacia arriba apretando el pecho\n6. Evita rebotes y mantén core firme",
+      "imageUrl": null,
+      "videoUrl": null,
+      "order": 37
+    },
+    {
+      "id": "assisted_dips_chest",
+      "name": "Fondos Asistidos (Enfocado en Pecho)",
+      "muscleGroup": "Pecho",
+      "description": "Version asistida de fondos para progresion segura manteniendo enfasis en pecho.",
+      "instructions": "1. Ajusta asistencia y coloca rodillas o pies segun la maquina\n2. Inicia arriba con brazos extendidos y torso levemente inclinado\n3. Baja lento hasta un rango comodo\n4. Mantén hombros abajo y pecho abierto\n5. Empuja hacia arriba sin bloquear fuerte\n6. Ajusta asistencia para mantener tecnica limpia",
+      "imageUrl": null,
+      "videoUrl": null,
+      "order": 38
+    },
+    {
+      "id": "single_arm_machine_chest_press",
+      "name": "Press Unilateral en Maquina",
+      "muscleGroup": "Pecho",
+      "description": "Press de pecho con un brazo para corregir desbalances y mejorar control escapular.",
+      "instructions": "1. Ajusta asiento y posicion del maneral al pecho\n2. Apoya espalda firme y activa el core\n3. Empuja con un brazo manteniendo hombro abajo\n4. Pausa breve al final sin rotar el torso\n5. Regresa controlado hasta el inicio\n6. Repite y cambia de lado con el mismo control",
+      "imageUrl": null,
+      "videoUrl": null,
+      "order": 39
+    },
+    {
+      "id": "neutral_grip_dumbbell_press",
+      "name": "Press con Agarre Neutro (Mancuernas)",
+      "muscleGroup": "Pecho",
+      "description": "Press con palmas enfrentadas para una posicion de hombro mas comoda y estable.",
+      "instructions": "1. Acuestate en banco plano o leve inclinacion\n2. Sostén mancuernas con palmas enfrentadas\n3. Baja controlado manteniendo codos cerca del torso\n4. Mantén muñecas neutras y hombros retraidos\n5. Empuja arriba sin perder alineacion\n6. Evita colapsar hombros hacia adelante",
+      "imageUrl": null,
+      "videoUrl": null,
+      "order": 40
+    },
+
+    {
+      "id": "pull_ups",
+      "name": "Dominadas (Pull Ups)",
+      "muscleGroup": "Espalda",
+      "description": "Ejercicio de traccion vertical con peso corporal para dorsales y parte alta de la espalda.",
+      "instructions": "1. Cuelgate de la barra con agarre prono a ancho comodo\n2. Activa escapulas bajando hombros antes de tirar\n3. Sube llevando el pecho hacia la barra sin balancearte\n4. Mantén core firme y piernas estables\n5. Baja controlado hasta extension completa\n6. Repite manteniendo ritmo constante",
+      "imageUrl": null,
+      "videoUrl": null,
+      "order": 41
+    },
+    {
+      "id": "assisted_pull_ups",
+      "name": "Dominadas Asistidas",
+      "muscleGroup": "Espalda",
+      "description": "Version asistida de dominadas para progresion de fuerza en traccion vertical.",
+      "instructions": "1. Ajusta asistencia y coloca rodillas o pies segun la maquina\n2. Toma la barra con agarre prono\n3. Inicia activando escapulas y bajando hombros\n4. Sube hasta que el menton pase la barra o el pecho se acerque\n5. Baja controlado hasta estirar brazos\n6. Reduce asistencia gradualmente con buena tecnica",
+      "imageUrl": null,
+      "videoUrl": null,
+      "order": 42
+    },
+    {
+      "id": "neutral_grip_pull_ups",
+      "name": "Dominadas Agarre Neutro",
+      "muscleGroup": "Espalda",
+      "description": "Dominadas con agarre neutro, generalmente mas amigables para codos y hombros.",
+      "instructions": "1. Agarra las manijas paralelas (palmas enfrentadas)\n2. Activa escapulas y mantén hombros abajo\n3. Sube controlado evitando encorvar el cuello\n4. Mantén el core firme sin balanceo\n5. Baja lento a extension completa\n6. Controla el ritmo en todo el rango",
+      "imageUrl": null,
+      "videoUrl": null,
+      "order": 43
+    },
+    {
+      "id": "chin_ups",
+      "name": "Dominadas Agarre Supino (Chin Ups)",
+      "muscleGroup": "Espalda",
+      "description": "Traccion vertical con agarre supino que involucra mas biceps sin dejar de trabajar dorsales.",
+      "instructions": "1. Agarra la barra con palmas hacia ti a ancho de hombros\n2. Baja hombros y activa escapulas\n3. Tira llevando el pecho hacia la barra\n4. Evita arquear en exceso la espalda baja\n5. Baja controlado hasta estirar brazos\n6. Mantén codos apuntando hacia abajo",
+      "imageUrl": null,
+      "videoUrl": null,
+      "order": 44
+    },
+    {
+      "id": "one_arm_dumbbell_row",
+      "name": "Remo con Mancuerna a una Mano",
+      "muscleGroup": "Espalda",
+      "description": "Remo unilateral para dorsales y romboides, ideal para control y rango por lado.",
+      "instructions": "1. Apoya una mano y rodilla en el banco para estabilidad\n2. Mantén espalda neutra y core firme\n3. Tira la mancuerna hacia la cadera, no hacia el pecho\n4. Pausa breve arriba apretando la espalda\n5. Baja controlado hasta estirar el brazo\n6. Repite y cambia de lado",
+      "imageUrl": null,
+      "videoUrl": null,
+      "order": 45
+    },
+    {
+      "id": "seated_machine_row",
+      "name": "Remo en Maquina Sentado",
+      "muscleGroup": "Espalda",
+      "description": "Remo guiado para trabajar espalda media con buena estabilidad y control.",
+      "instructions": "1. Ajusta asiento y apoyo del pecho si existe\n2. Toma el agarre y mantén pecho abierto\n3. Tira llevando codos hacia atras sin encoger hombros\n4. Aprieta la espalda 1 segundo al final\n5. Regresa lento hasta estirar brazos sin perder postura\n6. Mantén cuello neutral durante el set",
+      "imageUrl": null,
+      "videoUrl": null,
+      "order": 46
+    },
+    {
+      "id": "close_grip_cable_row",
+      "name": "Remo en Polea Baja Agarre Estrecho",
+      "muscleGroup": "Espalda",
+      "description": "Remo en cable con agarre cerrado para dorsales y estabilidad continua de tension.",
+      "instructions": "1. Siéntate y apoya pies en la plataforma\n2. Toma el agarre estrecho y endereza el torso\n3. Inicia tirando con escapulas y luego con codos\n4. Lleva el agarre hacia el abdomen bajo\n5. Regresa controlado sin perder postura\n6. Evita balanceo del tronco",
+      "imageUrl": null,
+      "videoUrl": null,
+      "order": 47
+    },
+    {
+      "id": "wide_grip_cable_row",
+      "name": "Remo en Polea Baja Agarre Amplio",
+      "muscleGroup": "Espalda",
+      "description": "Remo con agarre amplio para enfasis en espalda media y romboides.",
+      "instructions": "1. Ajusta agarre amplio y postura estable\n2. Mantén pecho arriba y hombros abajo\n3. Tira llevando codos abiertos hacia atras\n4. Pausa breve apretando espalda media\n5. Regresa lento hasta el estiramiento\n6. No hiperextiendas la zona lumbar",
+      "imageUrl": null,
+      "videoUrl": null,
+      "order": 48
+    },
+    {
+      "id": "hammer_strength_row",
+      "name": "Remo en Maquina Hammer Strength",
+      "muscleGroup": "Espalda",
+      "description": "Remo en maquina de palancas para cargas altas con buena estabilidad.",
+      "instructions": "1. Ajusta asiento para alinear manerales con tu rango\n2. Apoya el pecho si la maquina lo permite\n3. Tira llevando codos hacia atras y hacia la cadera\n4. Mantén hombros abajo sin encoger\n5. Regresa controlado sin chocar pesos\n6. Mantén el movimiento simetrico",
+      "imageUrl": null,
+      "videoUrl": null,
+      "order": 49
+    },
+    {
+      "id": "straight_arm_pulldown",
+      "name": "Pullover en Polea Alta (Brazos Rectos)",
+      "muscleGroup": "Espalda",
+      "description": "Aislamiento de dorsales con brazos rectos, ideal para sentir la contraccion del lat.",
+      "instructions": "1. Ajusta polea alta con barra recta o cuerda\n2. Da un paso atras y fija el torso ligeramente inclinado\n3. Con brazos casi rectos, baja la barra hacia los muslos\n4. Mantén hombros abajo y evita flexionar codos\n5. Sube controlado hasta el inicio sin perder tension\n6. Mantén core firme sin balanceo",
+      "imageUrl": null,
+      "videoUrl": null,
+      "order": 50
+    },
+    {
+      "id": "machine_pullover",
+      "name": "Pullover en Maquina",
+      "muscleGroup": "Espalda",
+      "description": "Pullover guiado para dorsales con trayectoria estable y facil de cargar progresivamente.",
+      "instructions": "1. Ajusta asiento para alinear el eje de la maquina\n2. Apoya espalda firme y toma los manerales\n3. Inicia con hombros abajo y pecho estable\n4. Lleva el movimiento hacia abajo/apertura segun la maquina\n5. Regresa lento controlando el estiramiento\n6. Evita arquear la espalda baja",
+      "imageUrl": null,
+      "videoUrl": null,
+      "order": 51
+    },
+    {
+      "id": "neutral_grip_lat_pulldown",
+      "name": "Jalon al Pecho Agarre Neutro",
+      "muscleGroup": "Espalda",
+      "description": "Jalon con agarre neutro para dorsales con posicion comoda de hombro.",
+      "instructions": "1. Ajusta rodilleras y sujeta el agarre neutro\n2. Inicia bajando escapulas y manteniendo pecho arriba\n3. Tira hacia la parte alta del pecho\n4. Evita llevar codos hacia adelante\n5. Regresa controlado sin soltar tension\n6. Mantén el torso estable sin balanceo",
+      "imageUrl": null,
+      "videoUrl": null,
+      "order": 52
+    },
+    {
+      "id": "behind_neck_lat_pulldown",
+      "name": "Jalon Tras Nuca",
+      "muscleGroup": "Espalda",
+      "description": "Variante de jalon que requiere buena movilidad de hombro; usar con tecnica estricta y rango comodo.",
+      "instructions": "1. Ajusta el peso ligero/moderado y fija rodillas\n2. Toma agarre amplio y mantén pecho arriba\n3. Baja la barra hacia la parte alta de la espalda con control\n4. No empujes la cabeza hacia adelante en exceso\n5. Sube controlado hasta estirar brazos\n6. Deten si sientes molestia en hombros",
+      "imageUrl": null,
+      "videoUrl": null,
+      "order": 53
+    },
+    {
+      "id": "t_bar_row",
+      "name": "Remo en Barra T",
+      "muscleGroup": "Espalda",
+      "description": "Remo pesado para dorsales y espalda media, excelente para grosor.",
+      "instructions": "1. Coloca pies firmes y torso inclinado con espalda neutra\n2. Toma el agarre de la barra T\n3. Tira llevando el agarre hacia el abdomen\n4. Mantén codos cerca del torso y hombros abajo\n5. Baja controlado sin perder postura\n6. Evita tirar con la zona lumbar",
+      "imageUrl": null,
+      "videoUrl": null,
+      "order": 54
+    },
+    {
+      "id": "smith_machine_row",
+      "name": "Remo en Multipower",
+      "muscleGroup": "Espalda",
+      "description": "Remo con barra guiada para controlar trayectoria y mantener tension constante.",
+      "instructions": "1. Ajusta barra en multipower a una altura comoda\n2. Inclina el torso con espalda neutra y pies firmes\n3. Tira la barra hacia el abdomen\n4. Aprieta la espalda arriba sin encoger hombros\n5. Baja controlado hasta estirar brazos\n6. Mantén el core firme para estabilidad",
+      "imageUrl": null,
+      "videoUrl": null,
+      "order": 55
+    },
+    {
+      "id": "good_mornings",
+      "name": "Buenos Dias con Barra",
+      "muscleGroup": "Espalda",
+      "description": "Bisagra de cadera para cadena posterior y estabilidad lumbar, con tecnica estricta.",
+      "instructions": "1. Coloca la barra en la espalda alta (como sentadilla)\n2. Pies a ancho de hombros y core firme\n3. Empuja cadera hacia atras manteniendo espalda neutra\n4. Baja hasta un rango comodo sin redondear\n5. Sube contrayendo gluteos e isquios\n6. Usa cargas moderadas y control total",
+      "imageUrl": null,
+      "videoUrl": null,
+      "order": 56
+    },
+    {
+      "id": "romanian_deadlift",
+      "name": "Peso Muerto Rumano",
+      "muscleGroup": "Espalda",
+      "description": "Bisagra de cadera que trabaja isquiotibiales y gluteos con gran demanda de estabilidad posterior.",
+      "instructions": "1. Sostén barra o mancuernas al frente con pies firmes\n2. Rodillas levemente flexionadas y espalda neutra\n3. Baja llevando cadera hacia atras manteniendo la barra cerca del cuerpo\n4. Detente cuando sientas estiramiento fuerte en isquios sin perder postura\n5. Sube empujando la cadera hacia adelante y apretando gluteos\n6. No redondees la espalda en ningun punto",
+      "imageUrl": null,
+      "videoUrl": null,
+      "order": 57
+    },
+    {
+      "id": "trap_bar_deadlift",
+      "name": "Peso Muerto con Trap Bar",
+      "muscleGroup": "Espalda",
+      "description": "Variante con trap bar que facilita una postura mas vertical y suele ser mas comoda para la espalda baja.",
+      "instructions": "1. Entra dentro de la trap bar con pies centrados\n2. Agarra manijas y baja cadera manteniendo pecho arriba\n3. Activa core y empuja el piso para levantar\n4. Sube hasta extension completa sin hiperextender la espalda\n5. Baja controlado manteniendo la barra estable\n6. Mantén rodillas alineadas con pies",
+      "imageUrl": null,
+      "videoUrl": null,
+      "order": 58
+    },
+    {
+      "id": "front_squat",
+      "name": "Sentadilla Frontal",
+      "muscleGroup": "Piernas",
+      "description": "Variante de sentadilla que enfatiza cuadriceps y exige mayor estabilidad del core.",
+      "instructions": "1. Coloca la barra sobre los hombros frontales con codos altos\n2. Pies a ancho de hombros y core firme\n3. Desciende manteniendo el torso lo mas vertical posible\n4. Baja hasta un rango comodo sin perder postura\n5. Empuja el suelo para subir manteniendo codos elevados\n6. Mantén rodillas alineadas con los pies",
+      "imageUrl": null,
+      "videoUrl": null,
+      "order": 59
+    },
+    {
+      "id": "smith_machine_squat",
+      "name": "Sentadilla en Multipower",
+      "muscleGroup": "Piernas",
+      "description": "Sentadilla guiada que permite mayor control de la trayectoria y estabilidad.",
+      "instructions": "1. Coloca los pies ligeramente adelante de la barra\n2. Apoya la barra en la espalda alta\n3. Desbloquea y desciende controlado\n4. Mantén rodillas siguiendo la linea de los pies\n5. Baja hasta un rango comodo\n6. Empuja hacia arriba sin bloquear agresivamente",
+      "imageUrl": null,
+      "videoUrl": null,
+      "order": 60
+    },
+    {
+      "id": "bulgarian_split_squat",
+      "name": "Sentadilla Bulgara",
+      "muscleGroup": "Piernas",
+      "description": "Ejercicio unilateral que trabaja cuadriceps y gluteos mejorando equilibrio y fuerza por pierna.",
+      "instructions": "1. Apoya el pie trasero en un banco\n2. Pie delantero firme y torso erguido\n3. Desciende flexionando la rodilla delantera\n4. Mantén el peso centrado en el pie delantero\n5. Empuja hacia arriba usando cuadriceps y gluteo\n6. Repite y cambia de pierna",
+      "imageUrl": null,
+      "videoUrl": null,
+      "order": 61
+    },
+    {
+      "id": "walking_lunges",
+      "name": "Zancadas Caminando",
+      "muscleGroup": "Piernas",
+      "description": "Movimiento dinamico para piernas y gluteos que requiere coordinacion y estabilidad.",
+      "instructions": "1. Da un paso largo hacia adelante\n2. Desciende hasta que ambas rodillas formen angulos cercanos a 90 grados\n3. Empuja con la pierna delantera para avanzar\n4. Mantén el torso erguido y el core activo\n5. Controla cada paso sin perder equilibrio\n6. Repite alternando piernas",
+      "imageUrl": null,
+      "videoUrl": null,
+      "order": 62
+    },
+    {
+      "id": "static_lunges",
+      "name": "Zancadas Estaticas",
+      "muscleGroup": "Piernas",
+      "description": "Variante controlada de zancadas que permite mayor enfoque en fuerza y estabilidad.",
+      "instructions": "1. Coloca una pierna adelante y otra atras\n2. Mantén el torso recto y pies firmes\n3. Baja flexionando ambas rodillas\n4. Mantén el peso principalmente en la pierna delantera\n5. Sube controlado sin juntar los pies\n6. Completa reps y cambia de pierna",
+      "imageUrl": null,
+      "videoUrl": null,
+      "order": 63
+    },
+    {
+      "id": "reverse_lunges",
+      "name": "Zancadas Hacia Atras",
+      "muscleGroup": "Piernas",
+      "description": "Zancadas con menor impacto en rodillas, enfocadas en gluteos y control.",
+      "instructions": "1. Da un paso hacia atras con una pierna\n2. Desciende manteniendo el torso estable\n3. Flexiona ambas rodillas de forma controlada\n4. Empuja con la pierna delantera para volver\n5. Mantén core firme durante el movimiento\n6. Alterna piernas",
+      "imageUrl": null,
+      "videoUrl": null,
+      "order": 64
+    },
+    {
+      "id": "step_ups",
+      "name": "Step Ups al Banco",
+      "muscleGroup": "Piernas",
+      "description": "Ejercicio unilateral para gluteos y cuadriceps usando elevacion del cuerpo.",
+      "instructions": "1. Coloca un pie firme sobre el banco\n2. Empuja con esa pierna para subir el cuerpo\n3. Lleva la otra pierna arriba sin impulso\n4. Baja controlado con la misma pierna\n5. Mantén el torso erguido\n6. Repite y cambia de pierna",
+      "imageUrl": null,
+      "videoUrl": null,
+      "order": 65
+    },
+    {
+      "id": "hack_squat_machine",
+      "name": "Hack Squat en Maquina",
+      "muscleGroup": "Piernas",
+      "description": "Sentadilla guiada que enfatiza los cuadriceps con soporte de espalda.",
+      "instructions": "1. Apoya espalda y hombros en la maquina\n2. Coloca pies en la plataforma a ancho de hombros\n3. Desciende controlado flexionando rodillas\n4. Mantén espalda apoyada todo el recorrido\n5. Empuja la plataforma hacia arriba\n6. No bloquees las rodillas completamente",
+      "imageUrl": null,
+      "videoUrl": null,
+      "order": 66
+    },
+    {
+      "id": "sissy_squat",
+      "name": "Sissy Squat",
+      "muscleGroup": "Piernas",
+      "description": "Ejercicio avanzado que aisla fuertemente los cuadriceps usando extension de rodilla.",
+      "instructions": "1. Sujeta un soporte para equilibrio si es necesario\n2. Eleva los talones y mantén cadera extendida\n3. Desciende llevando rodillas hacia adelante\n4. Mantén el cuerpo alineado sin sentarte\n5. Sube contrayendo fuerte los cuadriceps\n6. Usa rango controlado y seguro",
+      "imageUrl": null,
+      "videoUrl": null,
+      "order": 67
+    },
+    {
+      "id": "sumo_deadlift",
+      "name": "Peso Muerto Sumo",
+      "muscleGroup": "Piernas",
+      "description": "Variante de peso muerto con postura amplia que enfatiza aductores y gluteos.",
+      "instructions": "1. Coloca pies mas abiertos que hombros y puntas hacia afuera\n2. Agarra la barra con manos dentro de las piernas\n3. Mantén espalda neutra y pecho arriba\n4. Empuja el suelo separando las piernas\n5. Sube hasta extension completa de cadera\n6. Baja controlado manteniendo la postura",
+      "imageUrl": null,
+      "videoUrl": null,
+      "order": 68
+    },
+    {
+      "id": "standing_leg_curl_machine",
+      "name": "Curl Femoral de Pie en Maquina",
+      "muscleGroup": "Piernas",
+      "description": "Aislamiento unilateral de isquiotibiales con control individual por pierna.",
+      "instructions": "1. Ajusta la maquina a la altura de tu pierna\n2. Apoya el muslo y sujeta los agarres\n3. Flexiona la rodilla llevando el talon hacia atras\n4. Pausa breve en la contraccion\n5. Baja controlado hasta extension\n6. Cambia de pierna al completar las reps",
+      "imageUrl": null,
+      "videoUrl": null,
+      "order": 69
+    },
+    {
+      "id": "cable_leg_curl",
+      "name": "Curl Femoral en Polea",
+      "muscleGroup": "Piernas",
+      "description": "Curl femoral con polea para tension constante durante todo el recorrido.",
+      "instructions": "1. Ajusta la polea baja con tobillera\n2. Sujeta un soporte para equilibrio\n3. Flexiona la rodilla llevando el talon hacia el gluteo\n4. Mantén el muslo estable\n5. Regresa controlado hasta extension\n6. Repite y cambia de pierna",
+      "imageUrl": null,
+      "videoUrl": null,
+      "order": 70
+    },
+    {
+      "id": "cable_glute_kickback",
+      "name": "Patada de Gluteo en Polea",
+      "muscleGroup": "Piernas",
+      "description": "Ejercicio de aislamiento para gluteos con tension continua.",
+      "instructions": "1. Coloca tobillera en la polea baja\n2. Apoya manos en la estructura para estabilidad\n3. Extiende la pierna hacia atras contrayendo el gluteo\n4. Mantén la cadera estable sin arquear la espalda\n5. Regresa lento al inicio\n6. Cambia de pierna tras completar las reps",
+      "imageUrl": null,
+      "videoUrl": null,
+      "order": 71
+    },
+    {
+      "id": "glute_kickback_machine",
+      "name": "Patada de Gluteo en Maquina",
+      "muscleGroup": "Piernas",
+      "description": "Patada guiada para gluteos que facilita el enfoque y la estabilidad.",
+      "instructions": "1. Ajusta la maquina a tu estatura\n2. Apoya el torso y coloca el pie en la plataforma\n3. Empuja hacia atras usando el gluteo\n4. Pausa breve en la extension\n5. Regresa controlado sin perder tension\n6. Cambia de pierna al finalizar",
+      "imageUrl": null,
+      "videoUrl": null,
+      "order": 72
+    },
+    {
+      "id": "single_leg_press",
+      "name": "Prensa de Piernas Unilateral",
+      "muscleGroup": "Piernas",
+      "description": "Prensa a una pierna para corregir desbalances y mejorar fuerza individual.",
+      "instructions": "1. Coloca un pie en el centro de la plataforma\n2. Mantén la otra pierna fuera o apoyada segura\n3. Desciende controlado flexionando la rodilla\n4. Empuja la plataforma usando una sola pierna\n5. Mantén cadera estable\n6. Cambia de pierna tras completar las reps",
+      "imageUrl": null,
+      "videoUrl": null,
+      "order": 73
+    },
+    {
+      "id": "leg_press_high_feet",
+      "name": "Prensa de Piernas (Pies Altos)",
+      "muscleGroup": "Piernas",
+      "description": "Variacion de prensa que enfatiza gluteos e isquiotibiales.",
+      "instructions": "1. Coloca los pies altos en la plataforma\n2. Mantén espalda y gluteos apoyados\n3. Baja controlado hasta un rango comodo\n4. Empuja usando talones\n5. Evita bloquear rodillas arriba\n6. Mantén el control del movimiento",
+      "imageUrl": null,
+      "videoUrl": null,
+      "order": 74
+    },
+    {
+      "id": "leg_press_low_feet",
+      "name": "Prensa de Piernas (Pies Bajos)",
+      "muscleGroup": "Piernas",
+      "description": "Variacion de prensa que enfatiza los cuadriceps.",
+      "instructions": "1. Coloca los pies bajos en la plataforma\n2. Mantén pies a ancho de hombros\n3. Desciende controlado flexionando rodillas\n4. Empuja usando el antepie y mediopie\n5. Mantén rodillas alineadas\n6. Controla el recorrido sin rebotes",
+      "imageUrl": null,
+      "videoUrl": null,
+      "order": 75
+    },
+    {
+      "id": "standing_calf_raise",
+      "name": "Elevaciones de Talones de Pie",
+      "muscleGroup": "Piernas",
+      "description": "Ejercicio basico para pantorrillas con enfasis en gastrocnemios.",
+      "instructions": "1. Coloca los pies en la plataforma con talones libres\n2. Mantén el cuerpo erguido\n3. Eleva los talones contrayendo pantorrillas\n4. Pausa breve arriba\n5. Baja lento hasta estiramiento completo\n6. Mantén el movimiento controlado",
+      "imageUrl": null,
+      "videoUrl": null,
+      "order": 76
+    },
+    {
+      "id": "seated_calf_raise",
+      "name": "Elevaciones de Talones Sentado",
+      "muscleGroup": "Piernas",
+      "description": "Variante para pantorrillas que enfatiza el soleo.",
+      "instructions": "1. Ajusta la maquina con rodillas bajo el soporte\n2. Coloca los pies en la plataforma\n3. Eleva los talones contrayendo pantorrillas\n4. Pausa breve arriba\n5. Baja controlado hasta estirar\n6. Evita rebotes rapidos",
+      "imageUrl": null,
+      "videoUrl": null,
+      "order": 77
+    },
+    {
+      "id": "arnold_press",
+      "name": "Press Arnold",
+      "muscleGroup": "Hombros",
+      "description": "Variante de press con rotacion que trabaja hombros de forma completa, especialmente el deltoide anterior.",
+      "instructions": "1. Siéntate con respaldo y mancuernas al frente a la altura del pecho\n2. Palmas mirando hacia ti al inicio\n3. Empuja hacia arriba rotando las muñecas hasta quedar palmas al frente\n4. Extiende brazos sin bloquear codos\n5. Baja controlado invirtiendo la rotacion\n6. Mantén el core firme y espalda apoyada",
+      "imageUrl": null,
+      "videoUrl": null,
+      "order": 78
+    },
+    {
+      "id": "seated_dumbbell_shoulder_press",
+      "name": "Press con Mancuernas Sentado",
+      "muscleGroup": "Hombros",
+      "description": "Press libre que desarrolla principalmente el deltoide anterior y medial.",
+      "instructions": "1. Siéntate con respaldo y pies firmes en el suelo\n2. Coloca mancuernas a la altura de los hombros\n3. Empuja hacia arriba manteniendo muñecas neutras\n4. Junta ligeramente arriba sin chocar\n5. Baja controlado hasta la posicion inicial\n6. Evita arquear la espalda baja",
+      "imageUrl": null,
+      "videoUrl": null,
+      "order": 79
+    },
+    {
+      "id": "standing_dumbbell_shoulder_press",
+      "name": "Press con Mancuernas de Pie",
+      "muscleGroup": "Hombros",
+      "description": "Press de hombros que exige mayor estabilidad del core y control postural.",
+      "instructions": "1. Coloca pies a ancho de hombros\n2. Sostén mancuernas a la altura de los hombros\n3. Activa core y gluteos\n4. Empuja las mancuernas hacia arriba\n5. Baja controlado sin perder postura\n6. Mantén el cuello neutral",
+      "imageUrl": null,
+      "videoUrl": null,
+      "order": 80
+    },
+    {
+      "id": "cable_lateral_raise",
+      "name": "Elevaciones Laterales en Polea",
+      "muscleGroup": "Hombros",
+      "description": "Elevaciones laterales con tension constante para el deltoide medial.",
+      "instructions": "1. Ajusta la polea baja y toma la manija\n2. Colocate de lado a la polea\n3. Eleva el brazo lateralmente hasta la altura del hombro\n4. Mantén el codo ligeramente flexionado\n5. Baja lento manteniendo tension\n6. Cambia de lado al completar reps",
+      "imageUrl": null,
+      "videoUrl": null,
+      "order": 81
+    },
+    {
+      "id": "seated_lateral_raise",
+      "name": "Elevaciones Laterales Sentado",
+      "muscleGroup": "Hombros",
+      "description": "Elevaciones laterales que reducen el impulso y mejoran el aislamiento.",
+      "instructions": "1. Siéntate con espalda recta y mancuernas a los lados\n2. Eleva los brazos lateralmente\n3. Llega hasta la altura del hombro\n4. Mantén muñecas neutras\n5. Baja controlado sin rebotes\n6. Evita balanceo del torso",
+      "imageUrl": null,
+      "videoUrl": null,
+      "order": 82
+    },
+    {
+      "id": "incline_lateral_raise",
+      "name": "Elevaciones Laterales Inclinadas",
+      "muscleGroup": "Hombros",
+      "description": "Variante que aumenta la tension inicial sobre el deltoide medial.",
+      "instructions": "1. Apoya el torso de lado sobre un banco inclinado\n2. Sostén la mancuerna con el brazo colgando\n3. Eleva lateralmente hasta el nivel del hombro\n4. Mantén control total del movimiento\n5. Baja lento hasta estirar el brazo\n6. Cambia de lado al finalizar",
+      "imageUrl": null,
+      "videoUrl": null,
+      "order": 83
+    },
+    {
+      "id": "barbell_front_raise",
+      "name": "Elevaciones Frontales con Barra",
+      "muscleGroup": "Hombros",
+      "description": "Ejercicio para deltoide anterior usando barra para carga uniforme.",
+      "instructions": "1. Sostén la barra frente a los muslos\n2. Eleva la barra con brazos casi rectos\n3. Llega hasta la altura de los hombros\n4. Mantén core firme\n5. Baja controlado\n6. Evita balanceo del cuerpo",
+      "imageUrl": null,
+      "videoUrl": null,
+      "order": 84
+    },
+    {
+      "id": "dumbbell_front_raise",
+      "name": "Elevaciones Frontales con Mancuernas",
+      "muscleGroup": "Hombros",
+      "description": "Elevacion frontal que aisla el deltoide anterior con trabajo unilateral o bilateral.",
+      "instructions": "1. Sostén mancuernas frente a los muslos\n2. Eleva una o ambas mancuernas al frente\n3. Llega hasta la altura del hombro\n4. Mantén codos ligeramente flexionados\n5. Baja controlado\n6. Alterna brazos si es unilateral",
+      "imageUrl": null,
+      "videoUrl": null,
+      "order": 85
+    },
+    {
+      "id": "cable_front_raise",
+      "name": "Elevaciones Frontales en Polea",
+      "muscleGroup": "Hombros",
+      "description": "Elevacion frontal con polea para tension constante en todo el recorrido.",
+      "instructions": "1. Ajusta la polea baja y toma la manija\n2. Colocate de espaldas a la polea\n3. Eleva el brazo al frente hasta el hombro\n4. Mantén control del movimiento\n5. Baja lento sin soltar tension\n6. Cambia de brazo tras completar reps",
+      "imageUrl": null,
+      "videoUrl": null,
+      "order": 86
+    },
+    {
+      "id": "rear_delt_dumbbell_fly",
+      "name": "Pajaros con Mancuernas",
+      "muscleGroup": "Hombros",
+      "description": "Ejercicio clave para deltoide posterior y equilibrio del hombro.",
+      "instructions": "1. Inclina el torso al frente con espalda neutra\n2. Deja caer las mancuernas bajo los hombros\n3. Abre los brazos lateralmente\n4. Aprieta deltoides posteriores arriba\n5. Baja controlado\n6. Evita impulso con la espalda",
+      "imageUrl": null,
+      "videoUrl": null,
+      "order": 87
+    },
+    {
+      "id": "rear_delt_machine_fly",
+      "name": "Pajaros en Maquina",
+      "muscleGroup": "Hombros",
+      "description": "Variante guiada para trabajar deltoide posterior con estabilidad.",
+      "instructions": "1. Ajusta asiento y agarres de la maquina\n2. Apoya el pecho en el respaldo\n3. Abre los brazos hacia atras\n4. Pausa breve en la contraccion\n5. Regresa controlado\n6. Mantén hombros abajo",
+      "imageUrl": null,
+      "videoUrl": null,
+      "order": 88
+    },
+    {
+      "id": "rear_delt_cable_fly",
+      "name": "Pajaros en Polea",
+      "muscleGroup": "Hombros",
+      "description": "Pajaros en polea para tension continua en el deltoide posterior.",
+      "instructions": "1. Ajusta poleas a la altura del hombro\n2. Cruza las manijas frente a ti\n3. Abre los brazos hacia atras\n4. Mantén codos ligeramente flexionados\n5. Regresa lento controlando el peso\n6. Evita arquear la espalda",
+      "imageUrl": null,
+      "videoUrl": null,
+      "order": 89
+    },
+    {
+      "id": "upright_row_barbell",
+      "name": "Remo al Menton con Barra Z",
+      "muscleGroup": "Hombros",
+      "description": "Ejercicio que trabaja deltoide medial y trapecio superior.",
+      "instructions": "1. Sostén la barra Z frente a los muslos\n2. Tira hacia arriba llevando codos hacia afuera\n3. Llega hasta el pecho alto\n4. Mantén la barra cerca del cuerpo\n5. Baja controlado\n6. Usa agarre moderado para comodidad",
+      "imageUrl": null,
+      "videoUrl": null,
+      "order": 90
+    },
+    {
+      "id": "upright_row_cable",
+      "name": "Remo al Menton en Polea",
+      "muscleGroup": "Hombros",
+      "description": "Variante en polea del remo al menton con tension constante.",
+      "instructions": "1. Ajusta la polea baja con barra o cuerda\n2. Tira hacia arriba llevando codos altos\n3. Mantén la polea cerca del cuerpo\n4. Sube hasta el pecho alto\n5. Baja controlado\n6. Evita tirones bruscos",
+      "imageUrl": null,
+      "videoUrl": null,
+      "order": 91
+    },
+    {
+      "id": "barbell_shrugs",
+      "name": "Encogimientos de Hombros con Barra",
+      "muscleGroup": "Hombros",
+      "description": "Ejercicio para trapecio superior usando barra.",
+      "instructions": "1. Sostén la barra con brazos extendidos\n2. Eleva los hombros hacia las orejas\n3. Pausa breve arriba\n4. Baja controlado\n5. Mantén cuello neutral\n6. No rotes los hombros",
+      "imageUrl": null,
+      "videoUrl": null,
+      "order": 92
+    },
+    {
+      "id": "dumbbell_shrugs",
+      "name": "Encogimientos con Mancuernas",
+      "muscleGroup": "Hombros",
+      "description": "Encogimientos para trapecio que permiten mayor rango individual.",
+      "instructions": "1. Sostén mancuernas a los lados\n2. Eleva los hombros verticalmente\n3. Pausa breve en la parte alta\n4. Baja lento\n5. Mantén brazos relajados\n6. Evita balanceo del cuerpo",
+      "imageUrl": null,
+      "videoUrl": null,
+      "order": 93
+    },
+    {
+      "id": "machine_shrugs",
+      "name": "Encogimientos en Maquina",
+      "muscleGroup": "Hombros",
+      "description": "Encogimientos guiados para enfasis en trapecio con estabilidad.",
+      "instructions": "1. Ajusta la maquina a tu estatura\n2. Coloca hombros bajo los soportes\n3. Eleva los hombros hacia arriba\n4. Pausa breve en la contraccion\n5. Baja controlado\n6. Mantén postura erguida",
+      "imageUrl": null,
+      "videoUrl": null,
+      "order": 94
+    },
+    {
+      "id": "barbell_biceps_curl",
+      "name": "Curl de Biceps con Barra",
+      "muscleGroup": "Brazos",
+      "description": "Ejercicio basico para desarrollar fuerza y masa en los biceps.",
+      "instructions": "1. Sostén la barra con agarre supino a ancho de hombros\n2. Mantén codos pegados al torso\n3. Flexiona los codos llevando la barra hacia el pecho\n4. Aprieta los biceps en la parte alta\n5. Baja controlado hasta extension completa\n6. Evita balancear el cuerpo",
+      "imageUrl": null,
+      "videoUrl": null,
+      "order": 95
+    },
+    {
+      "id": "ez_bar_biceps_curl",
+      "name": "Curl de Biceps con Barra Z",
+      "muscleGroup": "Brazos",
+      "description": "Variante mas comoda para muñecas que el curl con barra recta.",
+      "instructions": "1. Toma la barra Z con agarre supino\n2. Mantén postura erguida y core firme\n3. Flexiona los codos elevando la barra\n4. Pausa breve en la contraccion\n5. Desciende controlado\n6. No despegues los codos del cuerpo",
+      "imageUrl": null,
+      "videoUrl": null,
+      "order": 96
+    },
+    {
+      "id": "incline_dumbbell_biceps_curl",
+      "name": "Curl de Biceps en Banco Inclinado (45°)",
+      "muscleGroup": "Brazos",
+      "description": "Curl con mayor estiramiento del biceps al iniciar el movimiento.",
+      "instructions": "1. Ajusta el banco a 45 grados\n2. Deja caer los brazos extendidos\n3. Flexiona los codos sin mover los hombros\n4. Sube hasta contraer completamente\n5. Baja lento al inicio\n6. Mantén hombros atras durante el ejercicio",
+      "imageUrl": null,
+      "videoUrl": null,
+      "order": 97
+    },
+    {
+      "id": "concentration_curl",
+      "name": "Curl Concentrado",
+      "muscleGroup": "Brazos",
+      "description": "Curl de aislamiento para maximo enfoque en el biceps.",
+      "instructions": "1. Siéntate y apoya el codo en el muslo interno\n2. Sostén la mancuerna con agarre supino\n3. Flexiona el codo lentamente\n4. Aprieta el biceps arriba\n5. Baja controlado hasta extension\n6. Cambia de brazo al finalizar",
+      "imageUrl": null,
+      "videoUrl": null,
+      "order": 98
+    },
+    {
+      "id": "cable_biceps_curl",
+      "name": "Curl de Biceps en Polea Baja",
+      "muscleGroup": "Brazos",
+      "description": "Curl con tension constante durante todo el recorrido.",
+      "instructions": "1. Ajusta la polea baja con barra recta o cuerda\n2. Colocate erguido frente a la polea\n3. Flexiona los codos llevando el agarre hacia arriba\n4. Mantén codos fijos al costado\n5. Baja controlado\n6. Evita impulso con el torso",
+      "imageUrl": null,
+      "videoUrl": null,
+      "order": 99
+    },
+    {
+      "id": "single_arm_cable_curl",
+      "name": "Curl Unilateral en Polea",
+      "muscleGroup": "Brazos",
+      "description": "Curl a un brazo para mejorar control y simetria del biceps.",
+      "instructions": "1. Ajusta la polea baja con manija simple\n2. Sostén con una mano y postura estable\n3. Flexiona el codo hacia arriba\n4. Pausa breve en la contraccion\n5. Baja controlado\n6. Cambia de brazo al completar reps",
+      "imageUrl": null,
+      "videoUrl": null,
+      "order": 100
+    },
+    {
+      "id": "spider_curl",
+      "name": "Curl Spider",
+      "muscleGroup": "Brazos",
+      "description": "Curl con apoyo frontal que elimina impulso y maximiza aislamiento.",
+      "instructions": "1. Apoya el pecho en un banco inclinado\n2. Deja los brazos colgando al frente\n3. Flexiona los codos elevando la carga\n4. Aprieta biceps arriba\n5. Baja controlado\n6. Mantén hombros fijos",
+      "imageUrl": null,
+      "videoUrl": null,
+      "order": 101
+    },
+    {
+      "id": "drag_curl",
+      "name": "Curl Drag",
+      "muscleGroup": "Brazos",
+      "description": "Variante de curl que enfatiza el biceps manteniendo la barra pegada al cuerpo.",
+      "instructions": "1. Sostén la barra frente a los muslos\n2. Flexiona codos llevando la barra pegada al torso\n3. Eleva hasta el pecho medio\n4. Mantén codos hacia atras\n5. Baja controlado\n6. Evita balanceo",
+      "imageUrl": null,
+      "videoUrl": null,
+      "order": 102
+    },
+    {
+      "id": "reverse_grip_biceps_curl",
+      "name": "Curl de Biceps Agarre Inverso",
+      "muscleGroup": "Brazos",
+      "description": "Curl que enfatiza braquial y antebrazo.",
+      "instructions": "1. Sostén la barra con agarre prono\n2. Mantén codos pegados al cuerpo\n3. Flexiona llevando la barra hacia arriba\n4. Controla el movimiento\n5. Baja lento\n6. Mantén muñecas firmes",
+      "imageUrl": null,
+      "videoUrl": null,
+      "order": 103
+    },
+    {
+      "id": "machine_biceps_curl",
+      "name": "Curl de Biceps en Maquina",
+      "muscleGroup": "Brazos",
+      "description": "Curl guiado para aislar el biceps con estabilidad.",
+      "instructions": "1. Ajusta asiento y apoyos de la maquina\n2. Coloca brazos en las almohadillas\n3. Flexiona los codos empujando el peso\n4. Pausa breve arriba\n5. Baja controlado\n6. Mantén postura estable",
+      "imageUrl": null,
+      "videoUrl": null,
+      "order": 104
+    },
+
+    {
+      "id": "skull_crushers_ez_bar",
+      "name": "Extension de Triceps con Barra Z (Skull Crushers)",
+      "muscleGroup": "Brazos",
+      "description": "Ejercicio clasico para desarrollar el triceps, especialmente la cabeza larga.",
+      "instructions": "1. Acuestate en banco plano con barra Z\n2. Extiende brazos sobre el pecho\n3. Flexiona codos bajando la barra hacia la frente\n4. Mantén brazos superiores fijos\n5. Extiende codos para volver arriba\n6. Controla el movimiento en todo momento",
+      "imageUrl": null,
+      "videoUrl": null,
+      "order": 105
+    },
+    {
+      "id": "overhead_dumbbell_triceps_extension",
+      "name": "Extension de Triceps Sobre la Cabeza con Mancuerna",
+      "muscleGroup": "Brazos",
+      "description": "Extension que enfatiza la cabeza larga del triceps.",
+      "instructions": "1. Sostén una mancuerna con ambas manos sobre la cabeza\n2. Mantén codos apuntando al frente\n3. Baja la mancuerna flexionando codos\n4. Estira completamente arriba\n5. Controla el descenso\n6. Mantén el core activo",
+      "imageUrl": null,
+      "videoUrl": null,
+      "order": 106
+    },
+    {
+      "id": "single_arm_cable_triceps_extension",
+      "name": "Extension Unilateral de Triceps en Polea",
+      "muscleGroup": "Brazos",
+      "description": "Extension a un brazo para mayor control y equilibrio muscular.",
+      "instructions": "1. Ajusta la polea alta con manija simple\n2. Colocate de lado o al frente\n3. Extiende el codo hacia abajo\n4. Aprieta el triceps al final\n5. Regresa controlado\n6. Cambia de brazo",
+      "imageUrl": null,
+      "videoUrl": null,
+      "order": 107
+    },
+    {
+      "id": "triceps_kickback_dumbbell",
+      "name": "Patada de Triceps con Mancuerna",
+      "muscleGroup": "Brazos",
+      "description": "Ejercicio de aislamiento para el triceps con enfasis en control.",
+      "instructions": "1. Inclina el torso con espalda neutra\n2. Mantén el codo pegado al cuerpo\n3. Extiende el brazo hacia atras\n4. Aprieta el triceps arriba\n5. Baja controlado\n6. Cambia de brazo",
+      "imageUrl": null,
+      "videoUrl": null,
+      "order": 108
+    },
+    {
+      "id": "close_grip_bench_press",
+      "name": "Press Cerrado con Barra",
+      "muscleGroup": "Brazos",
+      "description": "Ejercicio compuesto que enfatiza el triceps.",
+      "instructions": "1. Acuestate en banco plano\n2. Agarra la barra con manos juntas\n3. Baja la barra controlado\n4. Mantén codos cerca del torso\n5. Empuja hacia arriba\n6. No abras excesivamente los codos",
+      "imageUrl": null,
+      "videoUrl": null,
+      "order": 109
+    },
+    {
+      "id": "close_grip_smith_press",
+      "name": "Press Cerrado en Multipower",
+      "muscleGroup": "Brazos",
+      "description": "Variante guiada del press cerrado para mayor estabilidad.",
+      "instructions": "1. Ajusta banco y barra en multipower\n2. Toma agarre cerrado\n3. Baja controlado hacia el pecho\n4. Mantén codos pegados\n5. Empuja hacia arriba\n6. Bloquea con control",
+      "imageUrl": null,
+      "videoUrl": null,
+      "order": 110
+    },
+    {
+      "id": "parallel_dips_triceps",
+      "name": "Fondos en Paralelas (Triceps)",
+      "muscleGroup": "Brazos",
+      "description": "Fondos verticales que enfatizan el trabajo de triceps.",
+      "instructions": "1. Sujeta paralelas con torso vertical\n2. Baja flexionando codos hacia atras\n3. Mantén codos cerrados\n4. Empuja hacia arriba extendiendo brazos\n5. Controla el rango\n6. Evita balanceo",
+      "imageUrl": null,
+      "videoUrl": null,
+      "order": 111
+    },
+    {
+      "id": "assisted_dips_triceps",
+      "name": "Fondos Asistidos (Triceps)",
+      "muscleGroup": "Brazos",
+      "description": "Version asistida de fondos para progresion de triceps.",
+      "instructions": "1. Ajusta asistencia en la maquina\n2. Mantén torso vertical\n3. Baja controlado\n4. Extiende codos para subir\n5. Mantén hombros estables\n6. Ajusta asistencia segun nivel",
+      "imageUrl": null,
+      "videoUrl": null,
+      "order": 112
+    },
+    {
+      "id": "reverse_grip_triceps_pushdown",
+      "name": "Extension de Triceps en Polea Agarre Inverso",
+      "muscleGroup": "Brazos",
+      "description": "Extension que enfatiza el control y la cabeza medial del triceps.",
+      "instructions": "1. Ajusta la polea alta\n2. Toma el agarre con palmas hacia arriba\n3. Extiende los codos hacia abajo\n4. Aprieta el triceps al final\n5. Regresa controlado\n6. Mantén codos fijos",
+      "imageUrl": null,
+      "videoUrl": null,
+      "order": 113
+    },
+    {
+      "id": "machine_triceps_extension",
+      "name": "Extension de Triceps en Maquina",
+      "muscleGroup": "Brazos",
+      "description": "Extension guiada para aislar el triceps con estabilidad.",
+      "instructions": "1. Ajusta asiento y apoyos\n2. Coloca brazos en la maquina\n3. Extiende empujando el peso\n4. Pausa breve arriba\n5. Regresa lento\n6. Mantén postura firme",
+      "imageUrl": null,
+      "videoUrl": null,
+      "order": 114
+    },
+    {
+      "id": "floor_crunch",
+      "name": "Crunch en el Suelo",
+      "muscleGroup": "Abdomen",
+      "description": "Ejercicio basico para trabajar el recto abdominal usando flexion del tronco.",
+      "instructions": "1. Acuestate boca arriba con rodillas flexionadas\n2. Apoya pies en el suelo y manos en el pecho o sienes\n3. Eleva hombros contrayendo el abdomen\n4. Mantén la zona lumbar apoyada\n5. Baja controlado sin relajar completamente\n6. Evita tirar del cuello",
+      "imageUrl": null,
+      "videoUrl": null,
+      "order": 115
+    },
+    {
+      "id": "decline_crunch",
+      "name": "Crunch Declinado",
+      "muscleGroup": "Abdomen",
+      "description": "Variante de crunch con mayor resistencia debido a la inclinacion.",
+      "instructions": "1. Acuestate en banco declinado y asegura los pies\n2. Coloca manos en el pecho o cabeza\n3. Eleva el tronco contrayendo el abdomen\n4. Mantén control sin impulso\n5. Baja lento hasta el inicio\n6. Mantén la respiracion controlada",
+      "imageUrl": null,
+      "videoUrl": null,
+      "order": 116
+    },
+    {
+      "id": "cable_crunch",
+      "name": "Crunch en Polea Alta",
+      "muscleGroup": "Abdomen",
+      "description": "Crunch con carga progresiva usando polea para mayor estimulo.",
+      "instructions": "1. Ajusta la polea alta con cuerda\n2. Arrodillate frente a la polea\n3. Flexiona el tronco llevando el pecho hacia las rodillas\n4. Mantén caderas fijas\n5. Regresa controlado\n6. Aprieta el abdomen en cada repeticion",
+      "imageUrl": null,
+      "videoUrl": null,
+      "order": 117
+    },
+    {
+      "id": "hanging_leg_raise",
+      "name": "Elevaciones de Piernas Colgado",
+      "muscleGroup": "Abdomen",
+      "description": "Ejercicio avanzado que trabaja abdomen inferior y control del core.",
+      "instructions": "1. Cuelgate de una barra con agarre firme\n2. Mantén hombros activos y core firme\n3. Eleva las piernas extendidas al frente\n4. Evita balanceo del cuerpo\n5. Baja controlado\n6. Mantén respiracion estable",
+      "imageUrl": null,
+      "videoUrl": null,
+      "order": 118
+    },
+    {
+      "id": "bench_leg_raise",
+      "name": "Elevaciones de Piernas en Banco",
+      "muscleGroup": "Abdomen",
+      "description": "Variante accesible para trabajar el abdomen inferior.",
+      "instructions": "1. Acuestate en banco plano\n2. Sujeta el banco por detras de la cabeza\n3. Eleva las piernas juntas\n4. Mantén la zona lumbar apoyada\n5. Baja lento sin tocar el suelo\n6. Controla el movimiento",
+      "imageUrl": null,
+      "videoUrl": null,
+      "order": 119
+    },
+    {
+      "id": "hanging_knee_raise",
+      "name": "Elevaciones de Rodillas Colgado",
+      "muscleGroup": "Abdomen",
+      "description": "Ejercicio de traccion abdominal enfocado en abdomen inferior.",
+      "instructions": "1. Cuelgate de la barra con agarre firme\n2. Flexiona rodillas llevandolas al pecho\n3. Mantén core activo\n4. Evita balanceo\n5. Baja controlado\n6. Mantén hombros estables",
+      "imageUrl": null,
+      "videoUrl": null,
+      "order": 120
+    },
+    {
+      "id": "ab_wheel_rollout",
+      "name": "Ab Wheel (Rueda Abdominal)",
+      "muscleGroup": "Abdomen",
+      "description": "Ejercicio avanzado para core completo usando extension controlada.",
+      "instructions": "1. Colocate de rodillas sujetando la rueda\n2. Activa el core y gluteos\n3. Rueda hacia adelante extendiendo el cuerpo\n4. Mantén espalda neutra\n5. Regresa usando el abdomen\n6. No colapses la zona lumbar",
+      "imageUrl": null,
+      "videoUrl": null,
+      "order": 121
+    },
+    {
+      "id": "plank",
+      "name": "Plancha Frontal",
+      "muscleGroup": "Abdomen",
+      "description": "Ejercicio isometrico para estabilidad y fuerza del core.",
+      "instructions": "1. Apoya antebrazos y puntas de pies\n2. Mantén cuerpo alineado\n3. Activa abdomen y gluteos\n4. Respira de forma controlada\n5. Evita hundir la cadera\n6. Mantén el tiempo indicado",
+      "imageUrl": null,
+      "videoUrl": null,
+      "order": 122
+    },
+    {
+      "id": "side_plank",
+      "name": "Plancha Lateral",
+      "muscleGroup": "Abdomen",
+      "description": "Plancha enfocada en oblicuos y estabilidad lateral.",
+      "instructions": "1. Apoya un antebrazo y el costado del pie\n2. Eleva la cadera manteniendo el cuerpo alineado\n3. Mantén core activo\n4. Respira controlado\n5. Evita rotar el torso\n6. Cambia de lado tras completar el tiempo",
+      "imageUrl": null,
+      "videoUrl": null,
+      "order": 123
+    },
+    {
+      "id": "plank_leg_raise",
+      "name": "Plancha con Elevacion de Piernas",
+      "muscleGroup": "Abdomen",
+      "description": "Plancha dinamica que agrega trabajo de gluteos y estabilidad.",
+      "instructions": "1. Colocate en posicion de plancha\n2. Eleva una pierna manteniendo la cadera estable\n3. Mantén el core firme\n4. Baja controlado\n5. Alterna piernas\n6. Evita balanceo del cuerpo",
+      "imageUrl": null,
+      "videoUrl": null,
+      "order": 124
+    },
+    {
+      "id": "russian_twist_weighted",
+      "name": "Russian Twist con Peso",
+      "muscleGroup": "Abdomen",
+      "description": "Ejercicio rotacional para oblicuos con carga externa.",
+      "instructions": "1. Siéntate con rodillas flexionadas\n2. Inclina ligeramente el torso hacia atras\n3. Sostén el peso con ambas manos\n4. Rota el tronco hacia cada lado\n5. Mantén el core activo\n6. Controla la velocidad",
+      "imageUrl": null,
+      "videoUrl": null,
+      "order": 125
+    },
+    {
+      "id": "russian_twist_cable",
+      "name": "Russian Twist en Polea",
+      "muscleGroup": "Abdomen",
+      "description": "Rotacion abdominal con polea para tension constante.",
+      "instructions": "1. Ajusta la polea a la altura del torso\n2. Sostén el agarre con ambas manos\n3. Rota el tronco alejandote de la polea\n4. Mantén caderas estables\n5. Regresa controlado\n6. Cambia de lado",
+      "imageUrl": null,
+      "videoUrl": null,
+      "order": 126
+    },
+    {
+      "id": "cable_woodchoppers",
+      "name": "Woodchoppers en Polea",
+      "muscleGroup": "Abdomen",
+      "description": "Ejercicio funcional de rotacion para oblicuos y core.",
+      "instructions": "1. Ajusta la polea alta o baja segun variante\n2. Sostén el agarre con ambas manos\n3. Rota el tronco en diagonal\n4. Mantén brazos extendidos\n5. Regresa controlado\n6. Cambia de lado",
+      "imageUrl": null,
+      "videoUrl": null,
+      "order": 127
+    },
+    {
+      "id": "mountain_climbers",
+      "name": "Mountain Climbers",
+      "muscleGroup": "Abdomen",
+      "description": "Ejercicio dinamico que combina core y trabajo cardiovascular.",
+      "instructions": "1. Colocate en posicion de plancha alta\n2. Lleva una rodilla al pecho\n3. Alterna rapidamente las piernas\n4. Mantén core firme\n5. Evita elevar demasiado la cadera\n6. Controla el ritmo",
+      "imageUrl": null,
+      "videoUrl": null,
+      "order": 128
+    },
+    {
+      "id": "hollow_body_hold",
+      "name": "Hollow Body Hold",
+      "muscleGroup": "Abdomen",
+      "description": "Ejercicio isometrico avanzado para control total del core.",
+      "instructions": "1. Acuestate boca arriba\n2. Eleva hombros y piernas del suelo\n3. Mantén zona lumbar pegada\n4. Brazos extendidos sobre la cabeza\n5. Respira controlado\n6. Mantén la posicion el tiempo indicado",
+      "imageUrl": null,
+      "videoUrl": null,
+      "order": 129
     }
   ]
 }
