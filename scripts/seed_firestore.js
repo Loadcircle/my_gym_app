@@ -7,6 +7,15 @@
  *      Project Settings > Service accounts > Generate new private key
  *   3. Guardar como serviceAccountKey.json en este directorio
  *   4. Ejecutar: node seed_firestore.js
+ * 
+ *   Windows (CMD):
+    set ENV=prod && node scripts/seed_firestore.js
+
+    Windows (PowerShell):
+    $env:ENV="prod"; node scripts/seed_firestore.js
+
+    Linux/Mac:
+    ENV=prod node scripts/seed_firestore.js
  */
 
 const admin = require('firebase-admin');
