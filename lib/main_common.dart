@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_app_check/firebase_app_check.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
 import 'core/config/app_config.dart';
 import 'core/theme/app_theme.dart';
@@ -25,6 +26,9 @@ void mainCommon(Environment env) async {
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
+
+  // Inicializar locale para calendario
+  await initializeDateFormatting('es_ES');
 
   // Inicializar Firebase
   await _initializeFirebase();
