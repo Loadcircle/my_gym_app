@@ -310,6 +310,19 @@ class RoutineItemsNotifier extends StateNotifier<AsyncValue<void>> {
     }
   }
 
+  /// Reordena los ejercicios de una rutina.
+  Future<void> reorderExercises({
+    required String routineId,
+    required List<RoutineItemModel> reorderedItems,
+  }) async {
+    try {
+      await _repository.reorderRoutineItems(reorderedItems);
+      _ref.invalidate(routineItemsStreamProvider(routineId));
+    } catch (e) {
+      // Silently fail - reorder is best-effort
+    }
+  }
+
   /// Elimina un ejercicio de una rutina.
   Future<bool> removeExercise({
     required String routineId,
