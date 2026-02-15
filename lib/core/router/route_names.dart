@@ -16,6 +16,8 @@ abstract class RouteNames {
 
   // Main - History Tab
   static const String history = '/history';
+  static const String editDay = '/history/edit-day';
+  static const String addExerciseToDay = '/history/edit-day/add-exercise';
 
   // Profile & Settings
   static const String profile = '/profile';

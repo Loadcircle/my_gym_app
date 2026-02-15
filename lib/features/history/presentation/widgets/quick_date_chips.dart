@@ -34,12 +34,6 @@ class QuickDateChips extends ConsumerWidget {
               ref.read(selectedDayProvider.notifier).state = yesterday;
             },
           ),
-          const SizedBox(width: 8),
-          _DateChip(
-            label: '7 días',
-            isSelected: false,
-            onTap: null,
-          ),
         ],
       ),
     );

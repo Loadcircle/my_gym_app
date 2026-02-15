@@ -24,12 +24,16 @@ class WeightInputCard extends ConsumerStatefulWidget {
   /// Si es un ejercicio personalizado.
   final bool isCustomExercise;
 
+  /// Fecha override para guardar el registro. Si es null, usa DateTime.now().
+  final DateTime? overrideDate;
+
   const WeightInputCard({
     super.key,
     required this.exerciseId,
     required this.exerciseName,
     required this.muscleGroup,
     required this.isCustomExercise,
+    this.overrideDate,
   });
 
   @override
@@ -139,6 +143,7 @@ class _WeightInputCardState extends ConsumerState<WeightInputCard> {
                 weight: weight,
                 sets: sets,
                 reps: reps,
+                date: widget.overrideDate,
               );
 
       if (record != null && mounted) {
@@ -193,6 +198,7 @@ class _WeightInputCardState extends ConsumerState<WeightInputCard> {
           .saveAdvancedRecord(
             exerciseId: widget.exerciseId,
             setEntries: entries,
+            date: widget.overrideDate,
           );
 
       if (record != null && mounted) {

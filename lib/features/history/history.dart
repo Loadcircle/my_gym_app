@@ -8,6 +8,8 @@ export 'providers/history_calendar_providers.dart';
 
 // Presentation - Screens
 export 'presentation/screens/history_screen.dart';
+export 'presentation/screens/edit_day_screen.dart';
+export 'presentation/screens/add_exercise_to_day_screen.dart';
 
 // Presentation - Widgets
 export 'presentation/widgets/day_detail_panel.dart';

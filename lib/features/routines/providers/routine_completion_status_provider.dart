@@ -165,13 +165,17 @@ class RoutineCompletionNotifier extends StateNotifier<AsyncValue<void>> {
     required int totalExercises,
     required int completedExercises,
     required CompletionType completionType,
+    DateTime? completedAt,
   }) async {
     state = const AsyncValue.loading();
     try {
-      // Verificar si ya está completada hoy
-      final existingCompletion = await _repository.getCompletionForRoutineToday(
+      final targetDate = completedAt ?? DateTime.now();
+
+      // Verificar si ya está completada en la fecha objetivo
+      final existingCompletion = await _repository.getCompletionForRoutineOnDate(
         routineId,
         _userId,
+        targetDate,
       );
 
       if (existingCompletion != null) {
@@ -186,7 +190,7 @@ class RoutineCompletionNotifier extends StateNotifier<AsyncValue<void>> {
         routineNameSnapshot: routineName,
         exerciseCountSnapshot: totalExercises,
         exercisesCompletedCount: completedExercises,
-        completedAt: DateTime.now(),
+        completedAt: targetDate,
         completionType: completionType,
       );
 
@@ -202,6 +206,24 @@ class RoutineCompletionNotifier extends StateNotifier<AsyncValue<void>> {
     } catch (e, st) {
       state = AsyncValue.error(e, st);
       return null;
+    }
+  }
+
+  /// Elimina un registro de rutina completada.
+  Future<bool> deleteCompletion(String completionId) async {
+    state = const AsyncValue.loading();
+    try {
+      await _repository.deleteCompletion(completionId, _userId);
+      state = const AsyncValue.data(null);
+
+      // Invalidar providers relacionados
+      _ref.invalidate(routineCompletionsProvider);
+      _ref.invalidate(routineCompletionsStreamProvider);
+
+      return true;
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
+      return false;
     }
   }
 }

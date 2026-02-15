@@ -127,7 +127,7 @@ class _NoActivityState extends StatelessWidget {
               ),
               const SizedBox(height: 12),
               FilledButton.icon(
-                onPressed: null,
+                onPressed: () => context.push(RouteNames.editDay, extra: date),
                 icon: const Icon(Icons.edit, size: 16),
                 label: const Text('Editar día'),
               ),
@@ -236,12 +236,12 @@ class _ActivityDetail extends ConsumerWidget {
               );
             }),
 
-            // Edit button (disabled)
+            // Edit button
             const SizedBox(height: 4),
             SizedBox(
               width: double.infinity,
               child: OutlinedButton.icon(
-                onPressed: null,
+                onPressed: () => context.push(RouteNames.editDay, extra: summary.date),
                 icon: const Icon(Icons.edit, size: 16),
                 label: const Text('Editar día'),
               ),

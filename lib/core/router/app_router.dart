@@ -15,6 +15,8 @@ import '../../features/exercises/presentation/screens/add_exercise_screen.dart';
 import '../../features/exercises/presentation/screens/custom_exercise_detail_screen.dart';
 import '../../features/exercises/presentation/screens/edit_custom_exercise_screen.dart';
 import '../../features/history/presentation/screens/history_screen.dart';
+import '../../features/history/presentation/screens/edit_day_screen.dart';
+import '../../features/history/presentation/screens/add_exercise_to_day_screen.dart';
 import '../../features/routines/presentation/screens/routines_screen.dart';
 import '../../features/routines/presentation/screens/create_routine_screen.dart'
     show CreateRoutineScreen, InitialExerciseData;
@@ -198,6 +200,26 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         name: 'settings',
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) => const SettingsScreen(),
+      ),
+
+      // Rutas de Historial (fuera del shell)
+      GoRoute(
+        path: RouteNames.editDay,
+        name: 'editDay',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) {
+          final date = state.extra as DateTime;
+          return EditDayScreen(date: date);
+        },
+      ),
+      GoRoute(
+        path: RouteNames.addExerciseToDay,
+        name: 'addExerciseToDay',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) {
+          final date = state.extra as DateTime;
+          return AddExerciseToDayScreen(date: date);
+        },
       ),
 
       // Rutas de Rutinas (fuera del shell)

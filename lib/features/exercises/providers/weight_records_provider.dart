@@ -78,6 +78,7 @@ class WeightRecordNotifier extends StateNotifier<AsyncValue<void>> {
     int reps = 1,
     int sets = 1,
     String? notes,
+    DateTime? date,
   }) async {
     state = const AsyncValue.loading();
     try {
@@ -88,6 +89,7 @@ class WeightRecordNotifier extends StateNotifier<AsyncValue<void>> {
         reps: reps,
         sets: sets,
         notes: notes,
+        date: date,
       );
       state = const AsyncValue.data(null);
       return record;
@@ -101,6 +103,7 @@ class WeightRecordNotifier extends StateNotifier<AsyncValue<void>> {
     required String exerciseId,
     required List<SetEntryModel> setEntries,
     String? notes,
+    DateTime? date,
   }) async {
     state = const AsyncValue.loading();
     try {
@@ -109,12 +112,26 @@ class WeightRecordNotifier extends StateNotifier<AsyncValue<void>> {
         userId: _userId,
         setEntries: setEntries,
         notes: notes,
+        date: date,
       );
       state = const AsyncValue.data(null);
       return record;
     } catch (e, st) {
       state = AsyncValue.error(e, st);
       return null;
+    }
+  }
+
+  /// Elimina un registro de peso.
+  Future<bool> deleteRecord(String recordId) async {
+    state = const AsyncValue.loading();
+    try {
+      await _repository.deleteRecord(recordId);
+      state = const AsyncValue.data(null);
+      return true;
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
+      return false;
     }
   }
 }
