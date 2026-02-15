@@ -52,7 +52,7 @@ service cloud.firestore {
       // Puede crear registros con su userId
       allow create: if isAuthenticated()
                     && request.resource.data.userId == request.auth.uid
-                    && request.resource.data.weight > 0;
+                    && request.resource.data.weight >= 0;
 
       // Puede actualizar/eliminar sus propios registros
       allow update, delete: if isAuthenticated()

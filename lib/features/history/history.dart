@@ -1,8 +1,19 @@
 /// Barrel file para el feature de historial.
 
-// Presentation
-export 'presentation/screens/history_screen.dart';
+// Data
+export 'data/models/day_summary.dart';
 
-// TODO: Agregar providers y data cuando se implementen
-// export 'providers/history_provider.dart';
-// export 'data/history_repository.dart';
+// Providers
+export 'providers/history_calendar_providers.dart';
+
+// Presentation - Screens
+export 'presentation/screens/history_screen.dart';
+export 'presentation/screens/edit_day_screen.dart';
+export 'presentation/screens/add_exercise_to_day_screen.dart';
+
+// Presentation - Widgets
+export 'presentation/widgets/day_detail_panel.dart';
+export 'presentation/widgets/history_calendar.dart';
+export 'presentation/widgets/history_v2_skeleton.dart';
+export 'presentation/widgets/last_workout_card.dart';
+export 'presentation/widgets/quick_date_chips.dart';

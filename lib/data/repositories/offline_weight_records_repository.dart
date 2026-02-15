@@ -46,8 +46,9 @@ class OfflineWeightRecordsRepository {
     int reps = 1,
     int sets = 1,
     String? notes,
+    DateTime? date,
   }) async {
-    final now = DateTime.now();
+    final now = date ?? DateTime.now();
     final localId = _uuid.v4();
 
     // 1. Guardar localmente primero (siempre funciona)
@@ -166,8 +167,9 @@ class OfflineWeightRecordsRepository {
     required String userId,
     required List<SetEntryModel> setEntries,
     String? notes,
+    DateTime? date,
   }) async {
-    final now = DateTime.now();
+    final now = date ?? DateTime.now();
     final localId = _uuid.v4();
 
     // Calcular resumen

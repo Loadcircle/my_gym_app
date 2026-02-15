@@ -122,11 +122,19 @@ class OfflineRoutineCompletionsRepository {
     String routineId,
     String userId,
   ) async {
-    final today = DateTime.now();
+    return getCompletionForRoutineOnDate(routineId, userId, DateTime.now());
+  }
+
+  /// Verifica si una rutina ya fue completada en una fecha específica.
+  Future<RoutineCompletionModel?> getCompletionForRoutineOnDate(
+    String routineId,
+    String userId,
+    DateTime date,
+  ) async {
     final local = await _db.routineCompletionsDao.getCompletionForRoutineOnDate(
       routineId,
       userId,
-      today,
+      date,
     );
 
     if (local != null) {
@@ -219,6 +227,48 @@ class OfflineRoutineCompletionsRepository {
     return _db.routineCompletionsDao
         .watchByDateRange(userId, startDate, endDate)
         .map((completions) => completions.map(_toModel).toList());
+  }
+
+  // ============ DELETE ============
+
+  /// Elimina un registro de rutina completada.
+  Future<void> deleteCompletion(String completionId, String userId) async {
+    // 1. Eliminar localmente
+    await _db.routineCompletionsDao.deleteById(completionId);
+
+    AppLogger.debug(
+      'Rutina completada eliminada localmente: $completionId',
+      tag: 'OfflineRoutineCompletions',
+    );
+
+    // 2. Intentar eliminar de Firestore
+    if (await _connectivity.hasConnection()) {
+      try {
+        await _completionsRef(userId).doc(completionId).delete();
+
+        AppLogger.info(
+          'Rutina completada eliminada de Firestore: $completionId',
+          tag: 'OfflineRoutineCompletions',
+        );
+      } catch (e) {
+        AppLogger.error(
+          'Error eliminando de Firestore, se reintentará después',
+          tag: 'OfflineRoutineCompletions',
+          error: e,
+        );
+        await _syncService.queueOperation(
+          entityType: 'routineCompletion',
+          entityId: completionId,
+          operation: SyncOperation.delete,
+        );
+      }
+    } else {
+      await _syncService.queueOperation(
+        entityType: 'routineCompletion',
+        entityId: completionId,
+        operation: SyncOperation.delete,
+      );
+    }
   }
 
   // ============ SYNC HELPERS ============
