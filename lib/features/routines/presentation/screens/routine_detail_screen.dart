@@ -491,13 +491,42 @@ class _RoutineDetailScreenState extends ConsumerState<RoutineDetailScreen> {
       onRefresh: _onRefresh,
       color: AppColors.primary,
       backgroundColor: AppColors.cardBackground,
-      child: ListView.builder(
+      child: ReorderableListView.builder(
         padding: const EdgeInsets.fromLTRB(
           AppConstants.defaultPadding,
           0,
           AppConstants.defaultPadding,
           96, // Extra padding para FAB y safe area
         ),
+        proxyDecorator: (child, index, animation) {
+          return AnimatedBuilder(
+            animation: animation,
+            builder: (context, child) {
+              final elevation = Tween<double>(begin: 0, end: 8).animate(animation).value;
+              return Material(
+                elevation: elevation,
+                color: Colors.transparent,
+                shadowColor: AppColors.primary.withAlpha(80),
+                borderRadius: BorderRadius.circular(AppConstants.cardBorderRadius),
+                child: child,
+              );
+            },
+            child: child,
+          );
+        },
+        onReorder: (oldIndex, newIndex) {
+          if (oldIndex < newIndex) newIndex -= 1;
+          if (oldIndex == newIndex) return;
+
+          final reordered = List<RoutineItemModel>.from(items);
+          final moved = reordered.removeAt(oldIndex);
+          reordered.insert(newIndex, moved);
+
+          ref.read(routineItemsNotifierProvider.notifier).reorderExercises(
+            routineId: widget.routineId,
+            reorderedItems: reordered,
+          );
+        },
         itemCount: items.length,
         itemBuilder: (context, index) {
           final item = items[index];

@@ -96,6 +96,17 @@ class RoutineItemsDao extends DatabaseAccessor<AppDatabase>
     return items.map((i) => i.order).reduce((a, b) => a > b ? a : b) + 1;
   }
 
+  /// Actualiza el orden de múltiples items en una transacción.
+  Future<void> reorderItems(List<({String id, int order})> updates) {
+    return transaction(() async {
+      for (final update in updates) {
+        await (this.update(routineItems)
+              ..where((i) => i.id.equals(update.id)))
+            .write(RoutineItemsCompanion(order: Value(update.order)));
+      }
+    });
+  }
+
   /// Cuenta los items de una rutina.
   Future<int> countByRoutineId(String routineId) async {
     final count = routineItems.id.count();

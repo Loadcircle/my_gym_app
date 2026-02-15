@@ -583,6 +583,22 @@ class OfflineRoutinesRepository {
     );
   }
 
+  /// Reordena los items de una rutina (solo local).
+  Future<void> reorderRoutineItems(List<RoutineItemModel> items) async {
+    final updates = items
+        .asMap()
+        .entries
+        .map((e) => (id: e.value.id, order: e.key))
+        .toList();
+
+    await _db.routineItemsDao.reorderItems(updates);
+
+    AppLogger.debug(
+      'Items reordenados localmente: ${updates.length}',
+      tag: 'OfflineRoutines',
+    );
+  }
+
   /// Observa items de una rutina en tiempo real desde cache local.
   Stream<List<RoutineItemModel>> watchRoutineItems(String routineId) {
     return _db.routineItemsDao
