@@ -17,6 +17,7 @@ class ExerciseModel with _$ExerciseModel {
     String? imageUrl,
     String? videoUrl,
     @Default(0) int order,
+    @Default('') String keywords,
   }) = _ExerciseModel;
 
   factory ExerciseModel.fromJson(Map<String, dynamic> json) =>
@@ -25,9 +26,15 @@ class ExerciseModel with _$ExerciseModel {
   /// Crea un ExerciseModel desde un documento de Firestore.
   factory ExerciseModel.fromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
+    // Convertir keywords de List<String> (Firestore) a String separado por comas
+    final keywordsList = data['keywords'];
+    final keywordsStr = keywordsList is List
+        ? keywordsList.cast<String>().join(',')
+        : '';
     return ExerciseModel.fromJson({
       'id': doc.id,
       ...data,
+      'keywords': keywordsStr,
     });
   }
 }

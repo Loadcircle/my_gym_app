@@ -20,6 +20,7 @@ sealed class ExerciseListItem {
   String get name;
   String get muscleGroup;
   String? get imageUrl;
+  String get keywords;
   bool get isCustom;
 }
 
@@ -38,6 +39,8 @@ class GlobalExerciseItem implements ExerciseListItem {
   @override
   String? get imageUrl => exercise.imageUrl;
   @override
+  String get keywords => exercise.keywords;
+  @override
   bool get isCustom => false;
 }
 
@@ -55,6 +58,8 @@ class CustomExerciseItem implements ExerciseListItem {
   String get muscleGroup => exercise.muscleGroup;
   @override
   String? get imageUrl => exercise.imageUrl;
+  @override
+  String get keywords => '';
   @override
   bool get isCustom => true;
 }
@@ -133,7 +138,8 @@ class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
 
     final query = _searchQuery.toLowerCase();
     return combined.where((item) {
-      return item.name.toLowerCase().contains(query);
+      return item.name.toLowerCase().contains(query) ||
+          item.keywords.toLowerCase().contains(query);
     }).toList();
   }
 

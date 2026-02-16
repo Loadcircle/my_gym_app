@@ -120,7 +120,7 @@ class _AdvancedSetsInputState extends State<AdvancedSetsInput> {
     }
     // Formatear peso sin decimales innecesarios (60.0 → "60", 60.5 → "60.5")
     _weightControllers[index].text = weight > 0 ? _formatWeight(weight) : '';
-    _repsControllers[index].text = reps.toString();
+    _repsControllers[index].text = reps > 0 ? reps.toString() : '';
   }
 
   String _formatWeight(double weight) {
@@ -134,7 +134,7 @@ class _AdvancedSetsInputState extends State<AdvancedSetsInput> {
     final last = _sets.isNotEmpty ? _sets.last : null;
     final newIndex = _sets.length;
     final newWeight = last?.weight ?? 0;
-    final newReps = last?.reps ?? 10;
+    final newReps = 0;
 
     setState(() {
       _sets = [

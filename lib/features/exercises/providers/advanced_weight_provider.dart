@@ -122,7 +122,7 @@ class AdvancedWeightNotifier extends StateNotifier<AdvancedWeightState> {
   void duplicateLastSet() {
     if (state.setEntries.isEmpty) return;
     final last = state.setEntries.last;
-    addSet(weight: last.weight, reps: last.reps);
+    addSet(weight: last.weight, reps: 0);
   }
 
   /// Marca como guardando.

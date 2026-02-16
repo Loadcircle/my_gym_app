@@ -387,6 +387,7 @@ class _AddExerciseToDayScreenState
         exerciseId: e.id,
         name: e.name,
         muscleGroup: e.muscleGroup,
+        keywords: e.keywords,
         isCustom: false,
       ));
     }
@@ -400,7 +401,8 @@ class _AddExerciseToDayScreenState
         ? available
         : available
             .where((e) =>
-                e.name.toLowerCase().contains(_searchQuery.toLowerCase()))
+                e.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+                e.keywords.toLowerCase().contains(_searchQuery.toLowerCase()))
             .toList();
 
     if (filtered.isEmpty) {
@@ -545,12 +547,14 @@ class _ExerciseEntry {
   final String exerciseId;
   final String name;
   final String muscleGroup;
+  final String keywords;
   final bool isCustom;
 
   const _ExerciseEntry({
     required this.exerciseId,
     required this.name,
     required this.muscleGroup,
+    this.keywords = '',
     required this.isCustom,
   });
 }

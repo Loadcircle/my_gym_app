@@ -24,6 +24,9 @@ class Exercises extends Table {
   /// URL del video en Firebase Storage
   TextColumn get videoUrl => text().nullable()();
 
+  /// Keywords de búsqueda (separados por coma)
+  TextColumn get keywords => text().withDefault(const Constant(''))();
+
   /// Orden dentro del grupo muscular
   IntColumn get sortOrder => integer().withDefault(const Constant(0))();
 

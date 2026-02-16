@@ -38,7 +38,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 8;
+  int get schemaVersion => 9;
 
   /// Limpia todos los datos de usuario de la base de datos local.
   /// Llamado al eliminar cuenta o cerrar sesion.
@@ -99,6 +99,10 @@ class AppDatabase extends _$AppDatabase {
         // Migracion v7 -> v8: Agregar tabla UserPreferences
         if (from < 8) {
           await m.createTable(userPreferences);
+        }
+        // Migracion v8 -> v9: Agregar columna keywords en exercises
+        if (from < 9) {
+          await m.addColumn(exercises, exercises.keywords);
         }
       },
     );

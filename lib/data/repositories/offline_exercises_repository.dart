@@ -147,6 +147,11 @@ class OfflineExercisesRepository {
           instructions: Value(data['instructions'] as String? ?? ''),
           imageUrl: Value(data['imageUrl'] as String?),
           videoUrl: Value(data['videoUrl'] as String?),
+          keywords: Value(
+            data['keywords'] is List
+                ? (data['keywords'] as List).cast<String>().join(',')
+                : '',
+          ),
           sortOrder: Value(data['order'] as int? ?? 0),
           lastSynced: Value(DateTime.now()),
         );
@@ -177,6 +182,7 @@ class OfflineExercisesRepository {
       imageUrl: exercise.imageUrl,
       videoUrl: exercise.videoUrl,
       order: exercise.sortOrder,
+      keywords: exercise.keywords,
     );
   }
 
@@ -189,6 +195,7 @@ class OfflineExercisesRepository {
       instructions: Value(model.instructions),
       imageUrl: Value(model.imageUrl),
       videoUrl: Value(model.videoUrl),
+      keywords: Value(model.keywords),
       sortOrder: Value(model.order),
       lastSynced: Value(DateTime.now()),
     );
