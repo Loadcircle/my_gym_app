@@ -5,10 +5,11 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/constants/app_constants.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../data/models/routine_item_model.dart';
 import '../../providers/routines_provider.dart';
 
-/// Datos de un ejercicio a agregar automáticamente después de crear la rutina.
+/// Datos de un ejercicio a agregar automaticamente despues de crear la rutina.
 class InitialExerciseData {
   final String exerciseId;
   final String exerciseName;
@@ -25,7 +26,7 @@ class InitialExerciseData {
 
 /// Pantalla para crear una nueva rutina.
 class CreateRoutineScreen extends ConsumerStatefulWidget {
-  /// Ejercicio opcional a agregar automáticamente después de crear la rutina.
+  /// Ejercicio opcional a agregar automaticamente despues de crear la rutina.
   final InitialExerciseData? initialExercise;
 
   const CreateRoutineScreen({
@@ -52,6 +53,7 @@ class _CreateRoutineScreenState extends ConsumerState<CreateRoutineScreen> {
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _isLoading = true);
+    final l10n = AppLocalizations.of(context);
 
     try {
       final routine = await ref.read(routineNotifierProvider.notifier).create(
@@ -75,7 +77,7 @@ class _CreateRoutineScreenState extends ConsumerState<CreateRoutineScreen> {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text('"${exercise.exerciseName}" agregado a la rutina'),
+                content: Text(l10n.exerciseAddedToRoutine(exercise.exerciseName)),
                 backgroundColor: AppColors.success,
                 duration: const Duration(seconds: 2),
               ),
@@ -89,8 +91,8 @@ class _CreateRoutineScreenState extends ConsumerState<CreateRoutineScreen> {
         }
       } else if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Error al crear rutina'),
+          SnackBar(
+            content: Text(l10n.errorCreatingRoutine),
             backgroundColor: AppColors.error,
           ),
         );
@@ -100,7 +102,7 @@ class _CreateRoutineScreenState extends ConsumerState<CreateRoutineScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error: $e'),
+            content: Text(l10n.errorGeneric(e.toString())),
             backgroundColor: AppColors.error,
           ),
         );
@@ -111,10 +113,11 @@ class _CreateRoutineScreenState extends ConsumerState<CreateRoutineScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text('Nueva Rutina'),
+        title: Text(l10n.newRoutine),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(AppConstants.defaultPadding),
@@ -144,19 +147,19 @@ class _CreateRoutineScreenState extends ConsumerState<CreateRoutineScreen> {
               // Campo nombre
               TextFormField(
                 controller: _nameController,
-                decoration: const InputDecoration(
-                  labelText: 'Nombre de la rutina',
-                  hintText: 'Ej: Push, Pull, Legs, Full Body...',
-                  prefixIcon: Icon(Icons.edit_outlined),
+                decoration: InputDecoration(
+                  labelText: l10n.routineName,
+                  hintText: l10n.routineNameHint,
+                  prefixIcon: const Icon(Icons.edit_outlined),
                 ),
                 textCapitalization: TextCapitalization.sentences,
                 autofocus: true,
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
-                    return 'Ingresa un nombre para la rutina';
+                    return l10n.enterRoutineName;
                   }
                   if (value.trim().length < 2) {
-                    return 'El nombre debe tener al menos 2 caracteres';
+                    return l10n.routineNameMinLength;
                   }
                   return null;
                 },
@@ -188,7 +191,7 @@ class _CreateRoutineScreenState extends ConsumerState<CreateRoutineScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Se agregará automáticamente:',
+                              l10n.willBeAddedAutomatically,
                               style: Theme.of(context).textTheme.labelSmall?.copyWith(
                                     color: AppColors.textSecondary,
                                   ),
@@ -210,11 +213,11 @@ class _CreateRoutineScreenState extends ConsumerState<CreateRoutineScreen> {
                 const SizedBox(height: 16),
               ],
 
-              // Descripción
+              // Descripcion
               Text(
                 widget.initialExercise != null
-                    ? 'Después podrás agregar más ejercicios'
-                    : 'Después podrás agregar ejercicios a tu rutina',
+                    ? l10n.canAddMoreExercisesLater
+                    : l10n.canAddExercisesLater,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: AppColors.textSecondary,
                     ),
@@ -222,7 +225,7 @@ class _CreateRoutineScreenState extends ConsumerState<CreateRoutineScreen> {
               ),
               const SizedBox(height: 32),
 
-              // Botón crear
+              // Boton crear
               SizedBox(
                 height: 50,
                 child: ElevatedButton(
@@ -236,7 +239,7 @@ class _CreateRoutineScreenState extends ConsumerState<CreateRoutineScreen> {
                             color: AppColors.textPrimary,
                           ),
                         )
-                      : const Text('Crear Rutina'),
+                      : Text(l10n.createRoutine),
                 ),
               ),
             ],

@@ -5,6 +5,9 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/utils/muscle_groups.dart';
+import '../../../../l10n/app_localizations.dart';
+import '../../../exercises/data/models/exercise_model.dart';
 import '../../../exercises/data/models/weight_record_model.dart';
 import '../../../exercises/providers/custom_exercises_provider.dart';
 import '../../../exercises/providers/exercises_provider.dart';
@@ -15,7 +18,7 @@ import '../../data/models/day_summary.dart';
 import '../../providers/history_calendar_providers.dart';
 import '../widgets/day_detail_panel.dart';
 
-/// Pantalla para editar un día del historial (eliminar registros, agregar ejercicios).
+/// Pantalla para editar un dia del historial (eliminar registros, agregar ejercicios).
 class EditDayScreen extends ConsumerStatefulWidget {
   final DateTime date;
 
@@ -35,13 +38,14 @@ class _EditDayScreenState extends ConsumerState<EditDayScreen> {
     });
   }
 
-  String _formatDate(DateTime date) {
+  String _formatDate(BuildContext context, DateTime date) {
+    final l10n = AppLocalizations.of(context);
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final diff = today.difference(date).inDays;
 
-    if (diff == 0) return 'Hoy';
-    if (diff == 1) return 'Ayer';
+    if (diff == 0) return l10n.today;
+    if (diff == 1) return l10n.yesterday;
 
     const months = [
       'ene', 'feb', 'mar', 'abr', 'may', 'jun',
@@ -54,23 +58,24 @@ class _EditDayScreenState extends ConsumerState<EditDayScreen> {
     WeightRecordModel record,
     String exerciseName,
   ) async {
+    final l10n = AppLocalizations.of(context);
     final shouldDelete = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Eliminar registro'),
+        title: Text(l10n.deleteRecord),
         content: Text(
-          '¿Eliminar el registro de "$exerciseName" (${record.weight} kg)?'
-          '\n\nEsta acción no se puede deshacer.',
+          '${l10n.deleteRecordConfirm(exerciseName, record.weight.toString())}'
+          '${l10n.cannotBeUndone}',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
-            child: const Text('Cancelar'),
+            child: Text(l10n.cancel),
           ),
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(true),
             style: TextButton.styleFrom(foregroundColor: AppColors.error),
-            child: const Text('Eliminar'),
+            child: Text(l10n.delete),
           ),
         ],
       ),
@@ -85,15 +90,15 @@ class _EditDayScreenState extends ConsumerState<EditDayScreen> {
         if (deleted) {
           ref.invalidate(allHistoryProvider);
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Registro eliminado'),
+            SnackBar(
+              content: Text(l10n.recordDeleted),
               backgroundColor: AppColors.success,
             ),
           );
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Error al eliminar'),
+            SnackBar(
+              content: Text(l10n.errorDeleting),
               backgroundColor: AppColors.error,
             ),
           );
@@ -105,23 +110,24 @@ class _EditDayScreenState extends ConsumerState<EditDayScreen> {
   Future<void> _confirmDeleteCompletion(
     RoutineCompletionModel completion,
   ) async {
+    final l10n = AppLocalizations.of(context);
     final shouldDelete = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Eliminar rutina completada'),
+        title: Text(l10n.deleteCompletedRoutine),
         content: Text(
-          '¿Eliminar el registro de "${completion.routineNameSnapshot}"?'
-          '\n\nEsta acción no se puede deshacer.',
+          '${l10n.deleteCompletedRoutineConfirm(completion.routineNameSnapshot)}'
+          '${l10n.cannotBeUndone}',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
-            child: const Text('Cancelar'),
+            child: Text(l10n.cancel),
           ),
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(true),
             style: TextButton.styleFrom(foregroundColor: AppColors.error),
-            child: const Text('Eliminar'),
+            child: Text(l10n.delete),
           ),
         ],
       ),
@@ -136,15 +142,15 @@ class _EditDayScreenState extends ConsumerState<EditDayScreen> {
         if (deleted) {
           ref.invalidate(allHistoryProvider);
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Registro eliminado'),
+            SnackBar(
+              content: Text(l10n.recordDeleted),
               backgroundColor: AppColors.success,
             ),
           );
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Error al eliminar'),
+            SnackBar(
+              content: Text(l10n.errorDeleting),
               backgroundColor: AppColors.error,
             ),
           );
@@ -155,6 +161,7 @@ class _EditDayScreenState extends ConsumerState<EditDayScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final detailAsync = ref.watch(selectedDayDetailProvider);
     final exercisesAsync = ref.watch(exercisesProvider);
     final customExercisesAsync = ref.watch(customExercisesProvider);
@@ -175,13 +182,13 @@ class _EditDayScreenState extends ConsumerState<EditDayScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: Text('Editar - ${_formatDate(widget.date)}'),
+        title: Text(l10n.editDate(_formatDate(context, widget.date))),
       ),
       body: detailAsync.when(
         loading: () => const Center(
           child: CircularProgressIndicator(color: AppColors.primary),
         ),
-        error: (error, _) => Center(child: Text('Error: $error')),
+        error: (error, _) => Center(child: Text(l10n.errorMessage(error.toString()))),
         data: (summary) => _buildContent(context, summary, exercisesMap),
       ),
       bottomNavigationBar: Padding(
@@ -191,7 +198,7 @@ class _EditDayScreenState extends ConsumerState<EditDayScreen> {
             context.push(RouteNames.addExerciseToDay, extra: widget.date);
           },
           icon: const Icon(Icons.add),
-          label: const Text('Agregar ejercicio'),
+          label: Text(l10n.addExerciseButton),
           style: FilledButton.styleFrom(
             backgroundColor: AppColors.primary,
             minimumSize: const Size(double.infinity, 48),
@@ -206,6 +213,9 @@ class _EditDayScreenState extends ConsumerState<EditDayScreen> {
     DaySummary summary,
     Map<String, dynamic> exercisesMap,
   ) {
+    final l10n = AppLocalizations.of(context);
+    final langCode = Localizations.localeOf(context).languageCode;
+
     if (!summary.hasActivity) {
       return Center(
         child: Column(
@@ -218,14 +228,14 @@ class _EditDayScreenState extends ConsumerState<EditDayScreen> {
             ),
             const SizedBox(height: 12),
             Text(
-              'No hay registros este día',
+              l10n.noRecordsThisDay,
               style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                     color: AppColors.textSecondary,
                   ),
             ),
             const SizedBox(height: 4),
             Text(
-              'Agrega un ejercicio con el botón de abajo',
+              l10n.addExerciseWithButton,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: AppColors.textHint,
                   ),
@@ -245,7 +255,7 @@ class _EditDayScreenState extends ConsumerState<EditDayScreen> {
             Padding(
               padding: const EdgeInsets.only(bottom: 8),
               child: Text(
-                'Rutinas completadas',
+                l10n.completedRoutines,
                 style: Theme.of(context).textTheme.titleSmall?.copyWith(
                       color: AppColors.textSecondary,
                       fontWeight: FontWeight.w600,
@@ -273,7 +283,7 @@ class _EditDayScreenState extends ConsumerState<EditDayScreen> {
             Padding(
               padding: const EdgeInsets.only(bottom: 8),
               child: Text(
-                'Ejercicios registrados',
+                l10n.registeredExercises,
                 style: Theme.of(context).textTheme.titleSmall?.copyWith(
                       color: AppColors.textSecondary,
                       fontWeight: FontWeight.w600,
@@ -282,7 +292,11 @@ class _EditDayScreenState extends ConsumerState<EditDayScreen> {
             ),
             ...summary.exercises.map((record) {
               final exercise = exercisesMap[record.exerciseId];
-              final exerciseName = exercise?.name ?? 'Ejercicio desconocido';
+              final exerciseName = exercise != null
+                  ? (exercise is ExerciseModel
+                      ? exercise.getLocalizedName(langCode)
+                      : exercise.name as String)
+                  : l10n.unknownExercise;
               final muscleGroup = exercise?.muscleGroup ?? '';
 
               return Row(
@@ -292,7 +306,9 @@ class _EditDayScreenState extends ConsumerState<EditDayScreen> {
                     child: WeightRecordTile(
                       record: record,
                       exerciseName: exerciseName,
-                      muscleGroup: muscleGroup,
+                      muscleGroup: muscleGroup.isNotEmpty
+                          ? MuscleGroups.getLocalizedName(muscleGroup, langCode)
+                          : '',
                     ),
                   ),
                   _buildPopupMenu(
@@ -311,6 +327,7 @@ class _EditDayScreenState extends ConsumerState<EditDayScreen> {
   }
 
   Widget _buildPopupMenu({required VoidCallback onDelete}) {
+    final l10n = AppLocalizations.of(context);
     return PopupMenuButton<String>(
       icon: const Icon(
         Icons.more_vert,
@@ -322,13 +339,13 @@ class _EditDayScreenState extends ConsumerState<EditDayScreen> {
         if (value == 'delete') onDelete();
       },
       itemBuilder: (_) => [
-        const PopupMenuItem(
+        PopupMenuItem(
           value: 'delete',
           child: Row(
             children: [
-              Icon(Icons.delete_outline, color: AppColors.error, size: 20),
-              SizedBox(width: 8),
-              Text('Eliminar', style: TextStyle(color: AppColors.error)),
+              const Icon(Icons.delete_outline, color: AppColors.error, size: 20),
+              const SizedBox(width: 8),
+              Text(l10n.delete, style: const TextStyle(color: AppColors.error)),
             ],
           ),
         ),

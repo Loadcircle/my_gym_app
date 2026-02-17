@@ -6,6 +6,7 @@ import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/utils/muscle_groups.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../data/models/routine_model.dart';
 import '../../data/models/routine_item_model.dart';
 import '../../data/models/routine_completion_model.dart';
@@ -44,25 +45,29 @@ class _RoutineDetailScreenState extends ConsumerState<RoutineDetailScreen> {
   }
 
   Future<void> _removeExercise(RoutineItemModel item) async {
+    final l10n = AppLocalizations.of(context);
     final shouldRemove = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Quitar Ejercicio'),
-        content: Text('¿Quitar "${item.exerciseNameSnapshot}" de la rutina?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancelar'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            style: TextButton.styleFrom(
-              foregroundColor: AppColors.error,
+      builder: (context) {
+        final l10n = AppLocalizations.of(context);
+        return AlertDialog(
+          title: Text(l10n.removeExercise),
+          content: Text(l10n.removeExerciseConfirm(item.exerciseNameSnapshot)),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: Text(l10n.cancel),
             ),
-            child: const Text('Quitar'),
-          ),
-        ],
-      ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              style: TextButton.styleFrom(
+                foregroundColor: AppColors.error,
+              ),
+              child: Text(l10n.remove),
+            ),
+          ],
+        );
+      },
     );
 
     if (shouldRemove == true && mounted) {
@@ -73,8 +78,8 @@ class _RoutineDetailScreenState extends ConsumerState<RoutineDetailScreen> {
 
       if (mounted && !success) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Error al quitar ejercicio'),
+          SnackBar(
+            content: Text(l10n.errorRemovingExercise),
             backgroundColor: AppColors.error,
           ),
         );
@@ -107,6 +112,7 @@ class _RoutineDetailScreenState extends ConsumerState<RoutineDetailScreen> {
     );
 
     if (mounted && result != null) {
+      final l10n = AppLocalizations.of(context);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Row(
@@ -116,8 +122,8 @@ class _RoutineDetailScreenState extends ConsumerState<RoutineDetailScreen> {
               Expanded(
                 child: Text(
                   completionType == CompletionType.auto
-                      ? '${routine.name} completada'
-                      : '${routine.name} marcada como completada',
+                      ? l10n.routineCompleted(routine.name)
+                      : l10n.routineMarkedCompleted(routine.name),
                 ),
               ),
             ],
@@ -131,6 +137,7 @@ class _RoutineDetailScreenState extends ConsumerState<RoutineDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final routineAsync = ref.watch(routineByIdProvider(widget.routineId));
     final itemsAsync = ref.watch(routineItemsStreamProvider(widget.routineId));
     final completionStatus = ref.watch(routineCompletionStatusProvider(widget.routineId));
@@ -155,9 +162,9 @@ class _RoutineDetailScreenState extends ConsumerState<RoutineDetailScreen> {
       backgroundColor: AppColors.background,
       appBar: AppBar(
         title: routineAsync.when(
-          loading: () => const Text('Cargando...'),
-          error: (_, __) => const Text('Error'),
-          data: (routine) => Text(routine?.name ?? 'Rutina'),
+          loading: () => Text(l10n.loading),
+          error: (_, __) => Text(l10n.error),
+          data: (routine) => Text(routine?.name ?? l10n.routines),
         ),
         actions: [
           PopupMenuButton<String>(
@@ -171,28 +178,31 @@ class _RoutineDetailScreenState extends ConsumerState<RoutineDetailScreen> {
                   break;
               }
             },
-            itemBuilder: (context) => [
-              const PopupMenuItem(
-                value: 'rename',
-                child: Row(
-                  children: [
-                    Icon(Icons.edit_outlined, size: 20),
-                    SizedBox(width: 12),
-                    Text('Renombrar'),
-                  ],
+            itemBuilder: (context) {
+              final l10n = AppLocalizations.of(context);
+              return [
+                PopupMenuItem(
+                  value: 'rename',
+                  child: Row(
+                    children: [
+                      const Icon(Icons.edit_outlined, size: 20),
+                      const SizedBox(width: 12),
+                      Text(l10n.rename),
+                    ],
+                  ),
                 ),
-              ),
-              const PopupMenuItem(
-                value: 'delete',
-                child: Row(
-                  children: [
-                    Icon(Icons.delete_outline, size: 20, color: AppColors.error),
-                    SizedBox(width: 12),
-                    Text('Eliminar', style: TextStyle(color: AppColors.error)),
-                  ],
+                PopupMenuItem(
+                  value: 'delete',
+                  child: Row(
+                    children: [
+                      const Icon(Icons.delete_outline, size: 20, color: AppColors.error),
+                      const SizedBox(width: 12),
+                      Text(l10n.delete, style: const TextStyle(color: AppColors.error)),
+                    ],
+                  ),
                 ),
-              ),
-            ],
+              ];
+            },
           ),
         ],
       ),
@@ -246,6 +256,7 @@ class _RoutineDetailScreenState extends ConsumerState<RoutineDetailScreen> {
   }
 
   Widget _buildProgressHeader(RoutineModel routine, RoutineCompletionStatus status) {
+    final l10n = AppLocalizations.of(context);
     final percentage = status.completionPercentage;
     final isCompleted = status.wasCompletedToday;
 
@@ -270,14 +281,14 @@ class _RoutineDetailScreenState extends ConsumerState<RoutineDetailScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Progreso de hoy',
+                      l10n.todayProgress,
                       style: Theme.of(context).textTheme.titleSmall?.copyWith(
                             color: AppColors.textSecondary,
                           ),
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      '${status.completedExercises}/${status.totalExercises} ejercicios',
+                      l10n.exercisesProgress(status.completedExercises.toString(), status.totalExercises.toString()),
                       style: Theme.of(context).textTheme.titleLarge?.copyWith(
                             fontWeight: FontWeight.bold,
                             color: isCompleted ? AppColors.success : AppColors.textPrimary,
@@ -303,7 +314,7 @@ class _RoutineDetailScreenState extends ConsumerState<RoutineDetailScreen> {
                       ),
                       const SizedBox(width: 6),
                       Text(
-                        'Completada',
+                        l10n.completed,
                         style: Theme.of(context).textTheme.labelMedium?.copyWith(
                               color: AppColors.success,
                               fontWeight: FontWeight.bold,
@@ -348,8 +359,8 @@ class _RoutineDetailScreenState extends ConsumerState<RoutineDetailScreen> {
                 icon: const Icon(Icons.check_circle_outline),
                 label: Text(
                   status.isFullyCompleted
-                      ? 'Marcar como Completada'
-                      : 'Completar Rutina (${status.completedExercises}/${status.totalExercises})',
+                      ? l10n.markAsCompleted
+                      : l10n.completeRoutine(status.completedExercises.toString(), status.totalExercises.toString()),
                 ),
                 style: OutlinedButton.styleFrom(
                   foregroundColor: AppColors.success,
@@ -372,6 +383,7 @@ class _RoutineDetailScreenState extends ConsumerState<RoutineDetailScreen> {
   }
 
   Widget _buildEmptyState() {
+    final l10n = AppLocalizations.of(context);
     return Center(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 32),
@@ -385,14 +397,14 @@ class _RoutineDetailScreenState extends ConsumerState<RoutineDetailScreen> {
             ),
             const SizedBox(height: 24),
             Text(
-              'Aún no agregaste ejercicios',
+              l10n.noExercisesAddedYet,
               style: Theme.of(context).textTheme.titleLarge?.copyWith(
                     color: AppColors.textPrimary,
                   ),
             ),
             const SizedBox(height: 8),
             Text(
-              'Agrega ejercicios para armar tu rutina',
+              l10n.addExercisesToBuildRoutine,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: AppColors.textSecondary,
                   ),
@@ -402,7 +414,7 @@ class _RoutineDetailScreenState extends ConsumerState<RoutineDetailScreen> {
             ElevatedButton.icon(
               onPressed: () => context.push(RouteNames.addExercisesToRoutinePath(widget.routineId)),
               icon: const Icon(Icons.add),
-              label: const Text('Agregar Ejercicios'),
+              label: Text(l10n.addExercises),
             ),
           ],
         ),
@@ -411,6 +423,7 @@ class _RoutineDetailScreenState extends ConsumerState<RoutineDetailScreen> {
   }
 
   Widget _buildErrorState(String error) {
+    final l10n = AppLocalizations.of(context);
     return Center(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 32),
@@ -424,7 +437,7 @@ class _RoutineDetailScreenState extends ConsumerState<RoutineDetailScreen> {
             ),
             const SizedBox(height: 16),
             Text(
-              'Error al cargar',
+              l10n.errorLoading,
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     color: AppColors.textSecondary,
                   ),
@@ -444,7 +457,7 @@ class _RoutineDetailScreenState extends ConsumerState<RoutineDetailScreen> {
                 ref.invalidate(routineItemsProvider(widget.routineId));
               },
               icon: const Icon(Icons.refresh),
-              label: const Text('Reintentar'),
+              label: Text(l10n.retry),
             ),
           ],
         ),
@@ -453,6 +466,7 @@ class _RoutineDetailScreenState extends ConsumerState<RoutineDetailScreen> {
   }
 
   Widget _buildNotFoundState() {
+    final l10n = AppLocalizations.of(context);
     return Center(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 32),
@@ -466,7 +480,7 @@ class _RoutineDetailScreenState extends ConsumerState<RoutineDetailScreen> {
             ),
             const SizedBox(height: 16),
             Text(
-              'Rutina no encontrada',
+              l10n.routineNotFound,
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     color: AppColors.textSecondary,
                   ),
@@ -474,7 +488,7 @@ class _RoutineDetailScreenState extends ConsumerState<RoutineDetailScreen> {
             const SizedBox(height: 16),
             ElevatedButton(
               onPressed: () => context.pop(),
-              child: const Text('Volver'),
+              child: Text(l10n.back),
             ),
           ],
         ),
@@ -541,7 +555,7 @@ class _RoutineDetailScreenState extends ConsumerState<RoutineDetailScreen> {
             direction: DismissDirection.endToStart,
             confirmDismiss: (_) async {
               await _removeExercise(item);
-              return false; // Manejamos la eliminación manualmente
+              return false; // Manejamos la eliminacion manualmente
             },
             background: Container(
               alignment: Alignment.centerRight,
@@ -577,28 +591,31 @@ class _RoutineDetailScreenState extends ConsumerState<RoutineDetailScreen> {
 
     final newName = await showDialog<String>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Renombrar Rutina'),
-        content: TextField(
-          controller: controller,
-          autofocus: true,
-          decoration: const InputDecoration(
-            labelText: 'Nombre',
-            hintText: 'Ej: Push Day',
+      builder: (context) {
+        final l10n = AppLocalizations.of(context);
+        return AlertDialog(
+          title: Text(l10n.renameRoutine),
+          content: TextField(
+            controller: controller,
+            autofocus: true,
+            decoration: InputDecoration(
+              labelText: l10n.nameLabel,
+              hintText: l10n.routineNameExampleShort,
+            ),
+            textCapitalization: TextCapitalization.sentences,
           ),
-          textCapitalization: TextCapitalization.sentences,
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancelar'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(controller.text.trim()),
-            child: const Text('Guardar'),
-          ),
-        ],
-      ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(l10n.cancel),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(controller.text.trim()),
+              child: Text(l10n.save),
+            ),
+          ],
+        );
+      },
     );
 
     if (newName != null && newName.isNotEmpty && mounted) {
@@ -612,23 +629,26 @@ class _RoutineDetailScreenState extends ConsumerState<RoutineDetailScreen> {
 
     final shouldDelete = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Eliminar Rutina'),
-        content: Text('¿Estás seguro de eliminar "${routine.name}"?\n\nEsta acción no se puede deshacer.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancelar'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            style: TextButton.styleFrom(
-              foregroundColor: AppColors.error,
+      builder: (context) {
+        final l10n = AppLocalizations.of(context);
+        return AlertDialog(
+          title: Text(l10n.deleteRoutine),
+          content: Text(l10n.deleteRoutineConfirmFull(routine.name)),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: Text(l10n.cancel),
             ),
-            child: const Text('Eliminar'),
-          ),
-        ],
-      ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              style: TextButton.styleFrom(
+                foregroundColor: AppColors.error,
+              ),
+              child: Text(l10n.delete),
+            ),
+          ],
+        );
+      },
     );
 
     if (shouldDelete == true && mounted) {
@@ -658,6 +678,8 @@ class _ExerciseItemCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final langCode = Localizations.localeOf(context).languageCode;
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       child: InkWell(
@@ -721,7 +743,7 @@ class _ExerciseItemCard extends StatelessWidget {
                                 ),
                                 const SizedBox(width: 4),
                                 Text(
-                                  'Personal',
+                                  l10n.personal,
                                   style: Theme.of(context)
                                       .textTheme
                                       .labelSmall
@@ -736,7 +758,7 @@ class _ExerciseItemCard extends StatelessWidget {
                           ),
                           const SizedBox(width: 8),
                         ],
-                        // Badge "Hoy" si está completado
+                        // Badge "Hoy" si esta completado
                         if (isCompletedToday)
                           Container(
                             padding: const EdgeInsets.symmetric(
@@ -757,7 +779,7 @@ class _ExerciseItemCard extends StatelessWidget {
                                 ),
                                 const SizedBox(width: 4),
                                 Text(
-                                  'Hoy',
+                                  l10n.today,
                                   style: Theme.of(context)
                                       .textTheme
                                       .labelSmall
@@ -794,7 +816,7 @@ class _ExerciseItemCard extends StatelessWidget {
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text(
-                        item.muscleGroupSnapshot,
+                        MuscleGroups.getLocalizedName(item.muscleGroupSnapshot, langCode),
                         style: Theme.of(context).textTheme.labelSmall?.copyWith(
                               color: muscleGroupColor,
                               fontWeight: FontWeight.w600,
@@ -805,12 +827,12 @@ class _ExerciseItemCard extends StatelessWidget {
                 ),
               ),
 
-              // Botón quitar
+              // Boton quitar
               IconButton(
                 icon: const Icon(Icons.remove_circle_outline),
                 color: AppColors.textSecondary,
                 onPressed: onRemove,
-                tooltip: 'Quitar de la rutina',
+                tooltip: l10n.removeFromRoutine,
               ),
             ],
           ),

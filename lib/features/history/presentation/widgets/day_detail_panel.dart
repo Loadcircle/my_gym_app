@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 
 import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../exercises/data/models/record_mode.dart';
 import '../../../exercises/data/models/weight_record_model.dart';
 import '../../../exercises/providers/custom_exercises_provider.dart';
@@ -58,6 +60,7 @@ class DayDetailPanel extends ConsumerWidget {
 class _EmptyHistoryState extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Card(
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 16),
@@ -70,14 +73,14 @@ class _EmptyHistoryState extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             Text(
-              'Sin registros',
+              l10n.noRecords,
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     color: AppColors.textSecondary,
                   ),
             ),
             const SizedBox(height: 4),
             Text(
-              'Registra tu primer entrenamiento',
+              l10n.recordFirstWorkout,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: AppColors.textHint,
                   ),
@@ -86,7 +89,7 @@ class _EmptyHistoryState extends StatelessWidget {
             FilledButton.icon(
               onPressed: () => context.go(RouteNames.exercises),
               icon: const Icon(Icons.fitness_center, size: 18),
-              label: const Text('Ir a ejercicios'),
+              label: Text(l10n.goToExercises),
               style: FilledButton.styleFrom(
                 backgroundColor: AppColors.primary,
               ),
@@ -106,6 +109,7 @@ class _NoActivityState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return SizedBox(
       width: double.infinity,
       child: Card(
@@ -120,7 +124,7 @@ class _NoActivityState extends StatelessWidget {
               ),
               const SizedBox(height: 10),
               Text(
-                'No registraste ningún entrenamiento',
+                l10n.noWorkoutsRecorded,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                       color: AppColors.textSecondary,
                     ),
@@ -129,7 +133,7 @@ class _NoActivityState extends StatelessWidget {
               FilledButton.icon(
                 onPressed: () => context.push(RouteNames.editDay, extra: date),
                 icon: const Icon(Icons.edit, size: 16),
-                label: const Text('Editar día'),
+                label: Text(l10n.editDay),
               ),
             ],
           ),
@@ -145,23 +149,22 @@ class _ActivityDetail extends ConsumerWidget {
 
   const _ActivityDetail({required this.summary});
 
-  String _formatDateHeader(DateTime date) {
+  String _formatDateHeader(BuildContext context, DateTime date) {
+    final l10n = AppLocalizations.of(context);
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final diff = today.difference(date).inDays;
 
-    if (diff == 0) return 'Hoy';
-    if (diff == 1) return 'Ayer';
+    if (diff == 0) return l10n.today;
+    if (diff == 1) return l10n.yesterday;
 
-    const months = [
-      'ene', 'feb', 'mar', 'abr', 'may', 'jun',
-      'jul', 'ago', 'sep', 'oct', 'nov', 'dic',
-    ];
-    return '${date.day} ${months[date.month - 1]} ${date.year}';
+    final locale = Localizations.localeOf(context).toString();
+    return DateFormat.yMMMd(locale).format(date);
   }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
     final exercisesAsync = ref.watch(exercisesProvider);
     final customExercisesAsync = ref.watch(customExercisesProvider);
 
@@ -194,7 +197,7 @@ class _ActivityDetail extends ConsumerWidget {
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  _formatDateHeader(summary.date),
+                  _formatDateHeader(context, summary.date),
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w600,
                       ),
@@ -202,16 +205,14 @@ class _ActivityDetail extends ConsumerWidget {
                 const Spacer(),
                 if (summary.routines.isNotEmpty)
                   _CountBadge(
-                    count: summary.routines.length,
-                    label: 'rutina',
+                    text: l10n.routineCountBadge(summary.routines.length),
                     color: AppColors.success,
                   ),
                 if (summary.routines.isNotEmpty && summary.exercises.isNotEmpty)
                   const SizedBox(width: 8),
                 if (summary.exercises.isNotEmpty)
                   _CountBadge(
-                    count: summary.exercises.length,
-                    label: 'ejercicio',
+                    text: l10n.exerciseCountLabel(summary.exercises.length),
                     color: AppColors.primary,
                   ),
               ],
@@ -226,7 +227,7 @@ class _ActivityDetail extends ConsumerWidget {
             // Weight records
             ...summary.exercises.map((record) {
               final exercise = exercisesMap[record.exerciseId];
-              final exerciseName = exercise?.name ?? 'Ejercicio desconocido';
+              final exerciseName = exercise?.name ?? l10n.unknownExercise;
               final muscleGroup = exercise?.muscleGroup ?? '';
 
               return WeightRecordTile(
@@ -243,7 +244,7 @@ class _ActivityDetail extends ConsumerWidget {
               child: OutlinedButton.icon(
                 onPressed: () => context.push(RouteNames.editDay, extra: summary.date),
                 icon: const Icon(Icons.edit, size: 16),
-                label: const Text('Editar día'),
+                label: Text(l10n.editDay),
               ),
             ),
           ],
@@ -255,13 +256,11 @@ class _ActivityDetail extends ConsumerWidget {
 
 /// Badge de conteo para el header.
 class _CountBadge extends StatelessWidget {
-  final int count;
-  final String label;
+  final String text;
   final Color color;
 
   const _CountBadge({
-    required this.count,
-    required this.label,
+    required this.text,
     required this.color,
   });
 
@@ -274,7 +273,7 @@ class _CountBadge extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
       ),
       child: Text(
-        '$count $label${count > 1 ? 's' : ''}',
+        text,
         style: Theme.of(context).textTheme.labelSmall?.copyWith(
               color: color,
               fontWeight: FontWeight.w600,
@@ -298,6 +297,7 @@ class RoutineCompletionTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final isFullyCompleted = completion.wasFullyCompleted;
 
     return GestureDetector(
@@ -344,7 +344,10 @@ class RoutineCompletionTile extends StatelessWidget {
                   Row(
                     children: [
                       Text(
-                        '${completion.exercisesCompletedCount}/${completion.exerciseCountSnapshot} ejercicios',
+                        l10n.exercisesCompletedCount(
+                          completion.exercisesCompletedCount.toString(),
+                          completion.exerciseCountSnapshot.toString(),
+                        ),
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                               color: AppColors.textSecondary,
                             ),
@@ -359,8 +362,8 @@ class RoutineCompletionTile extends StatelessWidget {
                       const SizedBox(width: 8),
                       Text(
                         completion.completionType == CompletionType.auto
-                            ? 'Auto'
-                            : 'Manual',
+                            ? l10n.auto
+                            : l10n.manual,
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                               color: AppColors.textHint,
                             ),
@@ -434,6 +437,7 @@ class WeightRecordTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return GestureDetector(
       onTap: () => _onTap(context),
       child: Padding(
@@ -480,7 +484,7 @@ class WeightRecordTile extends StatelessWidget {
                             borderRadius: BorderRadius.circular(4),
                           ),
                           child: Text(
-                            'Detallado',
+                            l10n.detailed,
                             style: Theme.of(context)
                                 .textTheme
                                 .labelSmall
@@ -496,7 +500,7 @@ class WeightRecordTile extends StatelessWidget {
                   Row(
                     children: [
                       Text(
-                        '${record.sets} series x ${record.reps} reps',
+                        l10n.setsTimesReps(record.sets.toString(), record.reps.toString()),
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                               color: AppColors.textSecondary,
                             ),
@@ -523,7 +527,7 @@ class WeightRecordTile extends StatelessWidget {
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Text(
-                '${record.weight} kg',
+                l10n.weightKg(record.weight.toString()),
                 style: Theme.of(context).textTheme.labelLarge?.copyWith(
                       color: AppColors.primary,
                       fontWeight: FontWeight.w600,

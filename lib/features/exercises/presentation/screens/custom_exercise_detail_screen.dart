@@ -7,6 +7,7 @@ import '../../../../core/constants/app_constants.dart';
 import '../../../../core/router/route_names.dart';
 import '../../../../core/config/providers/app_config_provider.dart';
 import '../../../../core/utils/muscle_groups.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/widgets/weight_progress_chart.dart';
 import '../../../routines/presentation/widgets/select_routine_sheet.dart';
 import '../../data/models/custom_exercise_model.dart';
@@ -35,26 +36,27 @@ class _CustomExerciseDetailScreenState
   bool _notesExpanded = false;
 
   Future<void> _showDeleteDialog(CustomExerciseModel exercise) async {
+    final l10n = AppLocalizations.of(context);
     final shouldDelete = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Eliminar ejercicio'),
-        content: Text(
-          '¿Estas seguro que deseas eliminar "${exercise.name}"?\n\n'
-          'Esta accion no se puede deshacer.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancelar'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            style: TextButton.styleFrom(foregroundColor: AppColors.error),
-            child: const Text('Eliminar'),
-          ),
-        ],
-      ),
+      builder: (context) {
+        final dialogL10n = AppLocalizations.of(context);
+        return AlertDialog(
+          title: Text(dialogL10n.deleteExercise),
+          content: Text(dialogL10n.deleteExerciseConfirm(exercise.name)),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: Text(dialogL10n.cancel),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              style: TextButton.styleFrom(foregroundColor: AppColors.error),
+              child: Text(dialogL10n.delete),
+            ),
+          ],
+        );
+      },
     );
 
     if (shouldDelete == true && mounted) {
@@ -65,15 +67,15 @@ class _CustomExerciseDetailScreenState
       if (deleted && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Ejercicio "${exercise.name}" eliminado'),
+            content: Text(l10n.exerciseDeleted(exercise.name)),
             backgroundColor: AppColors.success,
           ),
         );
         context.pop();
       } else if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Error al eliminar el ejercicio'),
+          SnackBar(
+            content: Text(l10n.errorDeletingExercise),
             backgroundColor: AppColors.error,
           ),
         );
@@ -91,16 +93,16 @@ class _CustomExerciseDetailScreenState
     );
   }
 
-  String _getProposalStatusText(ProposalStatus status) {
+  String _getProposalStatusText(ProposalStatus status, AppLocalizations l10n) {
     switch (status) {
       case ProposalStatus.none:
-        return 'Personal';
+        return l10n.personal;
       case ProposalStatus.pending:
-        return 'Pendiente de revision';
+        return l10n.pendingReview;
       case ProposalStatus.approved:
-        return 'Aprobado como global';
+        return l10n.approvedAsGlobal;
       case ProposalStatus.rejected:
-        return 'Propuesta rechazada';
+        return l10n.proposalRejected;
     }
   }
 
@@ -132,6 +134,7 @@ class _CustomExerciseDetailScreenState
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final exerciseAsync =
         ref.watch(customExerciseByIdProvider(widget.exerciseId));
     final customExerciseId = 'custom_${widget.exerciseId}';
@@ -154,7 +157,7 @@ class _CustomExerciseDetailScreenState
               const Icon(Icons.error_outline, size: 64, color: AppColors.error),
               const SizedBox(height: 16),
               Text(
-                'Error al cargar ejercicio',
+                l10n.errorLoadingExercise,
                 style: Theme.of(context).textTheme.titleMedium,
               ),
               const SizedBox(height: 8),
@@ -171,7 +174,7 @@ class _CustomExerciseDetailScreenState
           return Scaffold(
             backgroundColor: AppColors.background,
             appBar: AppBar(),
-            body: const Center(child: Text('Ejercicio no encontrado')),
+            body: Center(child: Text(l10n.exerciseNotFound)),
           );
         }
 
@@ -185,7 +188,11 @@ class _CustomExerciseDetailScreenState
     CustomExerciseModel exercise,
     AsyncValue<List<WeightRecordModel>> historyAsync,
   ) {
+    final l10n = AppLocalizations.of(context);
+    final langCode = Localizations.localeOf(context).languageCode;
     final muscleColor = MuscleGroups.getColor(exercise.muscleGroup);
+    final localizedMuscleGroup =
+        MuscleGroups.getLocalizedName(exercise.muscleGroup, langCode);
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -205,13 +212,13 @@ class _CustomExerciseDetailScreenState
                     '${RouteNames.editCustomExercise}/${exercise.id}',
                   );
                 },
-                tooltip: 'Editar',
+                tooltip: l10n.edit,
               ),
               // Boton eliminar
               IconButton(
                 icon: const Icon(Icons.delete_outline),
                 onPressed: () => _showDeleteDialog(exercise),
-                tooltip: 'Eliminar',
+                tooltip: l10n.delete,
               ),
             ],
             flexibleSpace: FlexibleSpaceBar(
@@ -250,7 +257,7 @@ class _CustomExerciseDetailScreenState
                           borderRadius: BorderRadius.circular(16),
                         ),
                         child: Text(
-                          exercise.muscleGroup,
+                          localizedMuscleGroup,
                           style: Theme.of(context).textTheme.labelMedium?.copyWith(
                                 color: muscleColor,
                                 fontWeight: FontWeight.w600,
@@ -258,11 +265,11 @@ class _CustomExerciseDetailScreenState
                         ),
                       ),
                       const Spacer(),
-                      // Botón agregar a rutina
+                      // Boton agregar a rutina
                       TextButton.icon(
                         onPressed: () => _showAddToRoutineSheet(exercise),
                         icon: const Icon(Icons.playlist_add, size: 20),
-                        label: const Text('Rutina'),
+                        label: Text(l10n.routine),
                         style: TextButton.styleFrom(
                           foregroundColor: AppColors.primary,
                           padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -285,11 +292,11 @@ class _CustomExerciseDetailScreenState
                           setState(() => _notesExpanded = expanded);
                         },
                         title: Text(
-                          _notesExpanded ? 'Ocultar notas' : 'Ver notas',
+                          _notesExpanded ? l10n.hideNotes : l10n.showNotes,
                           style: Theme.of(context).textTheme.titleMedium,
                         ),
                         subtitle: Text(
-                          'Instrucciones personales',
+                          l10n.personalInstructions,
                           style:
                               Theme.of(context).textTheme.bodySmall?.copyWith(
                                     color: AppColors.textSecondary,
@@ -354,9 +361,10 @@ class _CustomExerciseDetailScreenState
   }
 
   Widget _buildStatusBadge(ProposalStatus status) {
+    final l10n = AppLocalizations.of(context);
     final color = _getProposalStatusColor(status);
     final icon = _getProposalStatusIcon(status);
-    final text = _getProposalStatusText(status);
+    final text = _getProposalStatusText(status, l10n);
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),

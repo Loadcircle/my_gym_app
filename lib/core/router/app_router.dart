@@ -25,6 +25,7 @@ import '../../features/routines/presentation/screens/add_exercises_to_routine_sc
 import '../../features/profile/presentation/screens/profile_screen.dart';
 import '../../features/settings/presentation/screens/settings_screen.dart';
 import '../../shared/widgets/main_shell.dart';
+import '../../l10n/app_localizations.dart';
 
 /// Provider que indica si el estado de auth aun esta inicializando.
 /// Usado por el router para saber si debe esperar.
@@ -33,7 +34,7 @@ final _isAuthInitializingProvider = Provider<bool>((ref) {
   return status == AuthStatus.initial;
 });
 
-/// Keys para las ramas de navegación.
+/// Keys para las ramas de navegacion.
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
 final _shellNavigatorKeyExercises = GlobalKey<NavigatorState>(debugLabel: 'exercises');
 final _shellNavigatorKeyRoutines = GlobalKey<NavigatorState>(debugLabel: 'routines');
@@ -254,30 +255,33 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     ],
 
     // Error page
-    errorBuilder: (context, state) => Scaffold(
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.error_outline, size: 64, color: Colors.red),
-            const SizedBox(height: 16),
-            Text(
-              'Pagina no encontrada',
-              style: Theme.of(context).textTheme.headlineSmall,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              state.matchedLocation,
-              style: Theme.of(context).textTheme.bodyMedium,
-            ),
-            const SizedBox(height: 24),
-            ElevatedButton(
-              onPressed: () => context.go(RouteNames.splash),
-              child: const Text('Ir al Inicio'),
-            ),
-          ],
+    errorBuilder: (context, state) {
+      final l10n = AppLocalizations.of(context);
+      return Scaffold(
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.error_outline, size: 64, color: Colors.red),
+              const SizedBox(height: 16),
+              Text(
+                l10n.pageNotFound,
+                style: Theme.of(context).textTheme.headlineSmall,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                state.matchedLocation,
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
+              const SizedBox(height: 24),
+              ElevatedButton(
+                onPressed: () => context.go(RouteNames.splash),
+                child: Text(l10n.goToHome),
+              ),
+            ],
+          ),
         ),
-      ),
-    ),
+      );
+    },
   );
 });

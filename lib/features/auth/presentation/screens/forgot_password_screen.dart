@@ -6,6 +6,7 @@ import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/utils/validators.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../providers/auth_provider.dart';
 
 /// Pantalla para recuperar contrasena.
@@ -83,6 +84,8 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
 
   /// Contenido del formulario para solicitar recuperacion.
   Widget _buildFormContent() {
+    final l10n = AppLocalizations.of(context);
+
     return Form(
       key: _formKey,
       child: Column(
@@ -110,13 +113,13 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
 
           // Header
           Text(
-            'Recuperar Contrasena',
+            l10n.recoverPassword,
             style: Theme.of(context).textTheme.headlineLarge,
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 12),
           Text(
-            'Ingresa tu email y te enviaremos un enlace para restablecer tu contrasena',
+            l10n.recoverPasswordSubtitle,
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                   color: AppColors.textSecondary,
                 ),
@@ -130,12 +133,12 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
             keyboardType: TextInputType.emailAddress,
             textInputAction: TextInputAction.done,
             autofocus: true,
-            decoration: const InputDecoration(
-              labelText: 'Email',
-              hintText: 'tu@email.com',
-              prefixIcon: Icon(Icons.email_outlined),
+            decoration: InputDecoration(
+              labelText: l10n.email,
+              hintText: l10n.emailHint,
+              prefixIcon: const Icon(Icons.email_outlined),
             ),
-            validator: Validators.validateEmail,
+            validator: (v) => Validators.validateEmail(v, context),
             onFieldSubmitted: (_) => _handleResetPassword(),
           ),
           const SizedBox(height: 32),
@@ -152,7 +155,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                       color: AppColors.textPrimary,
                     ),
                   )
-                : const Text('Enviar Enlace'),
+                : Text(l10n.sendLink),
           ),
           const SizedBox(height: 24),
 
@@ -161,7 +164,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
             child: TextButton.icon(
               onPressed: () => context.go(RouteNames.login),
               icon: const Icon(Icons.arrow_back, size: 18),
-              label: const Text('Volver al Login'),
+              label: Text(l10n.backToLogin),
             ),
           ),
         ],
@@ -171,6 +174,8 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
 
   /// Contenido de confirmacion cuando el email fue enviado.
   Widget _buildSuccessContent() {
+    final l10n = AppLocalizations.of(context);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -196,13 +201,13 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
 
         // Success message
         Text(
-          'Email Enviado',
+          l10n.emailSent,
           style: Theme.of(context).textTheme.headlineLarge,
           textAlign: TextAlign.center,
         ),
         const SizedBox(height: 16),
         Text(
-          'Hemos enviado un enlace de recuperacion a:',
+          l10n.emailSentMessage,
           style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                 color: AppColors.textSecondary,
               ),
@@ -219,7 +224,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
         ),
         const SizedBox(height: 24),
         Text(
-          'Revisa tu bandeja de entrada y sigue las instrucciones del email para restablecer tu contrasena.',
+          l10n.emailSentInstructions,
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 color: AppColors.textSecondary,
               ),
@@ -230,7 +235,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
         // Back to login button
         ElevatedButton(
           onPressed: () => context.go(RouteNames.login),
-          child: const Text('Volver al Login'),
+          child: Text(l10n.backToLogin),
         ),
         const SizedBox(height: 16),
 
@@ -240,7 +245,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
             onPressed: () {
               setState(() => _emailSent = false);
             },
-            child: const Text('No recibiste el email? Intentar de nuevo'),
+            child: Text(l10n.didNotReceiveEmail),
           ),
         ),
       ],

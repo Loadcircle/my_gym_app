@@ -8,6 +8,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/config/providers/app_config_provider.dart';
 import '../../../../core/utils/muscle_groups.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../auth/providers/auth_provider.dart';
 import '../../providers/custom_exercises_provider.dart';
 
@@ -37,6 +38,7 @@ class _AddExerciseScreenState extends ConsumerState<AddExerciseScreen> {
 
   /// Muestra opciones para seleccionar imagen (camara o galeria).
   Future<void> _showImagePickerOptions() async {
+    final l10n = AppLocalizations.of(context);
     final result = await showModalBottomSheet<ImageSource>(
       context: context,
       backgroundColor: AppColors.cardBackground,
@@ -45,61 +47,64 @@ class _AddExerciseScreenState extends ConsumerState<AddExerciseScreen> {
           top: Radius.circular(AppConstants.cardBorderRadius),
         ),
       ),
-      builder: (context) => SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 40,
-                height: 4,
-                margin: const EdgeInsets.only(bottom: 16),
-                decoration: BoxDecoration(
-                  color: AppColors.textHint,
-                  borderRadius: BorderRadius.circular(2),
+      builder: (context) {
+        final sheetL10n = AppLocalizations.of(context);
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 40,
+                  height: 4,
+                  margin: const EdgeInsets.only(bottom: 16),
+                  decoration: BoxDecoration(
+                    color: AppColors.textHint,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
                 ),
-              ),
-              Text(
-                'Seleccionar imagen',
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
-              const SizedBox(height: 16),
-              ListTile(
-                leading: const Icon(
-                  Icons.camera_alt_outlined,
-                  color: AppColors.primary,
+                Text(
+                  sheetL10n.selectImage,
+                  style: Theme.of(context).textTheme.titleMedium,
                 ),
-                title: const Text('Tomar foto'),
-                onTap: () => Navigator.pop(context, ImageSource.camera),
-              ),
-              ListTile(
-                leading: const Icon(
-                  Icons.photo_library_outlined,
-                  color: AppColors.primary,
-                ),
-                title: const Text('Elegir de galeria'),
-                onTap: () => Navigator.pop(context, ImageSource.gallery),
-              ),
-              if (_selectedImage != null)
+                const SizedBox(height: 16),
                 ListTile(
                   leading: const Icon(
-                    Icons.delete_outline,
-                    color: AppColors.error,
+                    Icons.camera_alt_outlined,
+                    color: AppColors.primary,
                   ),
-                  title: const Text(
-                    'Eliminar imagen',
-                    style: TextStyle(color: AppColors.error),
-                  ),
-                  onTap: () {
-                    setState(() => _selectedImage = null);
-                    Navigator.pop(context);
-                  },
+                  title: Text(sheetL10n.takePhoto),
+                  onTap: () => Navigator.pop(context, ImageSource.camera),
                 ),
-            ],
+                ListTile(
+                  leading: const Icon(
+                    Icons.photo_library_outlined,
+                    color: AppColors.primary,
+                  ),
+                  title: Text(sheetL10n.chooseFromGallery),
+                  onTap: () => Navigator.pop(context, ImageSource.gallery),
+                ),
+                if (_selectedImage != null)
+                  ListTile(
+                    leading: const Icon(
+                      Icons.delete_outline,
+                      color: AppColors.error,
+                    ),
+                    title: Text(
+                      sheetL10n.removeImage,
+                      style: const TextStyle(color: AppColors.error),
+                    ),
+                    onTap: () {
+                      setState(() => _selectedImage = null);
+                      Navigator.pop(context);
+                    },
+                  ),
+              ],
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
 
     if (result != null) {
@@ -125,9 +130,10 @@ class _AddExerciseScreenState extends ConsumerState<AddExerciseScreen> {
       }
     } catch (e) {
       if (mounted) {
+        final l10n = AppLocalizations.of(context);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error al seleccionar imagen: $e'),
+            content: Text(l10n.errorSelectingImage(e.toString())),
             backgroundColor: AppColors.error,
           ),
         );
@@ -139,11 +145,12 @@ class _AddExerciseScreenState extends ConsumerState<AddExerciseScreen> {
   Future<void> _createExercise() async {
     if (!_formKey.currentState!.validate()) return;
 
+    final l10n = AppLocalizations.of(context);
     final authState = ref.read(authStateProvider);
     if (authState.user == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Debes iniciar sesion para crear ejercicios'),
+        SnackBar(
+          content: Text(l10n.mustSignInToCreateExercises),
           backgroundColor: AppColors.error,
         ),
       );
@@ -166,8 +173,8 @@ class _AddExerciseScreenState extends ConsumerState<AddExerciseScreen> {
         if (imagePath == null) {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Error al subir la imagen. Intenta de nuevo.'),
+              SnackBar(
+                content: Text(l10n.errorUploadingImage),
                 backgroundColor: AppColors.error,
               ),
             );
@@ -190,15 +197,15 @@ class _AddExerciseScreenState extends ConsumerState<AddExerciseScreen> {
       if (exercise != null && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Ejercicio "${exercise.name}" creado'),
+            content: Text(l10n.exerciseCreated(exercise.name)),
             backgroundColor: AppColors.success,
           ),
         );
         Navigator.pop(context, exercise);
       } else if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Error al crear el ejercicio'),
+          SnackBar(
+            content: Text(l10n.errorCreatingExercise),
             backgroundColor: AppColors.error,
           ),
         );
@@ -207,7 +214,7 @@ class _AddExerciseScreenState extends ConsumerState<AddExerciseScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error: $e'),
+            content: Text(l10n.errorGeneric(e.toString())),
             backgroundColor: AppColors.error,
           ),
         );
@@ -221,11 +228,12 @@ class _AddExerciseScreenState extends ConsumerState<AddExerciseScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
         backgroundColor: AppColors.background,
-        title: const Text('Nuevo Ejercicio'),
+        title: Text(l10n.newExercise),
         leading: IconButton(
           icon: const Icon(Icons.close),
           onPressed: _isLoading ? null : () => Navigator.pop(context),
@@ -267,6 +275,7 @@ class _AddExerciseScreenState extends ConsumerState<AddExerciseScreen> {
 
   /// Construye el selector de imagen con preview.
   Widget _buildImageSelector() {
+    final l10n = AppLocalizations.of(context);
     return GestureDetector(
       onTap: _isLoading ? null : _showImagePickerOptions,
       child: Container(
@@ -326,14 +335,14 @@ class _AddExerciseScreenState extends ConsumerState<AddExerciseScreen> {
                   ),
                   const SizedBox(height: 12),
                   Text(
-                    'Agregar foto',
+                    l10n.addPhoto,
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                           color: AppColors.primary,
                         ),
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    'Opcional - Toca para seleccionar',
+                    l10n.optionalTapToSelect,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: AppColors.textHint,
                         ),
@@ -346,16 +355,18 @@ class _AddExerciseScreenState extends ConsumerState<AddExerciseScreen> {
 
   /// Construye el selector de grupo muscular con chips.
   Widget _buildMuscleGroupSelector() {
+    final l10n = AppLocalizations.of(context);
+    final langCode = Localizations.localeOf(context).languageCode;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Grupo muscular',
+          l10n.muscleGroup,
           style: Theme.of(context).textTheme.titleMedium,
         ),
         const SizedBox(height: 4),
         Text(
-          'Selecciona el grupo muscular principal',
+          l10n.selectMuscleGroup,
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
                 color: AppColors.textSecondary,
               ),
@@ -367,9 +378,11 @@ class _AddExerciseScreenState extends ConsumerState<AddExerciseScreen> {
           children: MuscleGroups.all.map((group) {
             final isSelected = _selectedMuscleGroup == group;
             final color = MuscleGroups.getColor(group);
+            final localizedGroup =
+                MuscleGroups.getLocalizedName(group, langCode);
 
             return FilterChip(
-              label: Text(group),
+              label: Text(localizedGroup),
               selected: isSelected,
               onSelected: _isLoading
                   ? null
@@ -400,16 +413,17 @@ class _AddExerciseScreenState extends ConsumerState<AddExerciseScreen> {
 
   /// Construye el campo de nombre del ejercicio.
   Widget _buildNameField() {
+    final l10n = AppLocalizations.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Nombre del ejercicio',
+          l10n.exerciseName,
           style: Theme.of(context).textTheme.titleMedium,
         ),
         const SizedBox(height: 4),
         Text(
-          'Nombre del ejercicio o maquina',
+          l10n.exerciseNameHint,
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
                 color: AppColors.textSecondary,
               ),
@@ -419,19 +433,19 @@ class _AddExerciseScreenState extends ConsumerState<AddExerciseScreen> {
           controller: _nameController,
           enabled: !_isLoading,
           textCapitalization: TextCapitalization.words,
-          decoration: const InputDecoration(
-            hintText: 'Ej: Press inclinado con mancuernas',
-            prefixIcon: Icon(Icons.fitness_center),
+          decoration: InputDecoration(
+            hintText: l10n.exerciseNameExample,
+            prefixIcon: const Icon(Icons.fitness_center),
           ),
           validator: (value) {
             if (value == null || value.trim().isEmpty) {
-              return 'El nombre es obligatorio';
+              return l10n.nameIsRequired;
             }
             if (value.trim().length < 3) {
-              return 'El nombre debe tener al menos 3 caracteres';
+              return l10n.nameMinLength;
             }
             if (value.trim().length > AppConstants.maxExerciseNameLength) {
-              return 'El nombre es muy largo';
+              return l10n.nameTooLong;
             }
             return null;
           },
@@ -442,16 +456,17 @@ class _AddExerciseScreenState extends ConsumerState<AddExerciseScreen> {
 
   /// Construye el campo de notas.
   Widget _buildNotesField() {
+    final l10n = AppLocalizations.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Notas personales',
+          l10n.personalNotes,
           style: Theme.of(context).textTheme.titleMedium,
         ),
         const SizedBox(height: 4),
         Text(
-          'Instrucciones o notas para ti (opcional)',
+          l10n.personalNotesHint,
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
                 color: AppColors.textSecondary,
               ),
@@ -462,8 +477,8 @@ class _AddExerciseScreenState extends ConsumerState<AddExerciseScreen> {
           enabled: !_isLoading,
           maxLines: 4,
           textCapitalization: TextCapitalization.sentences,
-          decoration: const InputDecoration(
-            hintText: 'Ej: Bajar lento, subir explosivo.\nMantener codos a 45 grados.',
+          decoration: InputDecoration(
+            hintText: l10n.personalNotesExample,
             alignLabelWithHint: true,
           ),
         ),
@@ -473,6 +488,7 @@ class _AddExerciseScreenState extends ConsumerState<AddExerciseScreen> {
 
   /// Construye los botones de accion.
   Widget _buildActionButtons() {
+    final l10n = AppLocalizations.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -488,14 +504,14 @@ class _AddExerciseScreenState extends ConsumerState<AddExerciseScreen> {
                     color: AppColors.textPrimary,
                   ),
                 )
-              : const Text('Crear ejercicio'),
+              : Text(l10n.createExercise),
         ),
         const SizedBox(height: 12),
 
         // Boton secundario - Cancelar
         TextButton(
           onPressed: _isLoading ? null : () => Navigator.pop(context),
-          child: const Text('Cancelar'),
+          child: Text(l10n.cancel),
         ),
       ],
     );

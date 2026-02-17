@@ -1,7 +1,10 @@
+import 'package:flutter/widgets.dart';
+
+import '../../l10n/app_localizations.dart';
 import '../constants/app_constants.dart';
 
 /// Clase de utilidades para validacion de formularios.
-/// Todos los mensajes estan en espanol.
+/// Usa AppLocalizations para mensajes internacionalizados.
 abstract class Validators {
   /// Expresion regular para validar formato de email.
   static final RegExp _emailRegex = RegExp(
@@ -9,137 +12,140 @@ abstract class Validators {
   );
 
   /// Valida que el email tenga formato correcto.
-  /// Retorna null si es valido, mensaje de error si no.
-  static String? validateEmail(String? value) {
+  static String? validateEmail(String? value, BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     if (value == null || value.trim().isEmpty) {
-      return 'El email es requerido';
+      return l10n.validationEmailRequired;
     }
 
     final trimmedValue = value.trim();
 
     if (!_emailRegex.hasMatch(trimmedValue)) {
-      return 'Ingresa un email valido';
+      return l10n.validationEmailInvalid;
     }
 
     return null;
   }
 
   /// Valida que la contrasena cumpla requisitos minimos.
-  /// Retorna null si es valida, mensaje de error si no.
-  static String? validatePassword(String? value) {
+  static String? validatePassword(String? value, BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     if (value == null || value.isEmpty) {
-      return 'La contrasena es requerida';
+      return l10n.validationPasswordRequired;
     }
 
     if (value.length < AppConstants.minPasswordLength) {
-      return 'La contrasena debe tener al menos ${AppConstants.minPasswordLength} caracteres';
+      return l10n.validationPasswordMinLength(AppConstants.minPasswordLength);
     }
 
     return null;
   }
 
   /// Valida que la contrasena de confirmacion coincida.
-  /// Retorna null si coincide, mensaje de error si no.
-  static String? validateConfirmPassword(String? value, String? password) {
+  static String? validateConfirmPassword(String? value, String? password, BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     if (value == null || value.isEmpty) {
-      return 'Confirma tu contrasena';
+      return l10n.validationConfirmPassword;
     }
 
     if (value != password) {
-      return 'Las contrasenas no coinciden';
+      return l10n.validationPasswordsDoNotMatch;
     }
 
     return null;
   }
 
   /// Valida que el nombre no este vacio.
-  /// Retorna null si es valido, mensaje de error si no.
-  static String? validateName(String? value) {
+  static String? validateName(String? value, BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     if (value == null || value.trim().isEmpty) {
-      return 'El nombre es requerido';
+      return l10n.validationNameRequired;
     }
 
     if (value.trim().length < 2) {
-      return 'El nombre debe tener al menos 2 caracteres';
+      return l10n.validationNameMinLength;
     }
 
     return null;
   }
 
   /// Valida que el campo no este vacio.
-  /// Retorna null si es valido, mensaje de error si no.
-  static String? validateRequired(String? value, {String fieldName = 'Este campo'}) {
+  static String? validateRequired(String? value, BuildContext context, {String fieldName = ''}) {
+    final l10n = AppLocalizations.of(context);
     if (value == null || value.trim().isEmpty) {
-      return '$fieldName es requerido';
+      if (fieldName.isNotEmpty) {
+        return l10n.validationFieldRequired(fieldName);
+      }
+      return l10n.validationFieldRequired(fieldName);
     }
 
     return null;
   }
 
   /// Valida un peso de ejercicio.
-  /// Retorna null si es valido, mensaje de error si no.
-  static String? validateWeight(String? value) {
+  static String? validateWeight(String? value, BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     if (value == null || value.trim().isEmpty) {
-      return 'El peso es requerido';
+      return l10n.validationWeightRequired;
     }
 
     final weight = double.tryParse(value);
     if (weight == null) {
-      return 'Ingresa un numero valido';
+      return l10n.validationEnterValidNumber;
     }
 
     if (weight < AppConstants.minWeight) {
-      return 'El peso no puede ser negativo';
+      return l10n.validationWeightNegative;
     }
 
     if (weight > AppConstants.maxWeight) {
-      return 'El peso maximo es ${AppConstants.maxWeight} kg';
+      return l10n.validationWeightMax(AppConstants.maxWeight.toString());
     }
 
     return null;
   }
 
   /// Valida numero de series.
-  /// Retorna null si es valido, mensaje de error si no.
-  static String? validateSets(String? value) {
+  static String? validateSets(String? value, BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     if (value == null || value.trim().isEmpty) {
       return null; // Series es opcional
     }
 
     final sets = int.tryParse(value);
     if (sets == null) {
-      return 'Ingresa un numero entero';
+      return l10n.validationEnterInteger;
     }
 
     if (sets < 1) {
-      return 'Minimo 1 serie';
+      return l10n.validationMinSets;
     }
 
     if (sets > AppConstants.maxSets) {
-      return 'Maximo ${AppConstants.maxSets} series';
+      return l10n.validationMaxSets(AppConstants.maxSets);
     }
 
     return null;
   }
 
   /// Valida numero de repeticiones.
-  /// Retorna null si es valido, mensaje de error si no.
-  static String? validateReps(String? value) {
+  static String? validateReps(String? value, BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     if (value == null || value.trim().isEmpty) {
       return null; // Reps es opcional
     }
 
     final reps = int.tryParse(value);
     if (reps == null) {
-      return 'Ingresa un numero entero';
+      return l10n.validationEnterInteger;
     }
 
     if (reps < 1) {
-      return 'Minimo 1 repeticion';
+      return l10n.validationMinReps;
     }
 
     if (reps > AppConstants.maxReps) {
-      return 'Maximo ${AppConstants.maxReps} repeticiones';
+      return l10n.validationMaxReps(AppConstants.maxReps);
     }
 
     return null;

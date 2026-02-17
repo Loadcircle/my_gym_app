@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/constants/app_constants.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../auth/providers/auth_provider.dart';
 import '../../data/models/user_profile_model.dart';
 import '../../providers/user_profile_provider.dart';
@@ -70,6 +71,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _isSaving = true);
+    final l10n = AppLocalizations.of(context);
 
     try {
       final currentProfile = ref.read(userProfileProvider).valueOrNull;
@@ -100,8 +102,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Perfil guardado'),
+          SnackBar(
+            content: Text(l10n.profileSaved),
             backgroundColor: AppColors.success,
           ),
         );
@@ -111,7 +113,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error al guardar: $e'),
+            content: Text(l10n.errorSavingProfile(e.toString())),
             backgroundColor: AppColors.error,
           ),
         );
@@ -125,13 +127,14 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final profileAsync = ref.watch(userProfileProvider);
     final authState = ref.watch(authStateProvider);
 
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text('Mi Perfil'),
+        title: Text(l10n.myProfile),
       ),
       bottomNavigationBar: SafeArea(
         top: false,
@@ -143,7 +146,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               onPressed: _isSaving ? null : _saveProfile,
               child: _isSaving
                 ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
-                : const Text('Guardar'),
+                : Text(l10n.save),
             ),
           ),
         ),
@@ -158,11 +161,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             children: [
               const Icon(Icons.error_outline, size: 48, color: AppColors.error),
               const SizedBox(height: 16),
-              Text('Error al cargar perfil: $error'),
+              Text(l10n.errorLoadingProfile(error.toString())),
               const SizedBox(height: 16),
               ElevatedButton(
                 onPressed: () => ref.invalidate(userProfileProvider),
-                child: const Text('Reintentar'),
+                child: Text(l10n.retry),
               ),
             ],
           ),
@@ -178,6 +181,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   }
 
   Widget _buildForm() {
+    final l10n = AppLocalizations.of(context);
+
     return Form(
       key: _formKey,
       child: ListView(
@@ -213,10 +218,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           // Nombre
           TextFormField(
             controller: _firstNameController,
-            decoration: const InputDecoration(
-              labelText: 'Nombre',
-              hintText: 'Ej: Juan',
-              prefixIcon: Icon(Icons.person_outline),
+            decoration: InputDecoration(
+              labelText: l10n.firstName,
+              hintText: l10n.firstNameHint,
+              prefixIcon: const Icon(Icons.person_outline),
             ),
             textCapitalization: TextCapitalization.words,
             onChanged: (_) => setState(() {}),
@@ -226,10 +231,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           // Apellido
           TextFormField(
             controller: _lastNameController,
-            decoration: const InputDecoration(
-              labelText: 'Apellido',
-              hintText: 'Ej: Perez',
-              prefixIcon: Icon(Icons.person_outline),
+            decoration: InputDecoration(
+              labelText: l10n.lastName,
+              hintText: l10n.lastNameHint,
+              prefixIcon: const Icon(Icons.person_outline),
             ),
             textCapitalization: TextCapitalization.words,
             onChanged: (_) => setState(() {}),
@@ -239,11 +244,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           // Edad
           TextFormField(
             controller: _ageController,
-            decoration: const InputDecoration(
-              labelText: 'Edad',
-              hintText: 'Ej: 25',
-              prefixIcon: Icon(Icons.cake_outlined),
-              suffixText: 'años',
+            decoration: InputDecoration(
+              labelText: l10n.age,
+              hintText: l10n.ageHint,
+              prefixIcon: const Icon(Icons.cake_outlined),
+              suffixText: l10n.years,
             ),
             keyboardType: TextInputType.number,
             inputFormatters: [
@@ -256,11 +261,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           // Altura
           TextFormField(
             controller: _heightController,
-            decoration: const InputDecoration(
-              labelText: 'Altura',
-              hintText: 'Ej: 175',
-              prefixIcon: Icon(Icons.height),
-              suffixText: 'cm',
+            decoration: InputDecoration(
+              labelText: l10n.height,
+              hintText: l10n.heightHint,
+              prefixIcon: const Icon(Icons.height),
+              suffixText: l10n.cm,
             ),
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
             inputFormatters: [
@@ -273,11 +278,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           // Peso
           TextFormField(
             controller: _weightController,
-            decoration: const InputDecoration(
-              labelText: 'Peso',
-              hintText: 'Ej: 70.5',
-              prefixIcon: Icon(Icons.monitor_weight_outlined),
-              suffixText: 'kg',
+            decoration: InputDecoration(
+              labelText: l10n.weight,
+              hintText: l10n.weightHint,
+              prefixIcon: const Icon(Icons.monitor_weight_outlined),
+              suffixText: l10n.kg,
             ),
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
             inputFormatters: [
@@ -290,14 +295,14 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           // Sexo
           DropdownButtonFormField<Sex>(
             initialValue: _selectedSex,
-            decoration: const InputDecoration(
-              labelText: 'Sexo',
-              prefixIcon: Icon(Icons.wc_outlined),
+            decoration: InputDecoration(
+              labelText: l10n.sex,
+              prefixIcon: const Icon(Icons.wc_outlined),
             ),
             items: [
-              const DropdownMenuItem<Sex>(
+              DropdownMenuItem<Sex>(
                 value: null,
-                child: Text('Sin especificar'),
+                child: Text(l10n.unspecified),
               ),
               ...Sex.values.map((sex) => DropdownMenuItem<Sex>(
                     value: sex,
@@ -327,7 +332,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    'Todos los campos son opcionales. Tu informacion se guarda de forma segura.',
+                    l10n.allFieldsOptional,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: AppColors.textSecondary,
                         ),

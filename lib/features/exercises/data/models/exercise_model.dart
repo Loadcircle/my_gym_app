@@ -18,6 +18,8 @@ class ExerciseModel with _$ExerciseModel {
     String? videoUrl,
     @Default(0) int order,
     @Default('') String keywords,
+    @Default('') String nameEn,
+    @Default('') String namePt,
   }) = _ExerciseModel;
 
   factory ExerciseModel.fromJson(Map<String, dynamic> json) =>
@@ -35,6 +37,24 @@ class ExerciseModel with _$ExerciseModel {
       'id': doc.id,
       ...data,
       'keywords': keywordsStr,
+      'nameEn': data['nameEn'] as String? ?? '',
+      'namePt': data['namePt'] as String? ?? '',
     });
+  }
+}
+
+/// Extension para obtener el nombre localizado del ejercicio.
+extension ExerciseModelL10n on ExerciseModel {
+  /// Retorna el nombre en el idioma solicitado.
+  /// Fallback: si la traducción está vacía, usa el nombre en español (name).
+  String getLocalizedName(String languageCode) {
+    switch (languageCode) {
+      case 'en':
+        return nameEn.isNotEmpty ? nameEn : name;
+      case 'pt':
+        return namePt.isNotEmpty ? namePt : name;
+      default:
+        return name;
+    }
   }
 }

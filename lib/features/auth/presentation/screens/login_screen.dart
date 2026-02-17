@@ -6,6 +6,7 @@ import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/utils/validators.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/widgets/google_sign_in_button.dart';
 import '../../../../shared/widgets/legal_text.dart';
 import '../../providers/auth_provider.dart';
@@ -88,6 +89,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authStateProvider);
+    final l10n = AppLocalizations.of(context);
 
     // Escuchar errores para mostrar snackbar
     ref.listen<AuthState>(authStateProvider, (previous, next) {
@@ -122,13 +124,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 ),
                 const SizedBox(height: 24),
                 Text(
-                  'Bienvenido',
+                  l10n.welcome,
                   style: Theme.of(context).textTheme.headlineLarge,
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Inicia sesion para continuar',
+                  l10n.loginSubtitle,
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                         color: AppColors.textSecondary,
                       ),
@@ -142,12 +144,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   keyboardType: TextInputType.emailAddress,
                   textInputAction: TextInputAction.next,
                   enabled: !authState.isLoading,
-                  decoration: const InputDecoration(
-                    labelText: 'Email',
-                    hintText: 'tu@email.com',
-                    prefixIcon: Icon(Icons.email_outlined),
+                  decoration: InputDecoration(
+                    labelText: l10n.email,
+                    hintText: l10n.emailHint,
+                    prefixIcon: const Icon(Icons.email_outlined),
                   ),
-                  validator: Validators.validateEmail,
+                  validator: (v) => Validators.validateEmail(v, context),
                 ),
                 const SizedBox(height: 16),
 
@@ -158,7 +160,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   textInputAction: TextInputAction.done,
                   enabled: !authState.isLoading,
                   decoration: InputDecoration(
-                    labelText: 'Contrasena',
+                    labelText: l10n.password,
                     prefixIcon: const Icon(Icons.lock_outlined),
                     suffixIcon: IconButton(
                       icon: Icon(
@@ -171,7 +173,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       },
                     ),
                   ),
-                  validator: Validators.validatePassword,
+                  validator: (v) => Validators.validatePassword(v, context),
                   onFieldSubmitted: (_) => _handleLogin(),
                 ),
                 const SizedBox(height: 8),
@@ -183,7 +185,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     onPressed: authState.isLoading
                         ? null
                         : () => context.go(RouteNames.forgotPassword),
-                    child: const Text('Olvidaste tu contrasena?'),
+                    child: Text(l10n.forgotPassword),
                   ),
                 ),
                 const SizedBox(height: 24),
@@ -200,7 +202,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             color: AppColors.textPrimary,
                           ),
                         )
-                      : const Text('Iniciar Sesion'),
+                      : Text(l10n.signIn),
                 ),
                 const SizedBox(height: 24),
 
@@ -211,7 +213,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                       child: Text(
-                        'o continua con',
+                        l10n.orContinueWith,
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                               color: AppColors.textSecondary,
                             ),
@@ -234,7 +236,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      'No tienes cuenta? ',
+                      l10n.noAccount,
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                             color: AppColors.textSecondary,
                           ),
@@ -243,7 +245,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       onPressed: authState.isLoading
                           ? null
                           : () => context.go(RouteNames.register),
-                      child: const Text('Registrate'),
+                      child: Text(l10n.signUp),
                     ),
                   ],
                 ),

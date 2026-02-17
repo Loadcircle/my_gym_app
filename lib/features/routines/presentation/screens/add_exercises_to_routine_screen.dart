@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/utils/muscle_groups.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../exercises/data/models/exercise_model.dart';
 import '../../../exercises/data/models/custom_exercise_model.dart';
 import '../../../exercises/providers/exercises_provider.dart';
@@ -42,7 +43,7 @@ class _AddExercisesToRoutineScreenState
     super.dispose();
   }
 
-  /// Genera un ID único para un ejercicio (para diferenciar global vs custom).
+  /// Genera un ID unico para un ejercicio (para diferenciar global vs custom).
   String _getUniqueId(bool isCustom, String exerciseId) {
     return '${isCustom ? 'custom' : 'global'}_$exerciseId';
   }
@@ -54,6 +55,7 @@ class _AddExercisesToRoutineScreenState
     }
 
     setState(() => _isLoading = true);
+    final l10n = AppLocalizations.of(context);
 
     // Obtener los ejercicios para construir los datos
     final globalExercises = ref.read(exercisesProvider).valueOrNull ?? [];
@@ -133,8 +135,8 @@ class _AddExercisesToRoutineScreenState
           SnackBar(
             content: Text(
               added.length == 1
-                  ? 'Ejercicio agregado'
-                  : '${added.length} ejercicios agregados',
+                  ? l10n.exerciseAdded
+                  : l10n.exercisesAdded(added.length),
             ),
             duration: const Duration(seconds: 2),
           ),
@@ -146,6 +148,8 @@ class _AddExercisesToRoutineScreenState
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final langCode = Localizations.localeOf(context).languageCode;
     final muscleGroupFilter = _selectedFilter == 'Todos' ? 'Todos' : _selectedFilter;
 
     final globalExercisesAsync =
@@ -159,7 +163,7 @@ class _AddExercisesToRoutineScreenState
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text('Agregar Ejercicios'),
+        title: Text(l10n.addExercises),
       ),
       bottomNavigationBar: _selectedExerciseIds.isNotEmpty
           ? SafeArea(
@@ -179,7 +183,7 @@ class _AddExercisesToRoutineScreenState
                           )
                         : const Icon(Icons.check),
                     label: Text(
-                      'Agregar (${_selectedExerciseIds.length})',
+                      l10n.addCount(_selectedExerciseIds.length),
                       style: const TextStyle(fontWeight: FontWeight.w600),
                     ),
                     style: ElevatedButton.styleFrom(
@@ -207,7 +211,7 @@ class _AddExercisesToRoutineScreenState
             child: TextField(
               controller: _searchController,
               decoration: InputDecoration(
-                hintText: 'Buscar ejercicio...',
+                hintText: l10n.searchExercisePlaceholder,
                 prefixIcon: const Icon(Icons.search, color: AppColors.textSecondary),
                 suffixIcon: _searchQuery.isNotEmpty
                     ? IconButton(
@@ -246,7 +250,7 @@ class _AddExercisesToRoutineScreenState
                 return Padding(
                   padding: const EdgeInsets.only(right: 8),
                   child: FilterChip(
-                    label: Text(filter),
+                    label: Text(MuscleGroups.getLocalizedName(filter, langCode)),
                     selected: isSelected,
                     onSelected: (_) => setState(() => _selectedFilter = filter),
                     selectedColor: AppColors.primary,
@@ -282,6 +286,9 @@ class _AddExercisesToRoutineScreenState
     AsyncValue<List<CustomExerciseModel>> customAsync,
     AsyncValue<List<RoutineItemModel>> existingItemsAsync,
   ) {
+    final l10n = AppLocalizations.of(context);
+    final langCode = Localizations.localeOf(context).languageCode;
+
     if (globalAsync.isLoading && customAsync.isLoading) {
       return const Center(
         child: CircularProgressIndicator(color: AppColors.primary),
@@ -296,7 +303,7 @@ class _AddExercisesToRoutineScreenState
             Icon(Icons.error_outline, size: 64, color: AppColors.error.withValues(alpha: 0.7)),
             const SizedBox(height: 16),
             Text(
-              'Error al cargar ejercicios',
+              l10n.errorLoading,
               style: Theme.of(context).textTheme.titleMedium,
             ),
           ],
@@ -334,7 +341,7 @@ class _AddExercisesToRoutineScreenState
       final uniqueId = _getUniqueId(false, e.id);
       allExercises.add(_ExerciseListEntry(
         uniqueId: uniqueId,
-        name: e.name,
+        name: e.getLocalizedName(langCode),
         muscleGroup: e.muscleGroup,
         keywords: e.keywords,
         isCustom: false,
@@ -342,7 +349,7 @@ class _AddExercisesToRoutineScreenState
       ));
     }
 
-    // Aplicar búsqueda
+    // Aplicar busqueda
     final filtered = _searchQuery.isEmpty
         ? allExercises
         : allExercises
@@ -363,7 +370,7 @@ class _AddExercisesToRoutineScreenState
             ),
             const SizedBox(height: 16),
             Text(
-              'Sin resultados',
+              l10n.noExercisesCount,
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     color: AppColors.textSecondary,
                   ),
@@ -441,6 +448,8 @@ class _ExerciseSelectCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final langCode = Localizations.localeOf(context).languageCode;
     final isDisabled = entry.isAlreadyAdded;
 
     return Card(
@@ -506,7 +515,7 @@ class _ExerciseSelectCard extends StatelessWidget {
                             ),
                             const SizedBox(width: 4),
                             Text(
-                              'Personal',
+                              l10n.personal,
                               style: Theme.of(context)
                                   .textTheme
                                   .labelSmall
@@ -543,7 +552,7 @@ class _ExerciseSelectCard extends StatelessWidget {
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Text(
-                            entry.muscleGroup,
+                            MuscleGroups.getLocalizedName(entry.muscleGroup, langCode),
                             style: Theme.of(context).textTheme.labelSmall?.copyWith(
                                   color: isDisabled
                                       ? AppColors.textSecondary
@@ -555,7 +564,7 @@ class _ExerciseSelectCard extends StatelessWidget {
                         if (isDisabled) ...[
                           const SizedBox(width: 8),
                           Text(
-                            'Ya agregado',
+                            l10n.alreadyAdded,
                             style: Theme.of(context).textTheme.labelSmall?.copyWith(
                                   color: AppColors.success,
                                   fontWeight: FontWeight.w500,

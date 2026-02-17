@@ -7,6 +7,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/config/providers/app_config_provider.dart';
 import '../../../../core/utils/muscle_groups.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/widgets/skeletons/exercise_card_skeleton.dart';
 import '../../data/models/exercise_model.dart';
 import '../../data/models/custom_exercise_model.dart';
@@ -42,6 +43,10 @@ class GlobalExerciseItem implements ExerciseListItem {
   String get keywords => exercise.keywords;
   @override
   bool get isCustom => false;
+
+  /// Returns the localized display name for this exercise.
+  String getLocalizedName(String languageCode) =>
+      exercise.getLocalizedName(languageCode);
 }
 
 /// Wrapper para ejercicio personalizado.
@@ -79,7 +84,7 @@ class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
   String _searchQuery = '';
 
   Future<void> _onRefresh() async {
-    // Invalidar providers base - los derivados se actualizan automáticamente
+    // Invalidar providers base - los derivados se actualizan automaticamente
     final muscleFilter =
         (_selectedFilter == 'Todos' || _selectedFilter == _myExercisesFilter)
             ? 'Todos'
@@ -93,10 +98,10 @@ class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
     ]);
   }
 
-  // Filtro especial para ejercicios personalizados
+  // Filtro especial para ejercicios personalizados (internal key, not displayed directly)
   static const String _myExercisesFilter = 'Mis ejercicios';
 
-  /// Construye la lista de filtros dinámicamente.
+  /// Construye la lista de filtros dinamicamente.
   /// Incluye "Mis ejercicios" solo si el usuario tiene ejercicios personalizados.
   List<String> _buildFilterList(bool hasCustomExercises) {
     if (!hasCustomExercises) return MuscleGroups.withAll;
@@ -133,7 +138,7 @@ class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
       ];
     }
 
-    // Aplicar filtro de búsqueda
+    // Aplicar filtro de busqueda
     if (_searchQuery.isEmpty) return combined;
 
     final query = _searchQuery.toLowerCase();
@@ -153,12 +158,15 @@ class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final langCode = Localizations.localeOf(context).languageCode;
+
     // Observar TODOS los ejercicios personalizados para saber si mostrar el filtro
     final allCustomExercisesAsync = ref.watch(customExercisesProvider);
     final hasCustomExercises =
         allCustomExercisesAsync.valueOrNull?.isNotEmpty ?? false;
 
-    // Construir lista de filtros dinámicamente
+    // Construir lista de filtros dinamicamente
     final filterList = _buildFilterList(hasCustomExercises);
 
     // Si el filtro seleccionado ya no existe (ej: se borraron todos los custom),
@@ -169,8 +177,8 @@ class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
       });
     }
 
-    // Determinar qué grupo muscular usar para los providers
-    // "Todos" y "Mis ejercicios" usan 'Todos' como filtro de músculo
+    // Determinar que grupo muscular usar para los providers
+    // "Todos" y "Mis ejercicios" usan 'Todos' como filtro de musculo
     final muscleGroupFilter =
         (_selectedFilter == 'Todos' || _selectedFilter == _myExercisesFilter)
             ? 'Todos'
@@ -191,9 +199,9 @@ class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
         leading: IconButton(
           icon: const Icon(Icons.menu),
           onPressed: () => Scaffold.of(context).openDrawer(),
-          tooltip: 'Menu',
+          tooltip: l10n.menu,
         ),
-        title: const Text('Ejercicios'),
+        title: Text(l10n.exercises),
       ),
       // FAB para agregar ejercicio
       floatingActionButton: FloatingActionButton(
@@ -214,7 +222,7 @@ class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
             child: TextField(
               controller: _searchController,
               decoration: InputDecoration(
-                hintText: 'Buscar ejercicio...',
+                hintText: l10n.searchExercise,
                 prefixIcon:
                     const Icon(Icons.search, color: AppColors.textSecondary),
                 suffixIcon: _searchQuery.isNotEmpty
@@ -258,6 +266,15 @@ class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
                 final isSelected = filter == _selectedFilter;
                 final isMyExercises = filter == _myExercisesFilter;
 
+                // Display localized name for muscle groups and special filters
+                String displayLabel;
+                if (isMyExercises) {
+                  displayLabel = l10n.myExercises;
+                } else {
+                  displayLabel =
+                      MuscleGroups.getLocalizedName(filter, langCode);
+                }
+
                 return Padding(
                   padding: const EdgeInsets.only(right: 8),
                   child: FilterChip(
@@ -270,7 +287,7 @@ class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
                                 : AppColors.primary,
                           )
                         : null,
-                    label: Text(filter),
+                    label: Text(displayLabel),
                     selected: isSelected,
                     showCheckmark: !isMyExercises,
                     onSelected: (selected) {
@@ -313,7 +330,7 @@ class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
     AsyncValue<List<ExerciseModel>> globalAsync,
     AsyncValue<List<CustomExerciseModel>> customAsync,
   ) {
-    // Si ambos están cargando, mostrar skeleton
+    // Si ambos estan cargando, mostrar skeleton
     if (globalAsync.isLoading && customAsync.isLoading) {
       return const ExerciseListSkeleton();
     }
@@ -323,7 +340,7 @@ class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
       return _buildErrorState(globalAsync.error.toString());
     }
 
-    // Obtener datos (usar listas vacías como fallback)
+    // Obtener datos (usar listas vacias como fallback)
     final globalExercises = globalAsync.valueOrNull ?? [];
     final customExercises = customAsync.valueOrNull ?? [];
 
@@ -354,6 +371,8 @@ class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
   }
 
   Widget _buildEmptyState() {
+    final l10n = AppLocalizations.of(context);
+    final langCode = Localizations.localeOf(context).languageCode;
     final hasSearch = _searchQuery.isNotEmpty;
     final isMyExercisesFilter = _selectedFilter == _myExercisesFilter;
     final hasMuscleFilter =
@@ -363,23 +382,22 @@ class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
     String hint;
 
     if (isMyExercisesFilter && !hasSearch) {
-      // Filtro "Mis ejercicios" sin búsqueda - no debería llegar aquí
-      // porque el filtro no aparece si no hay ejercicios
-      message = 'No tienes ejercicios';
-      hint = 'Crea tu primer ejercicio personalizado';
+      message = l10n.noExercises;
+      hint = l10n.createFirstExercise;
     } else if (isMyExercisesFilter && hasSearch) {
-      message = 'Sin resultados';
-      hint = 'No tienes ejercicios que coincidan con "$_searchQuery"';
+      message = l10n.noResults;
+      hint = l10n.noCustomExercisesMatchSearch(_searchQuery);
     } else if (hasSearch && hasMuscleFilter) {
-      message = 'Sin resultados';
-      hint =
-          'No hay ejercicios de "$_selectedFilter" que coincidan con "$_searchQuery"';
+      final localizedFilter =
+          MuscleGroups.getLocalizedName(_selectedFilter, langCode);
+      message = l10n.noResults;
+      hint = l10n.noFilteredExercisesMatchSearch(localizedFilter, _searchQuery);
     } else if (hasSearch) {
-      message = 'Sin resultados';
-      hint = 'No hay ejercicios que coincidan con "$_searchQuery"';
+      message = l10n.noResults;
+      hint = l10n.noExercisesMatchSearch(_searchQuery);
     } else {
-      message = 'No hay ejercicios';
-      hint = 'Selecciona otro grupo muscular';
+      message = l10n.noExercisesInGroup;
+      hint = l10n.selectAnotherMuscleGroup;
     }
 
     return Center(
@@ -422,14 +440,14 @@ class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
                 child: Column(
                   children: [
                     Text(
-                      '¿No es ninguno de estos?',
+                      l10n.notTheRightOne,
                       style: Theme.of(context).textTheme.titleSmall?.copyWith(
                             color: AppColors.textPrimary,
                           ),
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'Puedes crear uno solo para ti',
+                      l10n.createOneForYou,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                             color: AppColors.textSecondary,
                           ),
@@ -438,7 +456,7 @@ class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
                     ElevatedButton.icon(
                       onPressed: () => context.push(RouteNames.addExercise),
                       icon: const Icon(Icons.add, size: 20),
-                      label: const Text('Agregar ejercicio'),
+                      label: Text(l10n.addExercise),
                     ),
                   ],
                 ),
@@ -451,6 +469,7 @@ class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
   }
 
   Widget _buildErrorState(String error) {
+    final l10n = AppLocalizations.of(context);
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -462,7 +481,7 @@ class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
           ),
           const SizedBox(height: 16),
           Text(
-            'Error al cargar ejercicios',
+            l10n.errorLoadingExercises,
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
                   color: AppColors.textSecondary,
                 ),
@@ -481,7 +500,7 @@ class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
           const SizedBox(height: 16),
           ElevatedButton.icon(
             onPressed: () {
-              // Determinar el filtro de músculo correcto
+              // Determinar el filtro de musculo correcto
               final muscleFilter =
                   (_selectedFilter == 'Todos' || _selectedFilter == _myExercisesFilter)
                       ? 'Todos'
@@ -491,7 +510,7 @@ class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
               ref.invalidate(customExercisesProvider);
             },
             icon: const Icon(Icons.refresh),
-            label: const Text('Reintentar'),
+            label: Text(l10n.retry),
           ),
         ],
       ),
@@ -514,6 +533,17 @@ class _ExerciseCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    final langCode = Localizations.localeOf(context).languageCode;
+
+    // Determine the display name based on exercise type
+    final displayName = item is GlobalExerciseItem
+        ? (item as GlobalExerciseItem).getLocalizedName(langCode)
+        : item.name;
+
+    final localizedMuscleGroup =
+        MuscleGroups.getLocalizedName(item.muscleGroup, langCode);
+
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       child: InkWell(
@@ -553,7 +583,7 @@ class _ExerciseCard extends ConsumerWidget {
                             ),
                             const SizedBox(width: 4),
                             Text(
-                              'Personal',
+                              l10n.personal,
                               style: Theme.of(context)
                                   .textTheme
                                   .labelSmall
@@ -569,7 +599,7 @@ class _ExerciseCard extends ConsumerWidget {
                       const SizedBox(height: 4),
                     ],
                     Text(
-                      item.name,
+                      displayName,
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.w600,
                           ),
@@ -585,7 +615,7 @@ class _ExerciseCard extends ConsumerWidget {
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text(
-                        item.muscleGroup,
+                        localizedMuscleGroup,
                         style: Theme.of(context).textTheme.labelSmall?.copyWith(
                               color: muscleGroupColor,
                               fontWeight: FontWeight.w600,

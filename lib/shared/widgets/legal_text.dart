@@ -4,8 +4,9 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/constants/app_constants.dart';
 import '../../core/theme/app_colors.dart';
+import '../../l10n/app_localizations.dart';
 
-/// Widget que muestra el texto legal con enlaces a términos y privacidad.
+/// Widget que muestra el texto legal con enlaces a terminos y privacidad.
 /// Usado en las pantallas de login y registro.
 class LegalText extends StatelessWidget {
   const LegalText({super.key});
@@ -19,6 +20,7 @@ class LegalText extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final textStyle = Theme.of(context).textTheme.bodySmall?.copyWith(
           color: AppColors.textSecondary,
         );
@@ -30,21 +32,21 @@ class LegalText extends StatelessWidget {
 
     return Text.rich(
       TextSpan(
-        text: 'Al continuar, aceptas los ',
+        text: l10n.legalPrefix,
         style: textStyle,
         children: [
           TextSpan(
-            text: 'Términos y Condiciones',
+            text: l10n.termsAndConditions,
             style: linkStyle,
             recognizer: TapGestureRecognizer()
               ..onTap = () => _launchUrl(AppConstants.termsAndConditionsUrl),
           ),
           TextSpan(
-            text: ' y la ',
+            text: l10n.legalMiddle,
             style: textStyle,
           ),
           TextSpan(
-            text: 'Política de Privacidad',
+            text: l10n.privacyPolicy,
             style: linkStyle,
             recognizer: TapGestureRecognizer()
               ..onTap = () => _launchUrl(AppConstants.privacyPolicyUrl),

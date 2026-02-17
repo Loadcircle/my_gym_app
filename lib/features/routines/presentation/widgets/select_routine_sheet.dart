@@ -5,12 +5,13 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/constants/app_constants.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../data/models/routine_model.dart';
 import '../../data/models/routine_item_model.dart';
 import '../../providers/routines_provider.dart';
 import '../screens/create_routine_screen.dart' show InitialExerciseData;
 
-/// Bottom sheet para seleccionar a qué rutina agregar un ejercicio.
+/// Bottom sheet para seleccionar a que rutina agregar un ejercicio.
 class SelectRoutineSheet extends ConsumerStatefulWidget {
   final String exerciseId;
   final String exerciseName;
@@ -25,7 +26,7 @@ class SelectRoutineSheet extends ConsumerStatefulWidget {
     required this.isCustomExercise,
   });
 
-  /// Muestra el bottom sheet y retorna true si se agregó a alguna rutina.
+  /// Muestra el bottom sheet y retorna true si se agrego a alguna rutina.
   static Future<bool?> show(
     BuildContext context, {
     required String exerciseId,
@@ -75,21 +76,22 @@ class _SelectRoutineSheetState extends ConsumerState<SelectRoutineSheet> {
           );
 
       if (mounted) {
+        final l10n = AppLocalizations.of(context);
         if (result != null) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Agregado a "${routine.name}"'),
+              content: Text(l10n.addedToRoutine(routine.name)),
               backgroundColor: AppColors.success,
               duration: const Duration(seconds: 2),
             ),
           );
           Navigator.of(context).pop(true);
         } else {
-          // Error o ya existía
+          // Error o ya existia
           final state = ref.read(routineItemsNotifierProvider);
           final errorMessage = state.hasError
               ? state.error.toString()
-              : 'El ejercicio ya está en la rutina';
+              : l10n.exerciseAlreadyInRoutine;
 
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -105,9 +107,10 @@ class _SelectRoutineSheetState extends ConsumerState<SelectRoutineSheet> {
       }
     } catch (e) {
       if (mounted) {
+        final l10n = AppLocalizations.of(context);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error: $e'),
+            content: Text(l10n.errorGeneric(e.toString())),
             backgroundColor: AppColors.error,
           ),
         );
@@ -121,6 +124,7 @@ class _SelectRoutineSheetState extends ConsumerState<SelectRoutineSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final routinesAsync = ref.watch(routinesProvider);
 
     return DraggableScrollableSheet(
@@ -154,7 +158,7 @@ class _SelectRoutineSheetState extends ConsumerState<SelectRoutineSheet> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Agregar a Rutina',
+                          l10n.addToRoutine,
                           style: Theme.of(context).textTheme.titleLarge,
                         ),
                         Text(
@@ -182,7 +186,7 @@ class _SelectRoutineSheetState extends ConsumerState<SelectRoutineSheet> {
                 ),
                 error: (error, _) => Center(
                   child: Text(
-                    'Error al cargar rutinas',
+                    l10n.errorLoadingRoutinesSheet,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           color: AppColors.error,
                         ),
@@ -236,6 +240,7 @@ class _SelectRoutineSheetState extends ConsumerState<SelectRoutineSheet> {
   }
 
   Widget _buildEmptyState() {
+    final l10n = AppLocalizations.of(context);
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
@@ -249,14 +254,14 @@ class _SelectRoutineSheetState extends ConsumerState<SelectRoutineSheet> {
             ),
             const SizedBox(height: 16),
             Text(
-              'No tienes rutinas',
+              l10n.noRoutinesSheet,
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     color: AppColors.textSecondary,
                   ),
             ),
             const SizedBox(height: 8),
             Text(
-              'Crea una rutina para organizar tus ejercicios',
+              l10n.createRoutineToOrganize,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: AppColors.textHint,
                   ),
@@ -272,7 +277,7 @@ class _SelectRoutineSheetState extends ConsumerState<SelectRoutineSheet> {
                 );
               },
               icon: const Icon(Icons.add),
-              label: const Text('Crear Rutina'),
+              label: Text(l10n.createRoutine),
             ),
           ],
         ),
@@ -281,6 +286,7 @@ class _SelectRoutineSheetState extends ConsumerState<SelectRoutineSheet> {
   }
 
   Widget _buildCreateNewButton() {
+    final l10n = AppLocalizations.of(context);
     return Padding(
       padding: const EdgeInsets.only(top: 8),
       child: InkWell(
@@ -312,7 +318,7 @@ class _SelectRoutineSheetState extends ConsumerState<SelectRoutineSheet> {
               ),
               const SizedBox(width: 8),
               Text(
-                'Crear nueva rutina',
+                l10n.createNewRoutine,
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       color: _isAdding ? AppColors.textSecondary : AppColors.primary,
                       fontWeight: FontWeight.w600,
@@ -326,7 +332,7 @@ class _SelectRoutineSheetState extends ConsumerState<SelectRoutineSheet> {
   }
 }
 
-/// Tile para una opción de rutina.
+/// Tile para una opcion de rutina.
 class _RoutineOptionTile extends StatelessWidget {
   final RoutineModel routine;
   final bool isLoading;
@@ -342,6 +348,7 @@ class _RoutineOptionTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
       color: isDisabled ? AppColors.surfaceVariant.withValues(alpha: 0.5) : null,
@@ -392,7 +399,7 @@ class _RoutineOptionTile extends StatelessWidget {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      _getExerciseCountText(routine.exerciseCount),
+                      _getExerciseCountText(routine.exerciseCount, l10n),
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                             color: AppColors.textSecondary,
                           ),
@@ -413,9 +420,9 @@ class _RoutineOptionTile extends StatelessWidget {
     );
   }
 
-  String _getExerciseCountText(int count) {
-    if (count == 0) return 'Sin ejercicios';
-    if (count == 1) return '1 ejercicio';
-    return '$count ejercicios';
+  String _getExerciseCountText(int count, AppLocalizations l10n) {
+    if (count == 0) return l10n.noExercisesCount;
+    if (count == 1) return l10n.oneExercise;
+    return l10n.exerciseCount(count);
   }
 }

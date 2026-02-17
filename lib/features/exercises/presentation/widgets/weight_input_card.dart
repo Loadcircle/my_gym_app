@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../data/models/set_entry_model.dart';
 import '../../data/models/weight_record_model.dart';
 import '../../providers/user_preferences_provider.dart';
@@ -115,10 +116,11 @@ class _WeightInputCardState extends ConsumerState<WeightInputCard> {
   }
 
   Future<void> _saveSimple() async {
+    final l10n = AppLocalizations.of(context);
     final weightText = _weightController.text.trim();
     if (weightText.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Ingresa el peso')),
+        SnackBar(content: Text(l10n.enterWeight)),
       );
       return;
     }
@@ -126,7 +128,7 @@ class _WeightInputCardState extends ConsumerState<WeightInputCard> {
     final weight = double.tryParse(weightText);
     if (weight == null || weight < 0) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Peso invalido')),
+        SnackBar(content: Text(l10n.invalidWeight)),
       );
       return;
     }
@@ -149,7 +151,11 @@ class _WeightInputCardState extends ConsumerState<WeightInputCard> {
       if (record != null && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Guardado: $weight kg x $sets series x $reps reps'),
+            content: Text(l10n.savedRecord(
+              weight.toString(),
+              sets.toString(),
+              reps.toString(),
+            )),
             backgroundColor: AppColors.success,
           ),
         );
@@ -160,7 +166,7 @@ class _WeightInputCardState extends ConsumerState<WeightInputCard> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error: $e'),
+            content: Text(l10n.errorGeneric(e.toString())),
             backgroundColor: AppColors.error,
           ),
         );
@@ -173,10 +179,10 @@ class _WeightInputCardState extends ConsumerState<WeightInputCard> {
   }
 
   Future<void> _saveAdvanced() async {
+    final l10n = AppLocalizations.of(context);
     if (!_isAdvancedValid) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content: Text('Completa peso y reps en todas las series')),
+        SnackBar(content: Text(l10n.completeAllSets)),
       );
       return;
     }
@@ -204,8 +210,10 @@ class _WeightInputCardState extends ConsumerState<WeightInputCard> {
       if (record != null && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content:
-                Text('Guardado: $_maxWeight kg (${_advancedSets.length} series)'),
+            content: Text(l10n.savedAdvancedRecord(
+              _maxWeight.toString(),
+              _advancedSets.length.toString(),
+            )),
             backgroundColor: AppColors.success,
           ),
         );
@@ -221,7 +229,7 @@ class _WeightInputCardState extends ConsumerState<WeightInputCard> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error: $e'),
+            content: Text(l10n.errorGeneric(e.toString())),
             backgroundColor: AppColors.error,
           ),
         );
@@ -235,6 +243,7 @@ class _WeightInputCardState extends ConsumerState<WeightInputCard> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final isAdvanced = ref.watch(weightInputModeNotifierProvider);
     final lastRecordAsync =
         ref.watch(lastWeightRecordProvider(widget.exerciseId));
@@ -258,7 +267,7 @@ class _WeightInputCardState extends ConsumerState<WeightInputCard> {
           Row(
             children: [
               Text(
-                isAdvanced ? 'Registrar series' : 'Registro rápido',
+                isAdvanced ? l10n.recordSets : l10n.quickRecord,
                 style: Theme.of(context).textTheme.titleLarge,
               ),
               const Spacer(),
@@ -314,7 +323,7 @@ class _WeightInputCardState extends ConsumerState<WeightInputCard> {
                         color: AppColors.textPrimary,
                       ),
                     )
-                  : const Text('Guardar'),
+                  : Text(l10n.save),
             ),
           ),
         ],
@@ -323,6 +332,7 @@ class _WeightInputCardState extends ConsumerState<WeightInputCard> {
   }
 
   Widget _buildSimpleContent() {
+    final l10n = AppLocalizations.of(context);
     return Column(
       children: [
         // Campo de peso grande
@@ -344,8 +354,8 @@ class _WeightInputCardState extends ConsumerState<WeightInputCard> {
                 ),
               ),
             ),
-            const Text(
-              'kg',
+            Text(
+              l10n.kg,
               style: AppTextStyles.weightUnit,
             ),
           ],
@@ -359,9 +369,9 @@ class _WeightInputCardState extends ConsumerState<WeightInputCard> {
             Expanded(
               child: Column(
                 children: [
-                  const Text(
-                    'Series',
-                    style: TextStyle(color: AppColors.textSecondary),
+                  Text(
+                    l10n.sets,
+                    style: const TextStyle(color: AppColors.textSecondary),
                   ),
                   const SizedBox(height: 8),
                   TextField(
@@ -383,9 +393,9 @@ class _WeightInputCardState extends ConsumerState<WeightInputCard> {
             Expanded(
               child: Column(
                 children: [
-                  const Text(
-                    'Reps',
-                    style: TextStyle(color: AppColors.textSecondary),
+                  Text(
+                    l10n.reps,
+                    style: const TextStyle(color: AppColors.textSecondary),
                   ),
                   const SizedBox(height: 8),
                   TextField(
@@ -410,6 +420,7 @@ class _WeightInputCardState extends ConsumerState<WeightInputCard> {
   }
 
   Widget _buildAdvancedContent() {
+    final l10n = AppLocalizations.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -418,7 +429,10 @@ class _WeightInputCardState extends ConsumerState<WeightInputCard> {
           Padding(
             padding: const EdgeInsets.only(bottom: 12),
             child: Text(
-              'Max: $_maxWeight kg | Series: ${_advancedSets.length}',
+              l10n.advancedSummary(
+                _maxWeight.toString(),
+                _advancedSets.length.toString(),
+              ),
               style: TextStyle(
                 color: AppColors.primary,
                 fontWeight: FontWeight.w500,

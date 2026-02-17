@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../providers/history_calendar_providers.dart';
 
 /// Chips rápidos para seleccionar Hoy / Ayer.
@@ -20,7 +21,7 @@ class QuickDateChips extends ConsumerWidget {
       child: Row(
         children: [
           _DateChip(
-            label: 'Hoy',
+            label: AppLocalizations.of(context).today,
             isSelected: selectedDay == today,
             onTap: () {
               ref.read(selectedDayProvider.notifier).state = today;
@@ -28,7 +29,7 @@ class QuickDateChips extends ConsumerWidget {
           ),
           const SizedBox(width: 8),
           _DateChip(
-            label: 'Ayer',
+            label: AppLocalizations.of(context).yesterday,
             isSelected: selectedDay == yesterday,
             onTap: () {
               ref.read(selectedDayProvider.notifier).state = yesterday;

@@ -4,7 +4,7 @@ App móvil de gimnasio: registrar pesos por ejercicio, ver guías (imagen + vide
 
 **Package**: `gymvault` | **Android**: `com.gymvault.app` | **iOS**: `com.gymvault.app`
 
-**Estado**: MVP ~100% completo. Fase 4 (pulido) en progreso.
+**Estado**: MVP ~100% completo. Fase 4 (pulido) en progreso. i18n implementado (EN/ES/PT).
 
 ## Stack
 
@@ -18,10 +18,12 @@ lib/
 ├── core/
 │   ├── config/          # AppConfig, providers de config
 │   ├── constants/       # Constantes, nombres de colecciones
+│   ├── providers/       # locale_provider (i18n)
 │   ├── router/          # go_router con protección de rutas
 │   ├── services/        # connectivity, storage, sync
 │   ├── theme/           # AppColors, AppTheme (tema oscuro)
-│   └── utils/           # logger, validators
+│   └── utils/           # logger, validators, muscle_groups
+├── l10n/                # ARB files + generated AppLocalizations
 ├── data/
 │   ├── local/           # Drift: database.dart, tables/, daos/
 │   └── repositories/    # Repos offline-first
@@ -39,7 +41,7 @@ lib/
 
 | Modelo | Campos clave |
 |--------|-------------|
-| `ExerciseModel` | id, name, muscleGroup, imageUrl, videoUrl |
+| `ExerciseModel` | id, name, nameEn, namePt, muscleGroup, imageUrl, videoUrl |
 | `CustomExerciseModel` | id, userId, name, muscleGroup, imageUrl |
 | `WeightRecordModel` | exerciseId, weight, reps, sets, mode (simple/advanced), setEntries |
 | `RoutineModel` | id, userId, name, exerciseCount |
@@ -48,7 +50,7 @@ lib/
 
 ## Drift (SQLite)
 
-**Versión schema**: 8
+**Versión schema**: 10 (v9→v10 agregó nameEn/namePt a exercises)
 
 Tablas: Exercises, CustomExercises, WeightRecords, WorkoutSets, Routines, RoutineItems, RoutineCompletions, UserProfiles, UserPreferences, SyncQueue
 
@@ -103,6 +105,9 @@ flutter build apk --flavor prod -t lib/main_prod.dart --release
 # Generar código (freezed, drift)
 dart run build_runner build --delete-conflicting-outputs
 
+# Generar traducciones (después de editar .arb)
+flutter gen-l10n
+
 # Deploy Firebase
 firebase deploy --only firestore:rules,storage:rules --project prod
 
@@ -120,6 +125,7 @@ cd functions && npm run build && firebase deploy --only functions:deleteAccount
 | Records | `lastWeightRecordProvider(exerciseId)`, `allHistoryProvider` |
 | Rutinas | `routinesProvider`, `routineItemsProvider(routineId)` |
 | Perfil | `userProfileProvider`, `userProfileNotifierProvider` |
+| Locale | `localeProvider`, `localeNotifierProvider` |
 
 Patrón: Los providers `*NotifierProvider` son StateNotifier para mutaciones (create/update/delete).
 
@@ -131,12 +137,28 @@ Patrón: Los providers `*NotifierProvider` son StateNotifier para mutaciones (cr
 - **Skeletons**: Shimmer (AppColors.shimmerBase/shimmerHighlight) en lugar de spinners
 - **Pull-to-refresh**: Invalida providers correspondientes
 
+## Internacionalización (i18n)
+
+- **Sistema**: Flutter gen-l10n oficial con archivos `.arb`
+- **Idiomas**: EN (template), ES, PT
+- **Archivos ARB**: `lib/l10n/app_en.arb`, `app_es.arb`, `app_pt.arb`
+- **Clase generada**: `AppLocalizations` en `lib/l10n/app_localizations.dart`
+- **Uso**: `AppLocalizations.of(context).clave`
+- **Locale provider**: `lib/core/providers/locale_provider.dart` — persiste en `UserPreferences` (key: `app_locale`)
+- **Detección**: Detecta idioma del sistema al primer uso, fallback a `en`
+- **Cambio manual**: Settings > Idioma > LanguagePickerSheet (`lib/shared/widgets/language_picker_sheet.dart`)
+- **Ejercicios globales**: `ExerciseModel` tiene `nameEn`/`namePt`, extension `getLocalizedName(languageCode)` con fallback a `name` (español)
+- **Grupos musculares**: `MuscleGroups.getLocalizedName(muscleGroup, languageCode)` — claves internas en español (compatibilidad BD/Firestore)
+- **Validators**: Todos requieren `BuildContext context` para acceder a `AppLocalizations`
+- **Comando**: `flutter gen-l10n` después de editar `.arb`
+
 ## Cloud Functions
 
 `functions/src/functions/auth/deleteAccount.ts` - Callable que borra todos los datos del usuario (Firestore, Storage, Auth).
 
 ## Pendiente
 
+- Subir traducciones nameEn/namePt de ejercicios globales a Firestore
 - Drag & drop en rutinas
 - Notificaciones
 - iOS

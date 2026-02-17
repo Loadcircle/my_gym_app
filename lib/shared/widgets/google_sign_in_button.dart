@@ -1,21 +1,26 @@
 import 'package:flutter/material.dart';
 
+import '../../l10n/app_localizations.dart';
+
 /// Boton de inicio de sesion con Google.
 /// Sigue las guias de diseno de Google para branding.
 class GoogleSignInButton extends StatelessWidget {
   final VoidCallback? onPressed;
   final bool isLoading;
-  final String text;
+  final String? text;
 
   const GoogleSignInButton({
     super.key,
     required this.onPressed,
     this.isLoading = false,
-    this.text = 'Continuar con Google',
+    this.text,
   });
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final displayText = text ?? l10n.continueWithGoogle;
+
     return OutlinedButton(
       onPressed: isLoading ? null : onPressed,
       style: OutlinedButton.styleFrom(
@@ -45,7 +50,7 @@ class GoogleSignInButton extends StatelessWidget {
                 const SizedBox(width: 12),
                 Flexible(
                   child: Text(
-                    text,
+                    displayText,
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w500,

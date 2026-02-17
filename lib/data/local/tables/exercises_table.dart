@@ -27,6 +27,12 @@ class Exercises extends Table {
   /// Keywords de búsqueda (separados por coma)
   TextColumn get keywords => text().withDefault(const Constant(''))();
 
+  /// Nombre del ejercicio en inglés
+  TextColumn get nameEn => text().withDefault(const Constant(''))();
+
+  /// Nombre del ejercicio en portugués
+  TextColumn get namePt => text().withDefault(const Constant(''))();
+
   /// Orden dentro del grupo muscular
   IntColumn get sortOrder => integer().withDefault(const Constant(0))();
 

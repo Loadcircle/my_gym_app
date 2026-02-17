@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../data/models/day_summary.dart';
 import '../../providers/history_calendar_providers.dart';
 
@@ -31,19 +32,21 @@ class _LastWorkoutContent extends ConsumerWidget {
 
   const _LastWorkoutContent({required this.summary});
 
-  String _relativeDate(DateTime date) {
+  String _relativeDate(BuildContext context, DateTime date) {
+    final l10n = AppLocalizations.of(context);
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final diff = today.difference(date).inDays;
 
-    if (diff == 0) return 'Hoy';
-    if (diff == 1) return 'Ayer';
-    if (diff < 7) return 'Hace $diff días';
+    if (diff == 0) return l10n.today;
+    if (diff == 1) return l10n.yesterday;
+    if (diff < 7) return l10n.daysAgo(diff);
     return '${date.day}/${date.month}/${date.year}';
   }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
     final previewNames = summary.previewNames();
 
     return Card(
@@ -76,14 +79,14 @@ class _LastWorkoutContent extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Último entrenamiento',
+                      l10n.lastWorkout,
                       style: Theme.of(context).textTheme.labelMedium?.copyWith(
                             color: AppColors.textHint,
                           ),
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      _relativeDate(summary.date),
+                      _relativeDate(context, summary.date),
                       style: Theme.of(context).textTheme.titleSmall?.copyWith(
                             fontWeight: FontWeight.w600,
                           ),
@@ -109,7 +112,7 @@ class _LastWorkoutContent extends ConsumerWidget {
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
-                  '${summary.totalItems} actividad${summary.totalItems != 1 ? 'es' : ''}',
+                  l10n.activityCount(summary.totalItems),
                   style: Theme.of(context).textTheme.labelSmall?.copyWith(
                         color: AppColors.textSecondary,
                       ),

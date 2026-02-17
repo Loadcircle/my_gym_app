@@ -7,14 +7,16 @@ import '../../core/router/route_names.dart';
 import '../../core/theme/app_colors.dart';
 import '../../features/auth/providers/auth_provider.dart';
 import '../../features/profile/providers/user_profile_provider.dart';
+import '../../l10n/app_localizations.dart';
 
-/// Drawer lateral de la aplicación.
-/// Muestra el perfil del usuario y opciones de navegación.
+/// Drawer lateral de la aplicacion.
+/// Muestra el perfil del usuario y opciones de navegacion.
 class AppDrawer extends ConsumerWidget {
   const AppDrawer({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
     final authState = ref.watch(authStateProvider);
     final profileAsync = ref.watch(userProfileStreamProvider);
 
@@ -29,18 +31,18 @@ class AppDrawer extends ConsumerWidget {
           _DrawerHeader(
             displayName: profile?.fullName.isNotEmpty == true
                 ? profile!.fullName
-                : user?.displayName ?? 'Usuario',
+                : user?.displayName ?? l10n.user,
             email: user?.email ?? '',
           ),
 
-          // Items de navegación
+          // Items de navegacion
           Expanded(
             child: ListView(
               padding: EdgeInsets.zero,
               children: [
                 _DrawerItem(
                   icon: Icons.person_outline,
-                  label: 'Mi Perfil',
+                  label: l10n.myProfile,
                   onTap: () {
                     Navigator.of(context).pop();
                     context.push(RouteNames.profile);
@@ -48,7 +50,7 @@ class AppDrawer extends ConsumerWidget {
                 ),
                 _DrawerItem(
                   icon: Icons.settings_outlined,
-                  label: 'Configuracion',
+                  label: l10n.configuration,
                   onTap: () {
                     Navigator.of(context).pop();
                     context.push(RouteNames.settings);
@@ -57,7 +59,7 @@ class AppDrawer extends ConsumerWidget {
                 const Divider(color: AppColors.border, height: 32),
                 _DrawerItem(
                   icon: Icons.logout,
-                  label: 'Cerrar Sesion',
+                  label: l10n.signOut,
                   textColor: AppColors.error,
                   iconColor: AppColors.error,
                   onTap: () => _showLogoutDialog(context, ref),
@@ -66,7 +68,7 @@ class AppDrawer extends ConsumerWidget {
             ),
           ),
 
-          // Versión de la app
+          // Version de la app
           const _AppVersionFooter(),
         ],
       ),
@@ -74,25 +76,29 @@ class AppDrawer extends ConsumerWidget {
   }
 
   Future<void> _showLogoutDialog(BuildContext context, WidgetRef ref) async {
+    final l10n = AppLocalizations.of(context);
     final shouldLogout = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Cerrar Sesion'),
-        content: const Text('¿Estas seguro que deseas cerrar sesion?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancelar'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            style: TextButton.styleFrom(
-              foregroundColor: AppColors.error,
+      builder: (context) {
+        final l10n = AppLocalizations.of(context);
+        return AlertDialog(
+          title: Text(l10n.signOutTitle),
+          content: Text(l10n.signOutConfirm),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: Text(l10n.cancel),
             ),
-            child: const Text('Cerrar Sesion'),
-          ),
-        ],
-      ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              style: TextButton.styleFrom(
+                foregroundColor: AppColors.error,
+              ),
+              child: Text(l10n.signOut),
+            ),
+          ],
+        );
+      },
     );
 
     if (shouldLogout == true && context.mounted) {
@@ -104,9 +110,10 @@ class AppDrawer extends ConsumerWidget {
         }
       } catch (e) {
         if (context.mounted) {
+          final l10n = AppLocalizations.of(context);
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Error al cerrar sesion: $e'),
+              content: Text(l10n.errorSigningOut(e.toString())),
               backgroundColor: AppColors.error,
             ),
           );
@@ -246,7 +253,7 @@ class _DrawerItem extends StatelessWidget {
   }
 }
 
-/// Footer con la versión de la app.
+/// Footer con la version de la app.
 class _AppVersionFooter extends StatelessWidget {
   const _AppVersionFooter();
 

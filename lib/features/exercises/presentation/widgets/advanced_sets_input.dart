@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../../../../l10n/app_localizations.dart';
 
 const _uuid = Uuid();
 
@@ -216,7 +217,7 @@ class _AdvancedSetsInputState extends State<AdvancedSetsInput> {
         OutlinedButton.icon(
           onPressed: _addSet,
           icon: const Icon(Icons.add, size: 18),
-          label: const Text('Agregar serie'),
+          label: Text(AppLocalizations.of(context).addSet),
           style: OutlinedButton.styleFrom(
             foregroundColor: AppColors.primary,
             side: BorderSide(color: AppColors.primary.withAlpha(128)),

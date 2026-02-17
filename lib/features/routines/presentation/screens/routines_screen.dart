@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/constants/app_constants.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/widgets/skeletons/routine_card_skeleton.dart';
 import '../../data/models/routine_model.dart';
 import '../../providers/routines_provider.dart';
@@ -24,25 +25,29 @@ class _RoutinesScreenState extends ConsumerState<RoutinesScreen> {
   }
 
   Future<void> _showDeleteDialog(RoutineModel routine) async {
+    final l10n = AppLocalizations.of(context);
     final shouldDelete = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Eliminar Rutina'),
-        content: Text('¿Eliminar "${routine.name}"? Esta acción no se puede deshacer.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancelar'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            style: TextButton.styleFrom(
-              foregroundColor: AppColors.error,
+      builder: (context) {
+        final l10n = AppLocalizations.of(context);
+        return AlertDialog(
+          title: Text(l10n.deleteRoutine),
+          content: Text(l10n.deleteRoutineConfirm(routine.name)),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: Text(l10n.cancel),
             ),
-            child: const Text('Eliminar'),
-          ),
-        ],
-      ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              style: TextButton.styleFrom(
+                foregroundColor: AppColors.error,
+              ),
+              child: Text(l10n.delete),
+            ),
+          ],
+        );
+      },
     );
 
     if (shouldDelete == true && mounted) {
@@ -50,12 +55,12 @@ class _RoutinesScreenState extends ConsumerState<RoutinesScreen> {
       if (mounted) {
         if (success) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Rutina eliminada')),
+            SnackBar(content: Text(l10n.routineDeleted)),
           );
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Error al eliminar rutina'),
+            SnackBar(
+              content: Text(l10n.errorDeletingRoutine),
               backgroundColor: AppColors.error,
             ),
           );
@@ -65,39 +70,43 @@ class _RoutinesScreenState extends ConsumerState<RoutinesScreen> {
   }
 
   Future<void> _showRenameDialog(RoutineModel routine) async {
+    final l10n = AppLocalizations.of(context);
     final controller = TextEditingController(text: routine.name);
     final newName = await showDialog<String>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Renombrar Rutina'),
-        content: TextField(
-          controller: controller,
-          decoration: const InputDecoration(
-            labelText: 'Nombre',
-            hintText: 'Ej: Push, Pull, Legs...',
+      builder: (context) {
+        final l10n = AppLocalizations.of(context);
+        return AlertDialog(
+          title: Text(l10n.renameRoutine),
+          content: TextField(
+            controller: controller,
+            decoration: InputDecoration(
+              labelText: l10n.nameLabel,
+              hintText: l10n.routineNameExample,
+            ),
+            autofocus: true,
+            textCapitalization: TextCapitalization.sentences,
           ),
-          autofocus: true,
-          textCapitalization: TextCapitalization.sentences,
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancelar'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(controller.text.trim()),
-            child: const Text('Guardar'),
-          ),
-        ],
-      ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(l10n.cancel),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(controller.text.trim()),
+              child: Text(l10n.save),
+            ),
+          ],
+        );
+      },
     );
 
     if (newName != null && newName.isNotEmpty && newName != routine.name && mounted) {
       final success = await ref.read(routineNotifierProvider.notifier).rename(routine.id, newName);
       if (mounted && !success) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Error al renombrar rutina'),
+          SnackBar(
+            content: Text(l10n.errorRenamingRoutine),
             backgroundColor: AppColors.error,
           ),
         );
@@ -107,6 +116,7 @@ class _RoutinesScreenState extends ConsumerState<RoutinesScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final routinesAsync = ref.watch(routinesProvider);
 
     return Scaffold(
@@ -115,9 +125,9 @@ class _RoutinesScreenState extends ConsumerState<RoutinesScreen> {
         leading: IconButton(
           icon: const Icon(Icons.menu),
           onPressed: () => Scaffold.of(context).openDrawer(),
-          tooltip: 'Menu',
+          tooltip: l10n.menu,
         ),
-        title: const Text('Rutinas'),
+        title: Text(l10n.routines),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => context.push(RouteNames.createRoutine),
@@ -138,6 +148,7 @@ class _RoutinesScreenState extends ConsumerState<RoutinesScreen> {
   }
 
   Widget _buildEmptyState() {
+    final l10n = AppLocalizations.of(context);
     return Center(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 32),
@@ -151,14 +162,14 @@ class _RoutinesScreenState extends ConsumerState<RoutinesScreen> {
             ),
             const SizedBox(height: 24),
             Text(
-              'Aún no tienes rutinas',
+              l10n.noRoutinesYet,
               style: Theme.of(context).textTheme.titleLarge?.copyWith(
                     color: AppColors.textPrimary,
                   ),
             ),
             const SizedBox(height: 8),
             Text(
-              'Crea tu primera rutina para organizar tus entrenamientos',
+              l10n.createFirstRoutine,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: AppColors.textSecondary,
                   ),
@@ -168,7 +179,7 @@ class _RoutinesScreenState extends ConsumerState<RoutinesScreen> {
             ElevatedButton.icon(
               onPressed: () => context.push(RouteNames.createRoutine),
               icon: const Icon(Icons.add),
-              label: const Text('Crear Rutina'),
+              label: Text(l10n.createRoutine),
             ),
           ],
         ),
@@ -177,6 +188,7 @@ class _RoutinesScreenState extends ConsumerState<RoutinesScreen> {
   }
 
   Widget _buildErrorState(String error) {
+    final l10n = AppLocalizations.of(context);
     return Center(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 32),
@@ -190,7 +202,7 @@ class _RoutinesScreenState extends ConsumerState<RoutinesScreen> {
             ),
             const SizedBox(height: 16),
             Text(
-              'Error al cargar rutinas',
+              l10n.errorLoadingRoutines,
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     color: AppColors.textSecondary,
                   ),
@@ -207,7 +219,7 @@ class _RoutinesScreenState extends ConsumerState<RoutinesScreen> {
             ElevatedButton.icon(
               onPressed: () => ref.invalidate(routinesProvider),
               icon: const Icon(Icons.refresh),
-              label: const Text('Reintentar'),
+              label: Text(l10n.retry),
             ),
           ],
         ),
@@ -253,6 +265,7 @@ class _RoutineCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       child: InkWell(
@@ -291,7 +304,7 @@ class _RoutineCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      _getExerciseCountText(routine.exerciseCount),
+                      _getExerciseCountText(routine.exerciseCount, l10n),
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                             color: AppColors.textSecondary,
                           ),
@@ -313,28 +326,31 @@ class _RoutineCard extends StatelessWidget {
                       break;
                   }
                 },
-                itemBuilder: (context) => [
-                  const PopupMenuItem(
-                    value: 'rename',
-                    child: Row(
-                      children: [
-                        Icon(Icons.edit_outlined, size: 20),
-                        SizedBox(width: 12),
-                        Text('Renombrar'),
-                      ],
+                itemBuilder: (context) {
+                  final l10n = AppLocalizations.of(context);
+                  return [
+                    PopupMenuItem(
+                      value: 'rename',
+                      child: Row(
+                        children: [
+                          const Icon(Icons.edit_outlined, size: 20),
+                          const SizedBox(width: 12),
+                          Text(l10n.rename),
+                        ],
+                      ),
                     ),
-                  ),
-                  const PopupMenuItem(
-                    value: 'delete',
-                    child: Row(
-                      children: [
-                        Icon(Icons.delete_outline, size: 20, color: AppColors.error),
-                        SizedBox(width: 12),
-                        Text('Eliminar', style: TextStyle(color: AppColors.error)),
-                      ],
+                    PopupMenuItem(
+                      value: 'delete',
+                      child: Row(
+                        children: [
+                          const Icon(Icons.delete_outline, size: 20, color: AppColors.error),
+                          const SizedBox(width: 12),
+                          Text(l10n.delete, style: const TextStyle(color: AppColors.error)),
+                        ],
+                      ),
                     ),
-                  ),
-                ],
+                  ];
+                },
               ),
             ],
           ),
@@ -343,9 +359,9 @@ class _RoutineCard extends StatelessWidget {
     );
   }
 
-  String _getExerciseCountText(int count) {
-    if (count == 0) return 'Sin ejercicios';
-    if (count == 1) return '1 ejercicio';
-    return '$count ejercicios';
+  String _getExerciseCountText(int count, AppLocalizations l10n) {
+    if (count == 0) return l10n.noExercisesCount;
+    if (count == 1) return l10n.oneExercise;
+    return l10n.exerciseCount(count);
   }
 }

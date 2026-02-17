@@ -4,10 +4,13 @@ import 'package:go_router/go_router.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../../../core/providers/locale_provider.dart';
 import '../../../../core/router/route_names.dart';
 import '../../../../core/services/sync_service.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/constants/app_constants.dart';
+import '../../../../l10n/app_localizations.dart';
+import '../../../../shared/widgets/language_picker_sheet.dart';
 import '../../../auth/providers/auth_provider.dart';
 import '../../../exercises/providers/custom_exercises_provider.dart';
 import '../../../exercises/providers/weight_records_provider.dart';
@@ -27,14 +30,27 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   bool _isSendingResetEmail = false;
   bool _isDeletingAccount = false;
 
+  String _currentLanguageName(WidgetRef ref, AppLocalizations l10n) {
+    final locale = ref.watch(localeNotifierProvider);
+    switch (locale.languageCode) {
+      case 'es':
+        return l10n.spanish;
+      case 'pt':
+        return l10n.portuguese;
+      default:
+        return l10n.english;
+    }
+  }
+
   Future<void> _showChangePasswordDialog() async {
+    final l10n = AppLocalizations.of(context);
     final authState = ref.read(authStateProvider);
     final email = authState.user?.email;
 
     if (email == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('No se pudo obtener el email de la cuenta'),
+        SnackBar(
+          content: Text(l10n.couldNotGetEmail),
           backgroundColor: AppColors.error,
         ),
       );
@@ -43,22 +59,23 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
     final shouldSend = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Cambiar Contrasena'),
-        content: Text(
-          'Se enviara un enlace para cambiar tu contrasena a:\n\n$email',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancelar'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Enviar'),
-          ),
-        ],
-      ),
+      builder: (context) {
+        final dl10n = AppLocalizations.of(context);
+        return AlertDialog(
+          title: Text(dl10n.changePasswordTitle),
+          content: Text(dl10n.changePasswordMessage(email)),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: Text(dl10n.cancel),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: Text(dl10n.send),
+            ),
+          ],
+        );
+      },
     );
 
     if (shouldSend == true && mounted) {
@@ -68,7 +85,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Email enviado a $email'),
+              content: Text(l10n.emailSentTo(email)),
               backgroundColor: AppColors.success,
             ),
           );
@@ -77,7 +94,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Error al enviar email: $e'),
+              content: Text(l10n.errorSendingEmail(e.toString())),
               backgroundColor: AppColors.error,
             ),
           );
@@ -100,23 +117,26 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   Future<void> _showLogoutDialog() async {
     final shouldLogout = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Cerrar Sesion'),
-        content: const Text('¿Estas seguro que deseas cerrar sesion?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancelar'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            style: TextButton.styleFrom(
-              foregroundColor: AppColors.error,
+      builder: (context) {
+        final dl10n = AppLocalizations.of(context);
+        return AlertDialog(
+          title: Text(dl10n.signOutTitle),
+          content: Text(dl10n.signOutConfirm),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: Text(dl10n.cancel),
             ),
-            child: const Text('Cerrar Sesion'),
-          ),
-        ],
-      ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              style: TextButton.styleFrom(
+                foregroundColor: AppColors.error,
+              ),
+              child: Text(dl10n.signOut),
+            ),
+          ],
+        );
+      },
     );
 
     if (shouldLogout == true && mounted) {
@@ -127,9 +147,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         }
       } catch (e) {
         if (mounted) {
+          final l10n = AppLocalizations.of(context);
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Error al cerrar sesion: $e'),
+              content: Text(l10n.errorSigningOut(e.toString())),
               backgroundColor: AppColors.error,
             ),
           );
@@ -142,24 +163,23 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     // Modal 1: Informacion
     final shouldContinue = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Eliminar cuenta'),
-        content: const Text(
-          'Al eliminar la cuenta, se eliminan todos los datos personales '
-          'y de entrenamiento asociados.\n\n'
-          'Esta accion no se puede deshacer.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancelar'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Continuar'),
-          ),
-        ],
-      ),
+      builder: (context) {
+        final dl10n = AppLocalizations.of(context);
+        return AlertDialog(
+          title: Text(dl10n.deleteAccountTitle),
+          content: Text(dl10n.deleteAccountMessage),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: Text(dl10n.cancel),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: Text(dl10n.continueAction),
+            ),
+          ],
+        );
+      },
     );
 
     if (shouldContinue != true || !mounted) return;
@@ -167,26 +187,26 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     // Modal 2: Confirmacion fuerte
     final shouldDelete = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('¿Eliminar cuenta definitivamente?'),
-        content: const Text(
-          'Se eliminaran todos tus ejercicios, rutinas, '
-          'registros de peso y datos personales.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancelar'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            style: TextButton.styleFrom(
-              foregroundColor: AppColors.error,
+      builder: (context) {
+        final dl10n = AppLocalizations.of(context);
+        return AlertDialog(
+          title: Text(dl10n.deleteAccountFinalTitle),
+          content: Text(dl10n.deleteAccountFinalMessage),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: Text(dl10n.cancel),
             ),
-            child: const Text('Eliminar definitivamente'),
-          ),
-        ],
-      ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              style: TextButton.styleFrom(
+                foregroundColor: AppColors.error,
+              ),
+              child: Text(dl10n.deleteDefinitely),
+            ),
+          ],
+        );
+      },
     );
 
     if (shouldDelete != true || !mounted) return;
@@ -210,13 +230,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       ref.invalidate(routineCompletionsProvider);
 
       if (mounted) {
+        final l10n = AppLocalizations.of(context);
         context.go(RouteNames.login);
         // Mostrar toast despues de navegar
         Future.microtask(() {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Cuenta eliminada'),
+              SnackBar(
+                content: Text(l10n.accountDeleted),
                 backgroundColor: AppColors.success,
               ),
             );
@@ -225,10 +246,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       }
     } catch (e) {
       if (mounted) {
+        final l10n = AppLocalizations.of(context);
         setState(() => _isDeletingAccount = false);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error: $e'),
+            content: Text(l10n.errorGeneric(e.toString())),
             backgroundColor: AppColors.error,
           ),
         );
@@ -238,6 +260,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final authState = ref.watch(authStateProvider);
     final email = authState.user?.email ?? '';
 
@@ -246,20 +269,20 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         Scaffold(
           backgroundColor: AppColors.background,
           appBar: AppBar(
-            title: const Text('Configuracion'),
+            title: Text(l10n.settings),
           ),
           body: ListView(
             padding: const EdgeInsets.all(AppConstants.defaultPadding),
             children: [
               // Seccion Cuenta
-              const _SectionHeader(title: 'Cuenta'),
+              _SectionHeader(title: l10n.account),
               const SizedBox(height: 8),
 
               // Email (solo lectura)
               Card(
                 child: ListTile(
                   leading: const Icon(Icons.email_outlined, color: AppColors.textSecondary),
-                  title: const Text('Email'),
+                  title: Text(l10n.email),
                   subtitle: Text(
                     email,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
@@ -284,8 +307,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                           ),
                         )
                       : const Icon(Icons.lock_outline, color: AppColors.textSecondary),
-                  title: const Text('Cambiar contrasena'),
-                  subtitle: const Text('Se enviara un email con instrucciones'),
+                  title: Text(l10n.changePassword),
+                  subtitle: Text(l10n.changePasswordSubtitle),
                   trailing: const Icon(Icons.chevron_right, color: AppColors.textHint),
                   onTap: _isSendingResetEmail ? null : _showChangePasswordDialog,
                 ),
@@ -293,15 +316,31 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
               const SizedBox(height: 24),
 
+              // Seccion Idioma
+              _SectionHeader(title: l10n.language),
+              const SizedBox(height: 8),
+
+              Card(
+                child: ListTile(
+                  leading: const Icon(Icons.language, color: AppColors.textSecondary),
+                  title: Text(l10n.language),
+                  subtitle: Text(_currentLanguageName(ref, l10n)),
+                  trailing: const Icon(Icons.chevron_right, color: AppColors.textHint),
+                  onTap: () => showLanguagePickerSheet(context),
+                ),
+              ),
+
+              const SizedBox(height: 24),
+
               // Seccion Sesion
-              const _SectionHeader(title: 'Sesion'),
+              _SectionHeader(title: l10n.session),
               const SizedBox(height: 8),
 
               Card(
                 child: ListTile(
                   leading: const Icon(Icons.logout, color: AppColors.error),
                   title: Text(
-                    'Cerrar sesion',
+                    l10n.signOut,
                     style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                           color: AppColors.error,
                         ),
@@ -313,7 +352,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               const SizedBox(height: 24),
 
               // Seccion Legal
-              const _SectionHeader(title: 'Legal'),
+              _SectionHeader(title: l10n.legal),
               const SizedBox(height: 8),
 
               Card(
@@ -321,14 +360,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   children: [
                     ListTile(
                       leading: const Icon(Icons.privacy_tip_outlined, color: AppColors.textSecondary),
-                      title: const Text('Politica de privacidad'),
+                      title: Text(l10n.privacyPolicy),
                       trailing: const Icon(Icons.open_in_new, size: 18, color: AppColors.textHint),
                       onTap: () => _launchUrl(AppConstants.privacyPolicyUrl),
                     ),
                     const Divider(height: 1),
                     ListTile(
                       leading: const Icon(Icons.description_outlined, color: AppColors.textSecondary),
-                      title: const Text('Terminos y condiciones'),
+                      title: Text(l10n.termsAndConditions),
                       trailing: const Icon(Icons.open_in_new, size: 18, color: AppColors.textHint),
                       onTap: () => _launchUrl(AppConstants.termsAndConditionsUrl),
                     ),
@@ -339,19 +378,19 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               const SizedBox(height: 24),
 
               // Seccion Zona de peligro
-              const _SectionHeader(title: 'Zona de peligro'),
+              _SectionHeader(title: l10n.dangerZone),
               const SizedBox(height: 8),
 
               Card(
                 child: ListTile(
                   leading: const Icon(Icons.delete_forever, color: AppColors.error),
                   title: Text(
-                    'Eliminar cuenta',
+                    l10n.deleteAccount,
                     style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                           color: AppColors.error,
                         ),
                   ),
-                  subtitle: const Text('Elimina permanentemente tu cuenta y datos'),
+                  subtitle: Text(l10n.deleteAccountSubtitle),
                   onTap: _showDeleteAccountFlow,
                 ),
               ),
@@ -359,7 +398,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               const SizedBox(height: 24),
 
               // Seccion Acerca de
-              const _SectionHeader(title: 'Acerca de'),
+              _SectionHeader(title: l10n.about),
               const SizedBox(height: 8),
 
               SafeArea(child:  _AppInfoCard()),
@@ -370,15 +409,15 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         if (_isDeletingAccount)
           Container(
             color: Colors.black54,
-            child: const Center(
+            child: Center(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  CircularProgressIndicator(color: AppColors.primary),
-                  SizedBox(height: 16),
+                  const CircularProgressIndicator(color: AppColors.primary),
+                  const SizedBox(height: 16),
                   Text(
-                    'Eliminando cuenta...',
-                    style: TextStyle(color: Colors.white),
+                    l10n.deletingAccount,
+                    style: const TextStyle(color: Colors.white),
                   ),
                 ],
               ),
@@ -415,6 +454,8 @@ class _AppInfoCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+
     return FutureBuilder<PackageInfo>(
       future: PackageInfo.fromPlatform(),
       builder: (context, snapshot) {
@@ -423,6 +464,7 @@ class _AppInfoCard extends StatelessWidget {
         final appName = info?.appName ?? 'GymVault';
         final version = info?.version ?? '...';
         final buildNumber = info?.buildNumber ?? '';
+        final buildSuffix = buildNumber.isNotEmpty ? ' ($buildNumber)' : '';
 
         return Card(
           child: Padding(
@@ -453,7 +495,7 @@ class _AppInfoCard extends StatelessWidget {
 
                 // Versión
                 Text(
-                  'Versión $version${buildNumber.isNotEmpty ? ' ($buildNumber)' : ''}',
+                  l10n.versionInfo(version, buildSuffix),
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: AppColors.textSecondary,
                       ),
@@ -462,7 +504,7 @@ class _AppInfoCard extends StatelessWidget {
 
                 // Descripción corta
                 Text(
-                  'Registra tus entrenamientos, ejercicios y progreso en el gimnasio.',
+                  l10n.appDescription,
                   textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: AppColors.textSecondary,
@@ -473,7 +515,7 @@ class _AppInfoCard extends StatelessWidget {
 
                 // Footer legal mínimo
                 Text(
-                  '© 2026 GymVault',
+                  l10n.copyright,
                   style: Theme.of(context).textTheme.labelSmall?.copyWith(
                         color: AppColors.textSecondary.withValues(alpha: 0.6),
                       ),

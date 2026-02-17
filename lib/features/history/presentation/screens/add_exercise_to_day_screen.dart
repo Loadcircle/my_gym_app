@@ -6,6 +6,7 @@ import '../../../../core/constants/app_constants.dart';
 import '../../../../core/services/sync_service.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/muscle_groups.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../auth/providers/auth_provider.dart';
 import '../../../exercises/data/models/exercise_model.dart';
 import '../../../exercises/data/models/custom_exercise_model.dart';
@@ -17,7 +18,7 @@ import '../../../routines/data/models/routine_completion_model.dart';
 import '../../../routines/providers/routines_provider.dart';
 import '../../../routines/providers/routine_completion_status_provider.dart';
 
-/// Pantalla para agregar ejercicios o rutinas a un día del historial.
+/// Pantalla para agregar ejercicios o rutinas a un dia del historial.
 /// Tab 1: Ejercicios (multi-select + confirmar)
 /// Tab 2: Rutinas (tap = crea completion + weight records y pop)
 class AddExerciseToDayScreen extends ConsumerStatefulWidget {
@@ -42,7 +43,7 @@ class _AddExerciseToDayScreenState
   /// Ejercicios seleccionados para agregar (multi-select).
   final Set<String> _selectedExerciseIds = {};
 
-  /// IDs de ejercicios que ya tienen registro en este día.
+  /// IDs de ejercicios que ya tienen registro en este dia.
   Set<String> _existingExerciseIds = {};
 
   @override
@@ -92,7 +93,7 @@ class _AddExerciseToDayScreenState
     return '${date.day} ${months[date.month - 1]}';
   }
 
-  /// Obtiene el último registro local (solo Drift, sin Firestore sync).
+  /// Obtiene el ultimo registro local (solo Drift, sin Firestore sync).
   Future<({double weight, int reps, int sets})?> _getLastRecordLocal(
     String exerciseId,
   ) async {
@@ -114,12 +115,14 @@ class _AddExerciseToDayScreenState
     if (_isSaving || _selectedExerciseIds.isEmpty) return;
     setState(() => _isSaving = true);
 
+    final l10n = AppLocalizations.of(context);
+
     try {
       final selected = allExercises
           .where((e) => _selectedExerciseIds.contains(e.exerciseId))
           .toList();
 
-      // Obtener últimos registros locales en paralelo
+      // Obtener ultimos registros locales en paralelo
       final lastRecords = await Future.wait(
         selected.map((e) => _getLastRecordLocal(e.exerciseId)),
       );
@@ -147,8 +150,8 @@ class _AddExerciseToDayScreenState
             SnackBar(
               content: Text(
                 savedCount == 1
-                    ? '${selected.first.name} agregado'
-                    : '$savedCount ejercicios agregados',
+                    ? l10n.exerciseNameAdded(selected.first.name)
+                    : l10n.countExercisesAdded(savedCount),
               ),
               backgroundColor: AppColors.success,
             ),
@@ -156,8 +159,8 @@ class _AddExerciseToDayScreenState
           context.pop();
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Error al agregar'),
+            SnackBar(
+              content: Text(l10n.errorAddingExercises),
               backgroundColor: AppColors.error,
             ),
           );
@@ -167,7 +170,7 @@ class _AddExerciseToDayScreenState
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error: $e'),
+            content: Text(l10n.errorGeneric(e.toString())),
             backgroundColor: AppColors.error,
           ),
         );
@@ -181,6 +184,8 @@ class _AddExerciseToDayScreenState
   Future<void> _addRoutine(RoutineModel routine) async {
     if (_isSaving) return;
     setState(() => _isSaving = true);
+
+    final l10n = AppLocalizations.of(context);
 
     try {
       // Crear RoutineCompletion con la fecha correcta
@@ -200,7 +205,7 @@ class _AddExerciseToDayScreenState
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              '${routine.name} agregada (${routine.exerciseCount} ejercicios)',
+              l10n.routineAddedWithExercises(routine.name, routine.exerciseCount),
             ),
             backgroundColor: AppColors.success,
           ),
@@ -211,7 +216,7 @@ class _AddExerciseToDayScreenState
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error: $e'),
+            content: Text(l10n.errorGeneric(e.toString())),
             backgroundColor: AppColors.error,
           ),
         );
@@ -223,18 +228,20 @@ class _AddExerciseToDayScreenState
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: Text('Agregar - ${_formatDate(widget.date)}'),
+        title: Text(l10n.addDate(_formatDate(widget.date))),
         bottom: TabBar(
           controller: _tabController,
           indicatorColor: AppColors.primary,
           labelColor: AppColors.primary,
           unselectedLabelColor: AppColors.textSecondary,
-          tabs: const [
-            Tab(text: 'Ejercicios'),
-            Tab(text: 'Rutinas'),
+          tabs: [
+            Tab(text: l10n.exercisesTab),
+            Tab(text: l10n.routinesTab),
           ],
         ),
       ),
@@ -262,6 +269,8 @@ class _AddExerciseToDayScreenState
   // ============ TAB EJERCICIOS ============
 
   Widget _buildExercisesTab() {
+    final l10n = AppLocalizations.of(context);
+    final langCode = Localizations.localeOf(context).languageCode;
     final muscleGroupFilter =
         _selectedFilter == 'Todos' ? 'Todos' : _selectedFilter;
 
@@ -283,7 +292,7 @@ class _AddExerciseToDayScreenState
           child: TextField(
             controller: _searchController,
             decoration: InputDecoration(
-              hintText: 'Buscar ejercicio...',
+              hintText: l10n.searchExercise,
               prefixIcon:
                   const Icon(Icons.search, color: AppColors.textSecondary),
               suffixIcon: _searchQuery.isNotEmpty
@@ -325,7 +334,9 @@ class _AddExerciseToDayScreenState
               return Padding(
                 padding: const EdgeInsets.only(right: 8),
                 child: FilterChip(
-                  label: Text(filter),
+                  label: Text(
+                    MuscleGroups.getLocalizedName(filter, langCode),
+                  ),
                   selected: isSelected,
                   onSelected: (_) => setState(() {
                     _selectedFilter = filter;
@@ -362,6 +373,9 @@ class _AddExerciseToDayScreenState
     AsyncValue<List<ExerciseModel>> globalAsync,
     AsyncValue<List<CustomExerciseModel>> customAsync,
   ) {
+    final l10n = AppLocalizations.of(context);
+    final langCode = Localizations.localeOf(context).languageCode;
+
     if (globalAsync.isLoading && customAsync.isLoading) {
       return const Center(
         child: CircularProgressIndicator(color: AppColors.primary),
@@ -385,14 +399,14 @@ class _AddExerciseToDayScreenState
     for (final e in globalExercises) {
       allExercises.add(_ExerciseEntry(
         exerciseId: e.id,
-        name: e.name,
+        name: e.getLocalizedName(langCode),
         muscleGroup: e.muscleGroup,
         keywords: e.keywords,
         isCustom: false,
       ));
     }
 
-    // Filtrar ejercicios que ya tienen registro este día
+    // Filtrar ejercicios que ya tienen registro este dia
     final available = allExercises
         .where((e) => !_existingExerciseIds.contains(e.exerciseId))
         .toList();
@@ -417,7 +431,7 @@ class _AddExerciseToDayScreenState
             ),
             const SizedBox(height: 12),
             Text(
-              'No se encontraron ejercicios',
+              l10n.noExercisesFound,
               style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                     color: AppColors.textSecondary,
                   ),
@@ -467,8 +481,8 @@ class _AddExerciseToDayScreenState
               icon: const Icon(Icons.check),
               label: Text(
                 _selectedExerciseIds.length == 1
-                    ? 'Agregar 1 ejercicio'
-                    : 'Agregar ${_selectedExerciseIds.length} ejercicios',
+                    ? l10n.addOneExercise
+                    : l10n.addMultipleExercises(_selectedExerciseIds.length),
               ),
               style: FilledButton.styleFrom(
                 backgroundColor: AppColors.primary,
@@ -483,6 +497,7 @@ class _AddExerciseToDayScreenState
   // ============ TAB RUTINAS ============
 
   Widget _buildRoutinesTab() {
+    final l10n = AppLocalizations.of(context);
     final routinesAsync = ref.watch(routinesProvider);
 
     return routinesAsync.when(
@@ -491,7 +506,7 @@ class _AddExerciseToDayScreenState
       ),
       error: (error, _) => Center(
         child: Text(
-          'Error: $error',
+          l10n.errorMessage(error.toString()),
           style: const TextStyle(color: AppColors.error),
         ),
       ),
@@ -508,14 +523,14 @@ class _AddExerciseToDayScreenState
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  'No tienes rutinas',
+                  l10n.noRoutinesAvailable,
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                         color: AppColors.textSecondary,
                       ),
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Crea una rutina primero',
+                  l10n.createRoutineFirst,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: AppColors.textHint,
                       ),
@@ -572,6 +587,9 @@ class _ExerciseListTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final langCode = Localizations.localeOf(context).languageCode;
+
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
       color: isSelected ? AppColors.primary.withAlpha(26) : null,
@@ -607,7 +625,7 @@ class _ExerciseListTile extends StatelessWidget {
         subtitle: Row(
           children: [
             Text(
-              entry.muscleGroup,
+              MuscleGroups.getLocalizedName(entry.muscleGroup, langCode),
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: AppColors.textSecondary,
                   ),
@@ -622,7 +640,7 @@ class _ExerciseListTile extends StatelessWidget {
                   borderRadius: BorderRadius.circular(4),
                 ),
                 child: Text(
-                  'Custom',
+                  l10n.personal,
                   style: Theme.of(context).textTheme.labelSmall?.copyWith(
                         color: AppColors.primary,
                         fontSize: 10,
@@ -652,6 +670,8 @@ class _RoutineListTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
       child: ListTile(
@@ -676,7 +696,7 @@ class _RoutineListTile extends StatelessWidget {
               ),
         ),
         subtitle: Text(
-          '${routine.exerciseCount} ejercicio${routine.exerciseCount != 1 ? 's' : ''}',
+          l10n.exerciseCountLabel(routine.exerciseCount),
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
                 color: AppColors.textSecondary,
               ),

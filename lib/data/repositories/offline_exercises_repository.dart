@@ -152,6 +152,8 @@ class OfflineExercisesRepository {
                 ? (data['keywords'] as List).cast<String>().join(',')
                 : '',
           ),
+          nameEn: Value(data['nameEn'] as String? ?? ''),
+          namePt: Value(data['namePt'] as String? ?? ''),
           sortOrder: Value(data['order'] as int? ?? 0),
           lastSynced: Value(DateTime.now()),
         );
@@ -183,6 +185,8 @@ class OfflineExercisesRepository {
       videoUrl: exercise.videoUrl,
       order: exercise.sortOrder,
       keywords: exercise.keywords,
+      nameEn: exercise.nameEn,
+      namePt: exercise.namePt,
     );
   }
 
@@ -196,6 +200,8 @@ class OfflineExercisesRepository {
       imageUrl: Value(model.imageUrl),
       videoUrl: Value(model.videoUrl),
       keywords: Value(model.keywords),
+      nameEn: Value(model.nameEn),
+      namePt: Value(model.namePt),
       sortOrder: Value(model.order),
       lastSynced: Value(DateTime.now()),
     );

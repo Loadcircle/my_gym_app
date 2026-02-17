@@ -6,11 +6,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_app_check/firebase_app_check.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'l10n/app_localizations.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
 import 'core/config/app_config.dart';
 import 'core/theme/app_theme.dart';
 import 'core/router/app_router.dart';
+import 'core/providers/locale_provider.dart';
 import 'core/utils/logger.dart';
 
 /// Entry point comun para todos los flavors.
@@ -27,8 +30,8 @@ void mainCommon(Environment env) async {
     DeviceOrientation.portraitDown,
   ]);
 
-  // Inicializar locale para calendario
-  await initializeDateFormatting('es_ES');
+  // Inicializar locale para calendario (todos los locales)
+  await initializeDateFormatting();
 
   // Inicializar Firebase
   await _initializeFirebase();
@@ -119,9 +122,16 @@ class MyGymApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(appRouterProvider);
 
+    final locale = ref.watch(localeNotifierProvider);
+
     return MaterialApp.router(
       title: AppConfig.appName,
       debugShowCheckedModeBanner: AppConfig.isDev,
+
+      // Localization
+      locale: locale,
+      supportedLocales: AppLocalizations.supportedLocales,
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
 
       // Theme
       theme: AppTheme.darkTheme,

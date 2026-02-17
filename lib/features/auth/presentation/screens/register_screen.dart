@@ -6,6 +6,7 @@ import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/utils/validators.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/widgets/google_sign_in_button.dart';
 import '../../../../shared/widgets/legal_text.dart';
 import '../../providers/auth_provider.dart';
@@ -94,6 +95,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authStateProvider);
+    final l10n = AppLocalizations.of(context);
 
     // Escuchar errores para mostrar snackbar
     ref.listen<AuthState>(authStateProvider, (previous, next) {
@@ -120,13 +122,13 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
               children: [
                 // Header
                 Text(
-                  'Crear Cuenta',
+                  l10n.createAccount,
                   style: Theme.of(context).textTheme.headlineLarge,
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Registrate para empezar',
+                  l10n.registerSubtitle,
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                         color: AppColors.textSecondary,
                       ),
@@ -140,12 +142,12 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   textInputAction: TextInputAction.next,
                   textCapitalization: TextCapitalization.words,
                   enabled: !authState.isLoading,
-                  decoration: const InputDecoration(
-                    labelText: 'Nombre',
-                    hintText: 'Tu nombre',
-                    prefixIcon: Icon(Icons.person_outlined),
+                  decoration: InputDecoration(
+                    labelText: l10n.name,
+                    hintText: l10n.nameHint,
+                    prefixIcon: const Icon(Icons.person_outlined),
                   ),
-                  validator: Validators.validateName,
+                  validator: (v) => Validators.validateName(v, context),
                 ),
                 const SizedBox(height: 16),
 
@@ -155,12 +157,12 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   keyboardType: TextInputType.emailAddress,
                   textInputAction: TextInputAction.next,
                   enabled: !authState.isLoading,
-                  decoration: const InputDecoration(
-                    labelText: 'Email',
-                    hintText: 'tu@email.com',
-                    prefixIcon: Icon(Icons.email_outlined),
+                  decoration: InputDecoration(
+                    labelText: l10n.email,
+                    hintText: l10n.emailHint,
+                    prefixIcon: const Icon(Icons.email_outlined),
                   ),
-                  validator: Validators.validateEmail,
+                  validator: (v) => Validators.validateEmail(v, context),
                 ),
                 const SizedBox(height: 16),
 
@@ -171,7 +173,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   textInputAction: TextInputAction.next,
                   enabled: !authState.isLoading,
                   decoration: InputDecoration(
-                    labelText: 'Contrasena',
+                    labelText: l10n.password,
                     prefixIcon: const Icon(Icons.lock_outlined),
                     suffixIcon: IconButton(
                       icon: Icon(
@@ -184,7 +186,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                       },
                     ),
                   ),
-                  validator: Validators.validatePassword,
+                  validator: (v) => Validators.validatePassword(v, context),
                 ),
                 const SizedBox(height: 16),
 
@@ -195,7 +197,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   textInputAction: TextInputAction.done,
                   enabled: !authState.isLoading,
                   decoration: InputDecoration(
-                    labelText: 'Confirmar Contrasena',
+                    labelText: l10n.confirmPassword,
                     prefixIcon: const Icon(Icons.lock_outlined),
                     suffixIcon: IconButton(
                       icon: Icon(
@@ -212,6 +214,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   validator: (value) => Validators.validateConfirmPassword(
                     value,
                     _passwordController.text,
+                    context,
                   ),
                   onFieldSubmitted: (_) => _handleRegister(),
                 ),
@@ -229,7 +232,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                             color: AppColors.textPrimary,
                           ),
                         )
-                      : const Text('Registrarse'),
+                      : Text(l10n.register),
                 ),
                 const SizedBox(height: 24),
 
@@ -240,7 +243,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                       child: Text(
-                        'o continua con',
+                        l10n.orContinueWith,
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                               color: AppColors.textSecondary,
                             ),
@@ -263,7 +266,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      'Ya tienes cuenta? ',
+                      l10n.alreadyHaveAccount,
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                             color: AppColors.textSecondary,
                           ),
@@ -272,7 +275,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                       onPressed: authState.isLoading
                           ? null
                           : () => context.go(RouteNames.login),
-                      child: const Text('Inicia Sesion'),
+                      child: Text(l10n.signInLink),
                     ),
                   ],
                 ),

@@ -77,6 +77,38 @@ firebase use prod   # Cambiar a prod
 firebase use
 ```
 
+### Internacionalización (i18n)
+
+```bash
+# Generar archivos de traducción (después de editar .arb)
+flutter gen-l10n
+
+# Archivos ARB (traducciones) están en:
+#   lib/l10n/app_en.arb   (inglés - template principal)
+#   lib/l10n/app_es.arb   (español)
+#   lib/l10n/app_pt.arb   (portugués)
+
+# Los archivos generados se crean en lib/l10n/:
+#   app_localizations.dart
+#   app_localizations_en.dart
+#   app_localizations_es.dart
+#   app_localizations_pt.dart
+
+# Flujo para agregar un nuevo string:
+#   1. Agregar la clave en app_en.arb (template)
+#   2. Agregar la traducción en app_es.arb y app_pt.arb
+#   3. Ejecutar: flutter gen-l10n
+#   4. Usar en código: AppLocalizations.of(context).tuClave
+
+# Para strings con parámetros usar placeholders:
+#   "greeting": "Hello {name}",
+#   "@greeting": { "placeholders": { "name": { "type": "String" } } }
+
+# Para plurales usar sintaxis ICU:
+#   "itemCount": "{count, plural, =1{1 item} other{{count} items}}",
+#   "@itemCount": { "placeholders": { "count": { "type": "int" } } }
+```
+
 ### Tests
 
 ```bash

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../exercises/providers/weight_records_provider.dart';
 import '../../../routines/providers/routine_completion_status_provider.dart';
 import '../../providers/history_calendar_providers.dart';
@@ -52,6 +53,7 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final historyAsync = ref.watch(combinedHistoryProvider);
 
     // Listen for first data load to set initial selected day
@@ -67,9 +69,9 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
         leading: IconButton(
           icon: const Icon(Icons.menu),
           onPressed: () => Scaffold.of(context).openDrawer(),
-          tooltip: 'Menu',
+          tooltip: l10n.menu,
         ),
-        title: const Text('Historial'),
+        title: Text(l10n.history),
       ),
       body: historyAsync.when(
         loading: () => const HistoryV2Skeleton(),
@@ -97,6 +99,7 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
   }
 
   Widget _buildErrorState(BuildContext context, Object error) {
+    final l10n = AppLocalizations.of(context);
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -108,7 +111,7 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
           ),
           const SizedBox(height: 16),
           Text(
-            'Error al cargar historial',
+            l10n.errorLoadingHistory,
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
                   color: AppColors.textSecondary,
                 ),
@@ -131,7 +134,7 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
               ref.invalidate(routineCompletionsProvider);
             },
             icon: const Icon(Icons.refresh),
-            label: const Text('Reintentar'),
+            label: Text(l10n.retry),
           ),
         ],
       ),

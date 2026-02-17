@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/auth_state.dart';
 
@@ -41,6 +42,8 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+
     // Escuchar cambios en el estado de auth para navegacion reactiva
     ref.listen<AuthState>(authStateProvider, (previous, next) {
       if (next.status == AuthStatus.authenticated) {
@@ -68,7 +71,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
             ),
             const SizedBox(height: 24),
             Text(
-              'GymVault',
+              l10n.appName,
               style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                     color: AppColors.textPrimary,
                     fontWeight: FontWeight.bold,

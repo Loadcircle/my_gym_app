@@ -3,6 +3,7 @@ import 'package:fl_chart/fl_chart.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../../features/exercises/data/models/weight_record_model.dart';
+import '../../l10n/app_localizations.dart';
 
 /// Widget que muestra un grafico de linea con la evolucion del peso.
 /// Requiere al menos 2 registros para mostrar el grafico.
@@ -18,6 +19,8 @@ class WeightProgressChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+
     // Necesitamos al menos 2 puntos para un grafico
     if (records.length < 2) {
       return const SizedBox.shrink();
@@ -58,7 +61,7 @@ class WeightProgressChart extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Evolucion de Peso',
+          l10n.weightEvolution,
           style: Theme.of(context).textTheme.titleLarge,
         ),
         const SizedBox(height: 16),
@@ -114,7 +117,7 @@ class WeightProgressChart extends StatelessWidget {
                     interval: _calculateInterval(yMin, yMax),
                     getTitlesWidget: (value, meta) {
                       return Text(
-                        '${value.toStringAsFixed(1)}kg',
+                        l10n.weightAxisLabel(value.toStringAsFixed(1)),
                         style: const TextStyle(
                           color: AppColors.textHint,
                           fontSize: 10,
@@ -162,7 +165,10 @@ class WeightProgressChart extends StatelessWidget {
                       final index = spot.x.toInt();
                       final record = displayRecords[index];
                       return LineTooltipItem(
-                        '${record.weight}kg x ${record.reps} reps',
+                        l10n.weightRepsTooltip(
+                          record.weight.toString(),
+                          record.reps.toString(),
+                        ),
                         const TextStyle(
                           color: AppColors.textPrimary,
                           fontWeight: FontWeight.bold,
@@ -178,7 +184,7 @@ class WeightProgressChart extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         // Indicador de tendencia
-        _buildTrendIndicator(displayRecords),
+        _buildTrendIndicator(context, displayRecords),
       ],
     );
   }
@@ -189,7 +195,7 @@ class WeightProgressChart extends StatelessWidget {
     final result = <WeightRecordModel>[];
 
     for (final record in records) {
-      // Clave unica: año-mes-dia + peso + reps
+      // Clave unica: ano-mes-dia + peso + reps
       final key = '${record.date.year}-${record.date.month}-${record.date.day}'
           '_${record.weight}_${record.reps}';
 
@@ -211,9 +217,10 @@ class WeightProgressChart extends StatelessWidget {
     return 20;
   }
 
-  Widget _buildTrendIndicator(List<WeightRecordModel> records) {
+  Widget _buildTrendIndicator(BuildContext context, List<WeightRecordModel> records) {
     if (records.length < 2) return const SizedBox.shrink();
 
+    final l10n = AppLocalizations.of(context);
     final first = records.first.weight;
     final last = records.last.weight;
     final diff = last - first;
@@ -229,16 +236,18 @@ class WeightProgressChart extends StatelessWidget {
     if (isFlat) {
       icon = Icons.trending_flat;
       color = AppColors.textSecondary;
-      text = 'Estable';
+      text = l10n.stable;
     } else if (isUp) {
       icon = Icons.trending_up;
       color = AppColors.success;
-      text = '+${percentage.toStringAsFixed(1)}%';
+      text = l10n.positivePercentage(percentage.toStringAsFixed(1));
     } else {
       icon = Icons.trending_down;
       color = AppColors.warning;
-      text = '-${percentage.toStringAsFixed(1)}%';
+      text = l10n.negativePercentage(percentage.toStringAsFixed(1));
     }
+
+    final dateStr = '${records.first.date.day}/${records.first.date.month}';
 
     return SafeArea(
       top: false,
@@ -256,7 +265,7 @@ class WeightProgressChart extends StatelessWidget {
           ),
           const SizedBox(width: 8),
           Text(
-            'desde ${records.first.date.day}/${records.first.date.month}',
+            l10n.sinceDate(dateStr),
             style: const TextStyle(
               color: AppColors.textHint,
               fontSize: 12,

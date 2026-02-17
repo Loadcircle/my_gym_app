@@ -5,6 +5,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/config/providers/app_config_provider.dart';
 import '../../../../core/utils/muscle_groups.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/widgets/storage_image.dart';
 import '../../../../shared/widgets/storage_video_player.dart';
 import '../../../../shared/widgets/weight_progress_chart.dart';
@@ -44,6 +45,7 @@ class _ExerciseDetailScreenState extends ConsumerState<ExerciseDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final exerciseAsync = ref.watch(exerciseByIdProvider(widget.exerciseId));
     final historyAsync = ref.watch(exerciseHistoryProvider(widget.exerciseId));
 
@@ -63,7 +65,7 @@ class _ExerciseDetailScreenState extends ConsumerState<ExerciseDetailScreen> {
             children: [
               const Icon(Icons.error_outline, size: 64, color: AppColors.error),
               const SizedBox(height: 16),
-              Text('Error al cargar ejercicio',
+              Text(l10n.errorLoadingExercise,
                   style: Theme.of(context).textTheme.titleMedium),
               const SizedBox(height: 8),
               Text(error.toString(),
@@ -77,7 +79,7 @@ class _ExerciseDetailScreenState extends ConsumerState<ExerciseDetailScreen> {
           return Scaffold(
             backgroundColor: AppColors.background,
             appBar: AppBar(),
-            body: const Center(child: Text('Ejercicio no encontrado')),
+            body: Center(child: Text(l10n.exerciseNotFound)),
           );
         }
 
@@ -91,7 +93,12 @@ class _ExerciseDetailScreenState extends ConsumerState<ExerciseDetailScreen> {
     ExerciseModel exercise,
     AsyncValue<List<WeightRecordModel>> historyAsync,
   ) {
+    final l10n = AppLocalizations.of(context);
+    final langCode = Localizations.localeOf(context).languageCode;
     final muscleColor = MuscleGroups.getColor(exercise.muscleGroup);
+    final localizedMuscleGroup =
+        MuscleGroups.getLocalizedName(exercise.muscleGroup, langCode);
+    final localizedName = exercise.getLocalizedName(langCode);
     final instructions = exercise.instructions.isNotEmpty
         ? exercise.instructions.split('\n')
         : <String>[];
@@ -126,7 +133,7 @@ class _ExerciseDetailScreenState extends ConsumerState<ExerciseDetailScreen> {
                 children: [
                   // Titulo y grupo muscular
                   Text(
-                    exercise.name,
+                    localizedName,
                     style: Theme.of(context).textTheme.headlineSmall,
                   ),
                   const SizedBox(height: 8),
@@ -142,7 +149,7 @@ class _ExerciseDetailScreenState extends ConsumerState<ExerciseDetailScreen> {
                           borderRadius: BorderRadius.circular(16),
                         ),
                         child: Text(
-                          exercise.muscleGroup,
+                          localizedMuscleGroup,
                           style: Theme.of(context).textTheme.labelMedium?.copyWith(
                                 color: muscleColor,
                                 fontWeight: FontWeight.w600,
@@ -150,11 +157,11 @@ class _ExerciseDetailScreenState extends ConsumerState<ExerciseDetailScreen> {
                         ),
                       ),
                       const Spacer(),
-                      // Botón agregar a rutina
+                      // Boton agregar a rutina
                       TextButton.icon(
                         onPressed: () => _showAddToRoutineSheet(exercise),
                         icon: const Icon(Icons.playlist_add, size: 20),
-                        label: const Text('Rutina'),
+                        label: Text(l10n.routine),
                         style: TextButton.styleFrom(
                           foregroundColor: AppColors.primary,
                           padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -174,18 +181,18 @@ class _ExerciseDetailScreenState extends ConsumerState<ExerciseDetailScreen> {
                         setState(() => _detailsExpanded = expanded);
                       },
                       title: Text(
-                        _detailsExpanded ? 'Ocultar detalles del ejercicio' : 'Ver detalles del ejercicio',
+                        _detailsExpanded ? l10n.hideExerciseDetails : l10n.showExerciseDetails,
                         style: Theme.of(context).textTheme.titleMedium,
                       ),
                       subtitle: Text(
                         _detailsExpanded
-                            ? 'Toca para ocultar'
-                            : 'Descripción, video e instrucciones',
+                            ? l10n.tapToHide
+                            : l10n.descriptionVideoInstructions,
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                               color: AppColors.textSecondary,
                             ),
                       ),
-                      children: [                        
+                      children: [
                         // Descripcion
                         if (exercise.description.isNotEmpty) ...[
                           Text(
@@ -210,7 +217,7 @@ class _ExerciseDetailScreenState extends ConsumerState<ExerciseDetailScreen> {
                         // Instrucciones
                         if (instructions.isNotEmpty) ...[
                           Text(
-                            'Instrucciones',
+                            l10n.instructions,
                             style: Theme.of(context).textTheme.titleLarge,
                           ),
                           const SizedBox(height: 12),
@@ -254,7 +261,7 @@ class _ExerciseDetailScreenState extends ConsumerState<ExerciseDetailScreen> {
                       ],
                     ),
                   ),
-                  
+
                   // Registro de peso
                   WeightInputCard(
                     exerciseId: widget.exerciseId,
