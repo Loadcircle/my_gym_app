@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:drift/drift.dart';
@@ -154,6 +156,13 @@ class OfflineExercisesRepository {
           ),
           nameEn: Value(data['nameEn'] as String? ?? ''),
           namePt: Value(data['namePt'] as String? ?? ''),
+          movementType: Value(data['movementType'] as String? ?? ''),
+          primaryMuscle: Value(data['primaryMuscle'] as String? ?? ''),
+          secondaryMuscles: Value(
+            data['secondaryMuscles'] is List
+                ? jsonEncode((data['secondaryMuscles'] as List).cast<String>())
+                : null,
+          ),
           sortOrder: Value(data['order'] as int? ?? 0),
           lastSynced: Value(DateTime.now()),
         );
@@ -187,6 +196,9 @@ class OfflineExercisesRepository {
       keywords: exercise.keywords,
       nameEn: exercise.nameEn,
       namePt: exercise.namePt,
+      movementType: exercise.movementType,
+      primaryMuscle: exercise.primaryMuscle,
+      secondaryMuscles: exercise.secondaryMuscles,
     );
   }
 
@@ -202,6 +214,9 @@ class OfflineExercisesRepository {
       keywords: Value(model.keywords),
       nameEn: Value(model.nameEn),
       namePt: Value(model.namePt),
+      movementType: Value(model.movementType),
+      primaryMuscle: Value(model.primaryMuscle),
+      secondaryMuscles: Value(model.secondaryMuscles),
       sortOrder: Value(model.order),
       lastSynced: Value(DateTime.now()),
     );

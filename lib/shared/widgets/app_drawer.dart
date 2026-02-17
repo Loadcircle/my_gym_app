@@ -56,6 +56,14 @@ class AppDrawer extends ConsumerWidget {
                     context.push(RouteNames.settings);
                   },
                 ),
+                _DrawerItem(
+                  icon: Icons.insights_outlined,
+                  label: l10n.generalProgress,
+                  onTap: () {
+                    Navigator.of(context).pop();
+                    context.push(RouteNames.progress);
+                  },
+                ),
                 const Divider(color: AppColors.border, height: 32),
                 _DrawerItem(
                   icon: Icons.logout,

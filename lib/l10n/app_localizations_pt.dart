@@ -1100,4 +1100,91 @@ class AppLocalizationsPt extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get generalProgress => 'Progresso Geral';
+
+  @override
+  String get summary => 'Resumo';
+
+  @override
+  String get workoutDays => 'Dias de treino';
+
+  @override
+  String get totalVolume => 'Volume total';
+
+  @override
+  String get dominantMuscle => 'Musculo dominante';
+
+  @override
+  String get bestProgress => 'Melhor progresso';
+
+  @override
+  String get muscleDistribution => 'Distribuicao Muscular';
+
+  @override
+  String get topMuscles => 'Musculos principais';
+
+  @override
+  String forgottenMusclesWarning(String muscles) {
+    return 'Musculos com pouco trabalho: $muscles';
+  }
+
+  @override
+  String get noProgressData => 'Sem dados de progresso';
+
+  @override
+  String get noProgressDataSubtitle =>
+      'Registre seus treinos para ver seu progresso';
+
+  @override
+  String get errorLoadingProgress => 'Erro ao carregar progresso';
+
+  @override
+  String get last30Days => '30 dias';
+
+  @override
+  String get last90Days => '90 dias';
+
+  @override
+  String get last6Months => '6 meses';
+
+  @override
+  String get last12Months => '12 meses';
+
+  @override
+  String get allTime => 'Tudo';
+
+  @override
+  String volumeKg(String volume) {
+    return '$volume kg';
+  }
+
+  @override
+  String days(String count) {
+    return '$count d';
+  }
+
+  @override
+  String get workoutDaysTooltip => 'Dias unicos de treino neste periodo';
+
+  @override
+  String get totalVolumeTooltip =>
+      'Peso total x reps x series de todos os exercicios';
+
+  @override
+  String get dominantMuscleTooltip =>
+      'Grupo muscular com maior volume acumulado';
+
+  @override
+  String get bestProgressTooltip => 'Exercicio com maior aumento de peso';
+
+  @override
+  String get volumeLabel => 'Volume';
+
+  @override
+  String get setsLabel => 'Series';
+
+  @override
+  String get tapChartHint => 'Toque uma secao para ver detalhes';
 }

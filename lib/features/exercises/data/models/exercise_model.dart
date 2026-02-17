@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -20,6 +22,9 @@ class ExerciseModel with _$ExerciseModel {
     @Default('') String keywords,
     @Default('') String nameEn,
     @Default('') String namePt,
+    @Default('') String movementType,
+    @Default('') String primaryMuscle,
+    String? secondaryMuscles,
   }) = _ExerciseModel;
 
   factory ExerciseModel.fromJson(Map<String, dynamic> json) =>
@@ -33,13 +38,34 @@ class ExerciseModel with _$ExerciseModel {
     final keywordsStr = keywordsList is List
         ? keywordsList.cast<String>().join(',')
         : '';
+    // Convertir secondaryMuscles de List<String> (Firestore) a JSON string
+    final secondaryList = data['secondaryMuscles'];
+    final secondaryStr = secondaryList is List
+        ? jsonEncode(secondaryList.cast<String>())
+        : null;
     return ExerciseModel.fromJson({
       'id': doc.id,
       ...data,
       'keywords': keywordsStr,
       'nameEn': data['nameEn'] as String? ?? '',
       'namePt': data['namePt'] as String? ?? '',
+      'movementType': data['movementType'] as String? ?? '',
+      'primaryMuscle': data['primaryMuscle'] as String? ?? '',
+      'secondaryMuscles': secondaryStr,
     });
+  }
+}
+
+/// Extension para parsear músculos secundarios desde JSON.
+extension ExerciseModelMuscle on ExerciseModel {
+  /// Retorna la lista de músculos secundarios parseando el JSON string.
+  List<String> get secondaryMusclesList {
+    if (secondaryMuscles == null || secondaryMuscles!.isEmpty) return [];
+    try {
+      return (jsonDecode(secondaryMuscles!) as List).cast<String>();
+    } catch (_) {
+      return [];
+    }
   }
 }
 

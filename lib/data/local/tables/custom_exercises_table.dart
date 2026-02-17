@@ -16,6 +16,15 @@ class CustomExercises extends Table {
   /// Grupo muscular (Pecho, Espalda, Piernas, etc.)
   TextColumn get muscleGroup => text()();
 
+  /// Tipo de movimiento: 'push', 'pull', 'legs', 'core'
+  TextColumn get movementType => text().withDefault(const Constant(''))();
+
+  /// Músculo principal (e.g. 'chest_pectoralis_major')
+  TextColumn get primaryMuscle => text().withDefault(const Constant(''))();
+
+  /// Músculos secundarios como JSON array string
+  TextColumn get secondaryMuscles => text().nullable()();
+
   /// Notas adicionales del usuario
   TextColumn get notes => text().nullable()();
 

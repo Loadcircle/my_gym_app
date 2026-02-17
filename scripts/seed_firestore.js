@@ -71,7 +71,13 @@ async function seedExercises() {
       instructions: exercise.instructions || '',
       imageUrl: exercise.imageUrl || null,
       videoUrl: exercise.videoUrl || null,
-      order: exercise.order || 0
+      order: exercise.order || 0,
+      nameEn: exercise.nameEn || '',
+      namePt: exercise.namePt || '',
+      movementType: exercise.movementType || '',
+      primaryMuscle: exercise.primaryMuscle || '',
+      secondaryMuscles: exercise.secondaryMuscles || [],
+      keywords: exercise.keywords || []
     });
   }
 

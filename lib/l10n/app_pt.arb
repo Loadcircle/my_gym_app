@@ -343,5 +343,36 @@
   "selectLanguage": "Selecionar idioma",
 
   "routineCountBadge": "{count, plural, =1{1 rotina} other{{count} rotinas}}",
-  "@routineCountBadge": { "placeholders": { "count": { "type": "int" } } }
+  "@routineCountBadge": { "placeholders": { "count": { "type": "int" } } },
+
+  "generalProgress": "Progresso Geral",
+  "summary": "Resumo",
+  "workoutDays": "Dias de treino",
+  "totalVolume": "Volume total",
+  "dominantMuscle": "Musculo dominante",
+  "bestProgress": "Melhor progresso",
+  "muscleDistribution": "Distribuicao Muscular",
+  "topMuscles": "Musculos principais",
+  "forgottenMusclesWarning": "Musculos com pouco trabalho: {muscles}",
+  "@forgottenMusclesWarning": { "placeholders": { "muscles": { "type": "String" } } },
+  "noProgressData": "Sem dados de progresso",
+  "noProgressDataSubtitle": "Registre seus treinos para ver seu progresso",
+  "errorLoadingProgress": "Erro ao carregar progresso",
+  "last30Days": "30 dias",
+  "last90Days": "90 dias",
+  "last6Months": "6 meses",
+  "last12Months": "12 meses",
+  "allTime": "Tudo",
+  "volumeKg": "{volume} kg",
+  "@volumeKg": { "placeholders": { "volume": { "type": "String" } } },
+  "days": "{count} d",
+  "@days": { "placeholders": { "count": { "type": "String" } } },
+
+  "workoutDaysTooltip": "Dias unicos de treino neste periodo",
+  "totalVolumeTooltip": "Peso total x reps x series de todos os exercicios",
+  "dominantMuscleTooltip": "Grupo muscular com maior volume acumulado",
+  "bestProgressTooltip": "Exercicio com maior aumento de peso",
+  "volumeLabel": "Volume",
+  "setsLabel": "Series",
+  "tapChartHint": "Toque uma secao para ver detalhes"
 }

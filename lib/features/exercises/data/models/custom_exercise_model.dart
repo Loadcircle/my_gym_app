@@ -43,6 +43,15 @@ class CustomExerciseModel with _$CustomExerciseModel {
     /// Grupo muscular principal
     required String muscleGroup,
 
+    /// Tipo de movimiento: 'push', 'pull', 'legs', 'core'
+    @Default('') String movementType,
+
+    /// Músculo principal (e.g. 'chest_pectoralis_major')
+    @Default('') String primaryMuscle,
+
+    /// Músculos secundarios como JSON array string
+    String? secondaryMuscles,
+
     /// Notas personales o instrucciones (opcional)
     String? notes,
 

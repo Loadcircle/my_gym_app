@@ -38,7 +38,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 10;
+  int get schemaVersion => 11;
 
   /// Limpia todos los datos de usuario de la base de datos local.
   /// Llamado al eliminar cuenta o cerrar sesion.
@@ -108,6 +108,15 @@ class AppDatabase extends _$AppDatabase {
         if (from < 10) {
           await m.addColumn(exercises, exercises.nameEn);
           await m.addColumn(exercises, exercises.namePt);
+        }
+        // Migracion v10 -> v11: Agregar columnas movementType, primaryMuscle, secondaryMuscles
+        if (from < 11) {
+          await m.addColumn(exercises, exercises.movementType);
+          await m.addColumn(exercises, exercises.primaryMuscle);
+          await m.addColumn(exercises, exercises.secondaryMuscles);
+          await m.addColumn(customExercises, customExercises.movementType);
+          await m.addColumn(customExercises, customExercises.primaryMuscle);
+          await m.addColumn(customExercises, customExercises.secondaryMuscles);
         }
       },
     );

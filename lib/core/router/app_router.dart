@@ -23,6 +23,7 @@ import '../../features/routines/presentation/screens/create_routine_screen.dart'
 import '../../features/routines/presentation/screens/routine_detail_screen.dart';
 import '../../features/routines/presentation/screens/add_exercises_to_routine_screen.dart';
 import '../../features/profile/presentation/screens/profile_screen.dart';
+import '../../features/progress/presentation/screens/progress_screen.dart';
 import '../../features/settings/presentation/screens/settings_screen.dart';
 import '../../shared/widgets/main_shell.dart';
 import '../../l10n/app_localizations.dart';
@@ -187,6 +188,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           final exerciseId = state.pathParameters['exerciseId'] ?? '';
           return EditCustomExerciseScreen(exerciseId: exerciseId);
         },
+      ),
+
+      // Progress
+      GoRoute(
+        path: RouteNames.progress,
+        name: 'progress',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const ProgressScreen(),
       ),
 
       // Profile & Settings

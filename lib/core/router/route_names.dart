@@ -19,6 +19,9 @@ abstract class RouteNames {
   static const String editDay = '/history/edit-day';
   static const String addExerciseToDay = '/history/edit-day/add-exercise';
 
+  // Progress
+  static const String progress = '/progress';
+
   // Profile & Settings
   static const String profile = '/profile';
   static const String settings = '/settings';

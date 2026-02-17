@@ -1103,4 +1103,92 @@ class AppLocalizationsEs extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get generalProgress => 'Progreso General';
+
+  @override
+  String get summary => 'Resumen';
+
+  @override
+  String get workoutDays => 'Dias de entreno';
+
+  @override
+  String get totalVolume => 'Volumen total';
+
+  @override
+  String get dominantMuscle => 'Musculo dominante';
+
+  @override
+  String get bestProgress => 'Mejor progreso';
+
+  @override
+  String get muscleDistribution => 'Distribucion Muscular';
+
+  @override
+  String get topMuscles => 'Musculos principales';
+
+  @override
+  String forgottenMusclesWarning(String muscles) {
+    return 'Musculos con poco trabajo: $muscles';
+  }
+
+  @override
+  String get noProgressData => 'Sin datos de progreso';
+
+  @override
+  String get noProgressDataSubtitle =>
+      'Registra tus entrenamientos para ver tu progreso';
+
+  @override
+  String get errorLoadingProgress => 'Error al cargar progreso';
+
+  @override
+  String get last30Days => '30 dias';
+
+  @override
+  String get last90Days => '90 dias';
+
+  @override
+  String get last6Months => '6 meses';
+
+  @override
+  String get last12Months => '12 meses';
+
+  @override
+  String get allTime => 'Todo';
+
+  @override
+  String volumeKg(String volume) {
+    return '$volume kg';
+  }
+
+  @override
+  String days(String count) {
+    return '$count d';
+  }
+
+  @override
+  String get workoutDaysTooltip =>
+      'Dias unicos de entrenamiento en este periodo';
+
+  @override
+  String get totalVolumeTooltip =>
+      'Peso total x reps x series de todos los ejercicios';
+
+  @override
+  String get dominantMuscleTooltip =>
+      'Grupo muscular con mayor volumen acumulado';
+
+  @override
+  String get bestProgressTooltip => 'Ejercicio con mayor aumento de peso';
+
+  @override
+  String get volumeLabel => 'Volumen';
+
+  @override
+  String get setsLabel => 'Series';
+
+  @override
+  String get tapChartHint => 'Toca una seccion para ver detalles';
 }

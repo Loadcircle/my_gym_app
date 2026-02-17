@@ -1983,6 +1983,162 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count, plural, =1{1 routine} other{{count} routines}}'**
   String routineCountBadge(int count);
+
+  /// No description provided for @generalProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'General Progress'**
+  String get generalProgress;
+
+  /// No description provided for @summary.
+  ///
+  /// In en, this message translates to:
+  /// **'Summary'**
+  String get summary;
+
+  /// No description provided for @workoutDays.
+  ///
+  /// In en, this message translates to:
+  /// **'Workout days'**
+  String get workoutDays;
+
+  /// No description provided for @totalVolume.
+  ///
+  /// In en, this message translates to:
+  /// **'Total volume'**
+  String get totalVolume;
+
+  /// No description provided for @dominantMuscle.
+  ///
+  /// In en, this message translates to:
+  /// **'Dominant muscle'**
+  String get dominantMuscle;
+
+  /// No description provided for @bestProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'Best progress'**
+  String get bestProgress;
+
+  /// No description provided for @muscleDistribution.
+  ///
+  /// In en, this message translates to:
+  /// **'Muscle Distribution'**
+  String get muscleDistribution;
+
+  /// No description provided for @topMuscles.
+  ///
+  /// In en, this message translates to:
+  /// **'Top muscles'**
+  String get topMuscles;
+
+  /// No description provided for @forgottenMusclesWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'Muscles with low work: {muscles}'**
+  String forgottenMusclesWarning(String muscles);
+
+  /// No description provided for @noProgressData.
+  ///
+  /// In en, this message translates to:
+  /// **'No progress data'**
+  String get noProgressData;
+
+  /// No description provided for @noProgressDataSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Record your workouts to see your progress'**
+  String get noProgressDataSubtitle;
+
+  /// No description provided for @errorLoadingProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'Error loading progress'**
+  String get errorLoadingProgress;
+
+  /// No description provided for @last30Days.
+  ///
+  /// In en, this message translates to:
+  /// **'30 days'**
+  String get last30Days;
+
+  /// No description provided for @last90Days.
+  ///
+  /// In en, this message translates to:
+  /// **'90 days'**
+  String get last90Days;
+
+  /// No description provided for @last6Months.
+  ///
+  /// In en, this message translates to:
+  /// **'6 months'**
+  String get last6Months;
+
+  /// No description provided for @last12Months.
+  ///
+  /// In en, this message translates to:
+  /// **'12 months'**
+  String get last12Months;
+
+  /// No description provided for @allTime.
+  ///
+  /// In en, this message translates to:
+  /// **'All time'**
+  String get allTime;
+
+  /// No description provided for @volumeKg.
+  ///
+  /// In en, this message translates to:
+  /// **'{volume} kg'**
+  String volumeKg(String volume);
+
+  /// No description provided for @days.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} d'**
+  String days(String count);
+
+  /// No description provided for @workoutDaysTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Unique days you trained in this period'**
+  String get workoutDaysTooltip;
+
+  /// No description provided for @totalVolumeTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Total weight x reps x sets of all exercises'**
+  String get totalVolumeTooltip;
+
+  /// No description provided for @dominantMuscleTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Muscle group with the highest volume'**
+  String get dominantMuscleTooltip;
+
+  /// No description provided for @bestProgressTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Exercise with the greatest weight increase'**
+  String get bestProgressTooltip;
+
+  /// No description provided for @volumeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Volume'**
+  String get volumeLabel;
+
+  /// No description provided for @setsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Sets'**
+  String get setsLabel;
+
+  /// No description provided for @tapChartHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap a section for details'**
+  String get tapChartHint;
 }
 
 class _AppLocalizationsDelegate

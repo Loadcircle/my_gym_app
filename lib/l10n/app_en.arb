@@ -400,5 +400,36 @@
   "selectLanguage": "Select language",
 
   "routineCountBadge": "{count, plural, =1{1 routine} other{{count} routines}}",
-  "@routineCountBadge": { "placeholders": { "count": { "type": "int" } } }
+  "@routineCountBadge": { "placeholders": { "count": { "type": "int" } } },
+
+  "generalProgress": "General Progress",
+  "summary": "Summary",
+  "workoutDays": "Workout days",
+  "totalVolume": "Total volume",
+  "dominantMuscle": "Dominant muscle",
+  "bestProgress": "Best progress",
+  "muscleDistribution": "Muscle Distribution",
+  "topMuscles": "Top muscles",
+  "forgottenMusclesWarning": "Muscles with low work: {muscles}",
+  "@forgottenMusclesWarning": { "placeholders": { "muscles": { "type": "String" } } },
+  "noProgressData": "No progress data",
+  "noProgressDataSubtitle": "Record your workouts to see your progress",
+  "errorLoadingProgress": "Error loading progress",
+  "last30Days": "30 days",
+  "last90Days": "90 days",
+  "last6Months": "6 months",
+  "last12Months": "12 months",
+  "allTime": "All time",
+  "volumeKg": "{volume} kg",
+  "@volumeKg": { "placeholders": { "volume": { "type": "String" } } },
+  "days": "{count} d",
+  "@days": { "placeholders": { "count": { "type": "String" } } },
+
+  "workoutDaysTooltip": "Unique days you trained in this period",
+  "totalVolumeTooltip": "Total weight x reps x sets of all exercises",
+  "dominantMuscleTooltip": "Muscle group with the highest volume",
+  "bestProgressTooltip": "Exercise with the greatest weight increase",
+  "volumeLabel": "Volume",
+  "setsLabel": "Sets",
+  "tapChartHint": "Tap a section for details"
 }

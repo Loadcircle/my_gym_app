@@ -33,6 +33,15 @@ class Exercises extends Table {
   /// Nombre del ejercicio en portugués
   TextColumn get namePt => text().withDefault(const Constant(''))();
 
+  /// Tipo de movimiento: 'push', 'pull', 'legs', 'core'
+  TextColumn get movementType => text().withDefault(const Constant(''))();
+
+  /// Músculo principal (e.g. 'chest_pectoralis_major')
+  TextColumn get primaryMuscle => text().withDefault(const Constant(''))();
+
+  /// Músculos secundarios como JSON array string
+  TextColumn get secondaryMuscles => text().nullable()();
+
   /// Orden dentro del grupo muscular
   IntColumn get sortOrder => integer().withDefault(const Constant(0))();
 
