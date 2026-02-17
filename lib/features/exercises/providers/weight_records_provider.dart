@@ -5,6 +5,8 @@ import '../data/models/weight_record_model.dart';
 import '../data/models/set_entry_model.dart';
 import '../data/repositories/weight_records_repository.dart';
 import '../../auth/providers/auth_provider.dart';
+import '../../../core/services/notification_scheduler.dart';
+import '../../notifications/providers/notification_providers.dart';
 
 /// Provider del repositorio de registros de peso (Firestore directo - legacy).
 final weightRecordsRepositoryProvider = Provider<WeightRecordsRepository>((ref) {
@@ -68,8 +70,9 @@ final historyStreamProvider = StreamProvider<List<WeightRecordModel>>((ref) {
 class WeightRecordNotifier extends StateNotifier<AsyncValue<void>> {
   final OfflineWeightRecordsRepository _repository;
   final String _userId;
+  final NotificationScheduler _notificationScheduler;
 
-  WeightRecordNotifier(this._repository, this._userId)
+  WeightRecordNotifier(this._repository, this._userId, this._notificationScheduler)
       : super(const AsyncValue.data(null));
 
   Future<WeightRecordModel?> saveRecord({
@@ -92,6 +95,8 @@ class WeightRecordNotifier extends StateNotifier<AsyncValue<void>> {
         date: date,
       );
       state = const AsyncValue.data(null);
+      // Notificar al scheduler para recordatorio de sesión incompleta
+      _notificationScheduler.onWeightRecordSaved(_userId);
       return record;
     } catch (e, st) {
       state = AsyncValue.error(e, st);
@@ -115,6 +120,8 @@ class WeightRecordNotifier extends StateNotifier<AsyncValue<void>> {
         date: date,
       );
       state = const AsyncValue.data(null);
+      // Notificar al scheduler para recordatorio de sesión incompleta
+      _notificationScheduler.onWeightRecordSaved(_userId);
       return record;
     } catch (e, st) {
       state = AsyncValue.error(e, st);
@@ -143,7 +150,8 @@ final weightRecordNotifierProvider =
   final authState = ref.watch(authStateProvider);
   final userId = authState.user?.uid ?? '';
 
-  return WeightRecordNotifier(repository, userId);
+  final scheduler = ref.watch(notificationSchedulerProvider);
+  return WeightRecordNotifier(repository, userId, scheduler);
 });
 
 /// Provider para forzar sincronizacion de registros.

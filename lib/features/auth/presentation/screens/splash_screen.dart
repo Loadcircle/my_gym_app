@@ -3,8 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/router/route_names.dart';
+import '../../../../core/services/notification_scheduler.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../l10n/app_localizations.dart';
+import '../../../notifications/providers/notification_providers.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/auth_state.dart';
 
@@ -34,10 +36,30 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
     final authState = ref.read(authStateProvider);
 
     if (authState.status == AuthStatus.authenticated) {
+      _scheduleNotifications(authState.user!.uid);
       context.go(RouteNames.exercises);
     } else {
       context.go(RouteNames.login);
     }
+  }
+
+  /// Programa notificaciones al detectar usuario autenticado.
+  void _scheduleNotifications(String userId) {
+    // Usar Future.microtask para no bloquear la navegación
+    Future.microtask(() {
+      if (!mounted) return;
+      final l10n = AppLocalizations.of(context);
+      final scheduler = ref.read(notificationSchedulerProvider);
+      scheduler.rescheduleAll(
+        userId,
+        NotificationTexts(
+          trainingReminderTitle: l10n.notifTrainingTitle,
+          trainingReminderBody: l10n.notifTrainingBody,
+          incompleteSessionTitle: l10n.notifIncompleteTitle,
+          incompleteSessionBody: l10n.notifIncompleteBody,
+        ),
+      );
+    });
   }
 
   @override
@@ -47,6 +69,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
     // Escuchar cambios en el estado de auth para navegacion reactiva
     ref.listen<AuthState>(authStateProvider, (previous, next) {
       if (next.status == AuthStatus.authenticated) {
+        _scheduleNotifications(next.user!.uid);
         context.go(RouteNames.exercises);
       } else if (next.status == AuthStatus.unauthenticated) {
         context.go(RouteNames.login);

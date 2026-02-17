@@ -25,6 +25,7 @@ import '../../features/routines/presentation/screens/add_exercises_to_routine_sc
 import '../../features/profile/presentation/screens/profile_screen.dart';
 import '../../features/progress/presentation/screens/progress_screen.dart';
 import '../../features/settings/presentation/screens/settings_screen.dart';
+import '../../features/notifications/presentation/screens/notification_settings_screen.dart';
 import '../../shared/widgets/main_shell.dart';
 import '../../l10n/app_localizations.dart';
 
@@ -210,6 +211,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         name: 'settings',
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) => const SettingsScreen(),
+      ),
+      GoRoute(
+        path: RouteNames.notificationSettings,
+        name: 'notificationSettings',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const NotificationSettingsScreen(),
       ),
 
       // Rutas de Historial (fuera del shell)

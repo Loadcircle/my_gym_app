@@ -1241,4 +1241,86 @@ class AppLocalizationsEs extends AppLocalizations {
   String progressPercentage(String percentage) {
     return '+$percentage%';
   }
+
+  @override
+  String get notifications => 'Notificaciones';
+
+  @override
+  String get notificationsSubtitle => 'Recordatorios, progreso y mas';
+
+  @override
+  String get enableNotifications => 'Activar notificaciones';
+
+  @override
+  String get reminders => 'Recordatorios';
+
+  @override
+  String get trainingReminders => 'Recordatorio de entrenamiento';
+
+  @override
+  String get trainingRemindersDesc =>
+      'Te avisa en tu hora habitual de entrenamiento';
+
+  @override
+  String get incompleteSessionReminder => 'Sesion incompleta';
+
+  @override
+  String get incompleteSessionDesc => 'Te recuerda completar tu rutina';
+
+  @override
+  String get progressSection => 'Progreso';
+
+  @override
+  String get progressMilestones => 'Hitos de progreso';
+
+  @override
+  String get progressMilestonesDesc => 'Celebra tus mejoras';
+
+  @override
+  String get news => 'Noticias';
+
+  @override
+  String get gymvaultUpdates => 'Actualizaciones GymVault';
+
+  @override
+  String get gymvaultUpdatesDesc => 'Novedades y anuncios';
+
+  @override
+  String get doNotDisturb => 'No molestar';
+
+  @override
+  String get dndDescription => 'Sin notificaciones durante este horario';
+
+  @override
+  String get dndFrom => 'Desde';
+
+  @override
+  String get dndTo => 'Hasta';
+
+  @override
+  String get notifTrainingTitle => 'Entrenamos hoy?';
+
+  @override
+  String get notifTrainingBody => 'Es tu hora habitual de entrenar. Vamos!';
+
+  @override
+  String get notifIncompleteTitle => 'Terminas tu sesion?';
+
+  @override
+  String get notifIncompleteBody =>
+      'Registraste ejercicios antes. Quieres completar tu rutina?';
+
+  @override
+  String notifMilestoneTitle(String muscleGroup) {
+    return '$muscleGroup esta creciendo!';
+  }
+
+  @override
+  String notifMilestoneBody(String muscleGroup, String percentage) {
+    return 'Tu volumen de $muscleGroup mejoro $percentage% este mes. Sigue asi!';
+  }
+
+  @override
+  String get notifPermissionRequired =>
+      'Se necesita permiso de notificaciones para enviar recordatorios';
 }

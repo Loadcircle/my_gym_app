@@ -2229,6 +2229,156 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'+{percentage}%'**
   String progressPercentage(String percentage);
+
+  /// No description provided for @notifications.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications'**
+  String get notifications;
+
+  /// No description provided for @notificationsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminders, progress, and more'**
+  String get notificationsSubtitle;
+
+  /// No description provided for @enableNotifications.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable notifications'**
+  String get enableNotifications;
+
+  /// No description provided for @reminders.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminders'**
+  String get reminders;
+
+  /// No description provided for @trainingReminders.
+  ///
+  /// In en, this message translates to:
+  /// **'Training reminders'**
+  String get trainingReminders;
+
+  /// No description provided for @trainingRemindersDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminds you at your usual workout time'**
+  String get trainingRemindersDesc;
+
+  /// No description provided for @incompleteSessionReminder.
+  ///
+  /// In en, this message translates to:
+  /// **'Incomplete session'**
+  String get incompleteSessionReminder;
+
+  /// No description provided for @incompleteSessionDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminds you to finish your routine'**
+  String get incompleteSessionDesc;
+
+  /// No description provided for @progressSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Progress'**
+  String get progressSection;
+
+  /// No description provided for @progressMilestones.
+  ///
+  /// In en, this message translates to:
+  /// **'Progress milestones'**
+  String get progressMilestones;
+
+  /// No description provided for @progressMilestonesDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Celebrates your improvements'**
+  String get progressMilestonesDesc;
+
+  /// No description provided for @news.
+  ///
+  /// In en, this message translates to:
+  /// **'News'**
+  String get news;
+
+  /// No description provided for @gymvaultUpdates.
+  ///
+  /// In en, this message translates to:
+  /// **'GymVault updates'**
+  String get gymvaultUpdates;
+
+  /// No description provided for @gymvaultUpdatesDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'News and announcements'**
+  String get gymvaultUpdatesDesc;
+
+  /// No description provided for @doNotDisturb.
+  ///
+  /// In en, this message translates to:
+  /// **'Do Not Disturb'**
+  String get doNotDisturb;
+
+  /// No description provided for @dndDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'No notifications during this time'**
+  String get dndDescription;
+
+  /// No description provided for @dndFrom.
+  ///
+  /// In en, this message translates to:
+  /// **'From'**
+  String get dndFrom;
+
+  /// No description provided for @dndTo.
+  ///
+  /// In en, this message translates to:
+  /// **'To'**
+  String get dndTo;
+
+  /// No description provided for @notifTrainingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Ready to train?'**
+  String get notifTrainingTitle;
+
+  /// No description provided for @notifTrainingBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your usual workout time is here. Let\'s go!'**
+  String get notifTrainingBody;
+
+  /// No description provided for @notifIncompleteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Finish your session?'**
+  String get notifIncompleteTitle;
+
+  /// No description provided for @notifIncompleteBody.
+  ///
+  /// In en, this message translates to:
+  /// **'You logged exercises earlier. Want to complete your routine?'**
+  String get notifIncompleteBody;
+
+  /// No description provided for @notifMilestoneTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{muscleGroup} is growing!'**
+  String notifMilestoneTitle(String muscleGroup);
+
+  /// No description provided for @notifMilestoneBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your {muscleGroup} volume improved {percentage}% this month. Keep it up!'**
+  String notifMilestoneBody(String muscleGroup, String percentage);
+
+  /// No description provided for @notifPermissionRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Notification permission is required to send reminders'**
+  String get notifPermissionRequired;
 }
 
 class _AppLocalizationsDelegate

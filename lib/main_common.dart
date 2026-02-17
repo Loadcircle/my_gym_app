@@ -15,6 +15,7 @@ import 'core/theme/app_theme.dart';
 import 'core/router/app_router.dart';
 import 'core/providers/locale_provider.dart';
 import 'core/utils/logger.dart';
+import 'core/services/notification_service.dart';
 
 /// Entry point comun para todos los flavors.
 /// Recibe el entorno como parametro desde main_dev.dart o main_prod.dart.
@@ -35,6 +36,9 @@ void mainCommon(Environment env) async {
 
   // Inicializar Firebase
   await _initializeFirebase();
+
+  // Inicializar notificaciones locales
+  await _initializeNotifications();
 
   runApp(
     const ProviderScope(
@@ -107,6 +111,22 @@ Future<void> _initializeFirebase() async {
   } catch (e, stackTrace) {
     AppLogger.error(
       'Error inicializando Firebase',
+      tag: 'Main',
+      error: e,
+      stackTrace: stackTrace,
+    );
+  }
+}
+
+/// Inicializa el servicio de notificaciones locales.
+Future<void> _initializeNotifications() async {
+  try {
+    final notificationService = NotificationService();
+    await notificationService.initialize();
+    AppLogger.info('Notificaciones inicializadas', tag: 'Main');
+  } catch (e, stackTrace) {
+    AppLogger.error(
+      'Error inicializando notificaciones',
       tag: 'Main',
       error: e,
       stackTrace: stackTrace,

@@ -17,6 +17,7 @@ import '../../../exercises/providers/weight_records_provider.dart';
 import '../../../profile/providers/user_profile_provider.dart';
 import '../../../routines/providers/routines_provider.dart';
 import '../../../routines/providers/routine_completion_status_provider.dart';
+import '../../../notifications/providers/notification_providers.dart';
 
 /// Pantalla de configuración de la cuenta.
 class SettingsScreen extends ConsumerStatefulWidget {
@@ -141,6 +142,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
     if (shouldLogout == true && mounted) {
       try {
+        await ref.read(notificationSchedulerProvider).cancelAll();
         await ref.read(authStateProvider.notifier).signOut();
         if (mounted) {
           context.go(RouteNames.login);
@@ -219,6 +221,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     setState(() => _isDeletingAccount = true);
 
     try {
+      await ref.read(notificationSchedulerProvider).cancelAll();
       final database = ref.read(appDatabaseProvider);
       await ref.read(authStateProvider.notifier).deleteAccount(database);
 
@@ -327,6 +330,22 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   subtitle: Text(_currentLanguageName(ref, l10n)),
                   trailing: const Icon(Icons.chevron_right, color: AppColors.textHint),
                   onTap: () => showLanguagePickerSheet(context),
+                ),
+              ),
+
+              const SizedBox(height: 24),
+
+              // Seccion Notificaciones
+              _SectionHeader(title: l10n.notifications),
+              const SizedBox(height: 8),
+
+              Card(
+                child: ListTile(
+                  leading: const Icon(Icons.notifications_outlined, color: AppColors.textSecondary),
+                  title: Text(l10n.notifications),
+                  subtitle: Text(l10n.notificationsSubtitle),
+                  trailing: const Icon(Icons.chevron_right, color: AppColors.textHint),
+                  onTap: () => context.push(RouteNames.notificationSettings),
                 ),
               ),
 

@@ -15,6 +15,7 @@ import 'tables/routine_completions_table.dart';
 import 'tables/workout_sets_table.dart';
 import 'tables/user_profiles_table.dart';
 import 'tables/user_preferences_table.dart';
+import 'tables/notification_log_table.dart';
 import 'daos/exercises_dao.dart';
 import 'daos/weight_records_dao.dart';
 import 'daos/sync_queue_dao.dart';
@@ -25,20 +26,21 @@ import 'daos/routine_completions_dao.dart';
 import 'daos/workout_sets_dao.dart';
 import 'daos/user_profiles_dao.dart';
 import 'daos/user_preferences_dao.dart';
+import 'daos/notification_log_dao.dart';
 
 part 'database.g.dart';
 
 /// Base de datos local usando Drift (SQLite).
 /// Almacena ejercicios, registros de peso y cola de sincronizacion.
 @DriftDatabase(
-  tables: [Exercises, WeightRecords, SyncQueue, CustomExercises, Routines, RoutineItems, RoutineCompletions, WorkoutSets, UserProfiles, UserPreferences],
-  daos: [ExercisesDao, WeightRecordsDao, SyncQueueDao, CustomExercisesDao, RoutinesDao, RoutineItemsDao, RoutineCompletionsDao, WorkoutSetsDao, UserProfilesDao, UserPreferencesDao],
+  tables: [Exercises, WeightRecords, SyncQueue, CustomExercises, Routines, RoutineItems, RoutineCompletions, WorkoutSets, UserProfiles, UserPreferences, NotificationLog],
+  daos: [ExercisesDao, WeightRecordsDao, SyncQueueDao, CustomExercisesDao, RoutinesDao, RoutineItemsDao, RoutineCompletionsDao, WorkoutSetsDao, UserProfilesDao, UserPreferencesDao, NotificationLogDao],
 )
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 11;
+  int get schemaVersion => 12;
 
   /// Limpia todos los datos de usuario de la base de datos local.
   /// Llamado al eliminar cuenta o cerrar sesion.
@@ -51,6 +53,7 @@ class AppDatabase extends _$AppDatabase {
     await delete(routineCompletions).go();
     await delete(userProfiles).go();
     await delete(syncQueue).go();
+    await delete(notificationLog).go();
     // Nota: exercises (globales) y userPreferences se mantienen
   }
 
@@ -117,6 +120,10 @@ class AppDatabase extends _$AppDatabase {
           await m.addColumn(customExercises, customExercises.movementType);
           await m.addColumn(customExercises, customExercises.primaryMuscle);
           await m.addColumn(customExercises, customExercises.secondaryMuscles);
+        }
+        // Migracion v11 -> v12: Agregar tabla NotificationLog
+        if (from < 12) {
+          await m.createTable(notificationLog);
         }
       },
     );

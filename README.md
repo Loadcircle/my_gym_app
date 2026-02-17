@@ -109,6 +109,22 @@ flutter gen-l10n
 #   "@itemCount": { "placeholders": { "count": { "type": "int" } } }
 ```
 
+### Notificaciones
+
+El sistema de notificaciones locales está documentado en detalle en [`NOTIFICATIONS.md`](./NOTIFICATIONS.md).
+
+```bash
+# Probar notificaciones en modo dev:
+# Settings > Notificaciones > (sección Debug al final)
+# Hay 4 botones para probar cada tipo de notificación
+
+# Dependencias clave:
+#   flutter_local_notifications: ^18.0.0
+#   timezone: ^0.10.0
+#   flutter_timezone: ^3.0.0
+#   firebase_messaging: ^16.1.1 (preparado para Fase 3 - FCM)
+```
+
 ### Tests
 
 ```bash

@@ -1235,4 +1235,85 @@ class AppLocalizationsEn extends AppLocalizations {
   String progressPercentage(String percentage) {
     return '+$percentage%';
   }
+
+  @override
+  String get notifications => 'Notifications';
+
+  @override
+  String get notificationsSubtitle => 'Reminders, progress, and more';
+
+  @override
+  String get enableNotifications => 'Enable notifications';
+
+  @override
+  String get reminders => 'Reminders';
+
+  @override
+  String get trainingReminders => 'Training reminders';
+
+  @override
+  String get trainingRemindersDesc => 'Reminds you at your usual workout time';
+
+  @override
+  String get incompleteSessionReminder => 'Incomplete session';
+
+  @override
+  String get incompleteSessionDesc => 'Reminds you to finish your routine';
+
+  @override
+  String get progressSection => 'Progress';
+
+  @override
+  String get progressMilestones => 'Progress milestones';
+
+  @override
+  String get progressMilestonesDesc => 'Celebrates your improvements';
+
+  @override
+  String get news => 'News';
+
+  @override
+  String get gymvaultUpdates => 'GymVault updates';
+
+  @override
+  String get gymvaultUpdatesDesc => 'News and announcements';
+
+  @override
+  String get doNotDisturb => 'Do Not Disturb';
+
+  @override
+  String get dndDescription => 'No notifications during this time';
+
+  @override
+  String get dndFrom => 'From';
+
+  @override
+  String get dndTo => 'To';
+
+  @override
+  String get notifTrainingTitle => 'Ready to train?';
+
+  @override
+  String get notifTrainingBody => 'Your usual workout time is here. Let\'s go!';
+
+  @override
+  String get notifIncompleteTitle => 'Finish your session?';
+
+  @override
+  String get notifIncompleteBody =>
+      'You logged exercises earlier. Want to complete your routine?';
+
+  @override
+  String notifMilestoneTitle(String muscleGroup) {
+    return '$muscleGroup is growing!';
+  }
+
+  @override
+  String notifMilestoneBody(String muscleGroup, String percentage) {
+    return 'Your $muscleGroup volume improved $percentage% this month. Keep it up!';
+  }
+
+  @override
+  String get notifPermissionRequired =>
+      'Notification permission is required to send reminders';
 }

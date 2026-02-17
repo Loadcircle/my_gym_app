@@ -1237,4 +1237,86 @@ class AppLocalizationsPt extends AppLocalizations {
   String progressPercentage(String percentage) {
     return '+$percentage%';
   }
+
+  @override
+  String get notifications => 'Notificacoes';
+
+  @override
+  String get notificationsSubtitle => 'Lembretes, progresso e mais';
+
+  @override
+  String get enableNotifications => 'Ativar notificacoes';
+
+  @override
+  String get reminders => 'Lembretes';
+
+  @override
+  String get trainingReminders => 'Lembrete de treino';
+
+  @override
+  String get trainingRemindersDesc => 'Avisa no seu horario habitual de treino';
+
+  @override
+  String get incompleteSessionReminder => 'Sessao incompleta';
+
+  @override
+  String get incompleteSessionDesc => 'Lembra de completar sua rotina';
+
+  @override
+  String get progressSection => 'Progresso';
+
+  @override
+  String get progressMilestones => 'Marcos de progresso';
+
+  @override
+  String get progressMilestonesDesc => 'Celebra suas melhorias';
+
+  @override
+  String get news => 'Novidades';
+
+  @override
+  String get gymvaultUpdates => 'Atualizacoes GymVault';
+
+  @override
+  String get gymvaultUpdatesDesc => 'Novidades e anuncios';
+
+  @override
+  String get doNotDisturb => 'Nao perturbe';
+
+  @override
+  String get dndDescription => 'Sem notificacoes durante este horario';
+
+  @override
+  String get dndFrom => 'De';
+
+  @override
+  String get dndTo => 'Ate';
+
+  @override
+  String get notifTrainingTitle => 'Vamos treinar?';
+
+  @override
+  String get notifTrainingBody =>
+      'Seu horario habitual de treino chegou. Vamos!';
+
+  @override
+  String get notifIncompleteTitle => 'Terminar sua sessao?';
+
+  @override
+  String get notifIncompleteBody =>
+      'Voce registrou exercicios antes. Quer completar sua rotina?';
+
+  @override
+  String notifMilestoneTitle(String muscleGroup) {
+    return '$muscleGroup esta crescendo!';
+  }
+
+  @override
+  String notifMilestoneBody(String muscleGroup, String percentage) {
+    return 'Seu volume de $muscleGroup melhorou $percentage% este mes. Continue assim!';
+  }
+
+  @override
+  String get notifPermissionRequired =>
+      'Permissao de notificacoes necessaria para enviar lembretes';
 }

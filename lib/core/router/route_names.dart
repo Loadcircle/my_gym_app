@@ -25,6 +25,7 @@ abstract class RouteNames {
   // Profile & Settings
   static const String profile = '/profile';
   static const String settings = '/settings';
+  static const String notificationSettings = '/notification-settings';
 
   // Main - Routines Tab
   static const String routines = '/routines';

@@ -3,6 +3,7 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 
 import '../../../data/repositories/offline_routine_completions_repository.dart';
 import '../../auth/providers/auth_provider.dart';
+import '../../notifications/providers/notification_providers.dart';
 import '../../exercises/providers/today_weight_records_provider.dart';
 import '../data/models/routine_completion_model.dart';
 import '../data/models/routine_item_model.dart';
@@ -201,6 +202,9 @@ class RoutineCompletionNotifier extends StateNotifier<AsyncValue<void>> {
       _ref.invalidate(todayRoutineCompletionProvider(routineId));
       _ref.invalidate(routineCompletionsProvider);
       _ref.invalidate(routineCompletionsStreamProvider);
+
+      // Cancelar recordatorio de sesión incompleta
+      _ref.read(notificationSchedulerProvider).onRoutineCompleted(_userId);
 
       return created;
     } catch (e, st) {

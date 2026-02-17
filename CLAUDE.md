@@ -4,11 +4,11 @@ App móvil de gimnasio: registrar pesos por ejercicio, ver guías (imagen + vide
 
 **Package**: `gymvault` | **Android**: `com.gymvault.app` | **iOS**: `com.gymvault.app`
 
-**Estado**: MVP ~100% completo. Fase 4 (pulido) en progreso. i18n implementado (EN/ES/PT).
+**Estado**: MVP ~100% completo. Fase 4 (pulido) en progreso. i18n implementado (EN/ES/PT). Notificaciones locales (Fase 1) implementadas.
 
 ## Stack
 
-Flutter 3.8+ | Riverpod | go_router | Drift (SQLite) | Firebase (Auth, Firestore, Storage, Crashlytics, Functions) | freezed
+Flutter 3.8+ | Riverpod | go_router | Drift (SQLite) | Firebase (Auth, Firestore, Storage, Crashlytics, Functions) | freezed | flutter_local_notifications
 
 ## Arquitectura
 
@@ -20,7 +20,7 @@ lib/
 │   ├── constants/       # Constantes, nombres de colecciones
 │   ├── providers/       # locale_provider (i18n)
 │   ├── router/          # go_router con protección de rutas
-│   ├── services/        # connectivity, storage, sync
+│   ├── services/        # connectivity, storage, sync, notifications
 │   ├── theme/           # AppColors, AppTheme (tema oscuro)
 │   └── utils/           # logger, validators, muscle_groups
 ├── l10n/                # ARB files + generated AppLocalizations
@@ -33,6 +33,7 @@ lib/
 │   ├── routines/        # CRUD rutinas + items
 │   ├── history/         # Historial (tab)
 │   ├── profile/         # Perfil usuario
+│   ├── notifications/   # Notificaciones locales, settings, providers
 │   └── settings/        # Config cuenta, eliminar cuenta
 └── shared/widgets/      # Componentes reutilizables, skeletons
 ```
@@ -50,9 +51,9 @@ lib/
 
 ## Drift (SQLite)
 
-**Versión schema**: 10 (v9→v10 agregó nameEn/namePt a exercises)
+**Versión schema**: 12 (v11→v12 agregó NotificationLog)
 
-Tablas: Exercises, CustomExercises, WeightRecords, WorkoutSets, Routines, RoutineItems, RoutineCompletions, UserProfiles, UserPreferences, SyncQueue
+Tablas: Exercises, CustomExercises, WeightRecords, WorkoutSets, Routines, RoutineItems, RoutineCompletions, UserProfiles, UserPreferences, SyncQueue, NotificationLog
 
 **Patrón offline-first**: Guarda en Drift → intenta sync Firestore → si falla encola en SyncQueue
 
@@ -82,6 +83,7 @@ users/{uid}/
 Tabs: `/exercises` (0), `/routines` (1), `/history` (2)
 Drawer: Mi Perfil, Configuración, Cerrar Sesión
 Rutas protegidas requieren auth.
+Ruta adicional: `/notification-settings` (desde Settings)
 
 ## Convenciones
 
@@ -126,6 +128,7 @@ cd functions && npm run build && firebase deploy --only functions:deleteAccount
 | Rutinas | `routinesProvider`, `routineItemsProvider(routineId)` |
 | Perfil | `userProfileProvider`, `userProfileNotifierProvider` |
 | Locale | `localeProvider`, `localeNotifierProvider` |
+| Notificaciones | `notificationServiceProvider`, `notificationSchedulerProvider`, `notificationSettingsProvider` |
 
 Patrón: Los providers `*NotifierProvider` son StateNotifier para mutaciones (create/update/delete).
 
@@ -136,6 +139,7 @@ Patrón: Los providers `*NotifierProvider` son StateNotifier para mutaciones (cr
 - **Storage URLs**: `exercises/**` URL directa, `users/**` requieren `getDownloadURL()` con token
 - **Skeletons**: Shimmer (AppColors.shimmerBase/shimmerHighlight) en lugar de spinners
 - **Pull-to-refresh**: Invalida providers correspondientes
+- **Notificaciones**: `NotificationScheduler` cachea textos i18n de `rescheduleAll()` para reusar en hooks de eventos sin BuildContext. Settings persisten en UserPreferences. Ver `NOTIFICATIONS.md` para documentación completa.
 
 ## Internacionalización (i18n)
 
@@ -160,6 +164,8 @@ Patrón: Los providers `*NotifierProvider` son StateNotifier para mutaciones (cr
 
 - Subir traducciones nameEn/namePt de ejercicios globales a Firestore
 - Drag & drop en rutinas
-- Notificaciones
-- iOS
+- Notificaciones Fase 2: progress milestones, refinar incomplete session, hook locale change
+- Notificaciones Fase 3: FCM push remoto, token management, Cloud Function
+- Notificaciones Fase 4: centro in-app, deeplinks, cleanup logs, analytics
+- iOS (incluye APNs para notificaciones)
 - Tests
