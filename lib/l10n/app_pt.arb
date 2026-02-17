@@ -374,5 +374,23 @@
   "bestProgressTooltip": "Exercicio com maior aumento de peso",
   "volumeLabel": "Volume",
   "setsLabel": "Series",
-  "tapChartHint": "Toque uma secao para ver detalhes"
+  "tapChartHint": "Toque uma secao para ver detalhes",
+
+  "bestMuscleProgress": "Melhor progresso muscular",
+  "detailedProgress": "Progresso Detalhado",
+  "byMuscleGroup": "Por grupo muscular",
+  "byExercise": "Por exercicio",
+  "currentVolume": "Atual",
+  "previousVolume": "Anterior",
+  "newLabel": "Novo",
+  "noProgressYet": "Dados insuficientes para comparar progresso",
+  "minRecordsHint": "Exercicios com 3+ treinos",
+  "yourProgressInPeriod": "Seu progresso nos ultimos {period}",
+  "@yourProgressInPeriod": { "placeholders": { "period": { "type": "String" } } },
+  "yourProgressAllTime": "Seu progresso total",
+  "tapForDetails": "Toque para ver detalhes",
+  "bestMuscleProgressTooltip": "Grupo muscular com maior aumento de volume",
+  "vsLastPeriod": "vs periodo anterior",
+  "progressPercentage": "+{percentage}%",
+  "@progressPercentage": { "placeholders": { "percentage": { "type": "String" } } }
 }

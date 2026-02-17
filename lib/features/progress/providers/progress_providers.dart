@@ -27,6 +27,7 @@ final heroSummaryProvider = FutureProvider<HeroSummaryData>((ref) async {
       totalVolume: 0,
       dominantMuscleGroup: '',
       bestProgressPercentage: 0,
+      bestMuscleGroupProgressPercentage: 0,
     );
   }
 
@@ -49,4 +50,17 @@ final muscleDistributionProvider =
   }
 
   return service.calculateMuscleDistribution(user.uid, timeRange);
+});
+
+/// Provider de progreso detallado por grupo muscular y ejercicio.
+/// Se evalúa lazy — solo cuando se abre el modal de detalle.
+final detailedProgressProvider =
+    FutureProvider<DetailedProgressData>((ref) async {
+  final user = ref.watch(currentUserProvider);
+  final timeRange = ref.watch(progressTimeRangeProvider);
+  final service = ref.watch(progressCalculationServiceProvider);
+
+  if (user == null) return DetailedProgressData.empty;
+
+  return service.calculateDetailedProgress(user.uid, timeRange);
 });

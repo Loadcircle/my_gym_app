@@ -49,19 +49,19 @@ class AppDrawer extends ConsumerWidget {
                   },
                 ),
                 _DrawerItem(
-                  icon: Icons.settings_outlined,
-                  label: l10n.configuration,
-                  onTap: () {
-                    Navigator.of(context).pop();
-                    context.push(RouteNames.settings);
-                  },
-                ),
-                _DrawerItem(
                   icon: Icons.insights_outlined,
                   label: l10n.generalProgress,
                   onTap: () {
                     Navigator.of(context).pop();
                     context.push(RouteNames.progress);
+                  },
+                ),
+                _DrawerItem(
+                  icon: Icons.settings_outlined,
+                  label: l10n.configuration,
+                  onTap: () {
+                    Navigator.of(context).pop();
+                    context.push(RouteNames.settings);
                   },
                 ),
                 const Divider(color: AppColors.border, height: 32),

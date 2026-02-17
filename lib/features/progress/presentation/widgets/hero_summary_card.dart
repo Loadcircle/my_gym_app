@@ -9,6 +9,7 @@ class HeroSummaryCard extends StatelessWidget {
   final String value;
   final String label;
   final String? tooltip;
+  final VoidCallback? onTap;
 
   const HeroSummaryCard({
     super.key,
@@ -17,6 +18,7 @@ class HeroSummaryCard extends StatelessWidget {
     required this.value,
     required this.label,
     this.tooltip,
+    this.onTap,
   });
 
   @override
@@ -64,8 +66,18 @@ class HeroSummaryCard extends StatelessWidget {
       ),
     );
 
-    if (tooltip != null && tooltip!.isNotEmpty) {
-      return Tooltip(
+    Widget result = card;
+
+    if (onTap != null) {
+      result = InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: result,
+      );
+    }
+
+    if (tooltip != null && tooltip!.isNotEmpty && onTap == null) {
+      result = Tooltip(
         message: tooltip!,
         triggerMode: TooltipTriggerMode.tap,
         showDuration: const Duration(seconds: 3),
@@ -74,10 +86,10 @@ class HeroSummaryCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(8),
         ),
         textStyle: const TextStyle(color: AppColors.textPrimary, fontSize: 12),
-        child: card,
+        child: result,
       );
     }
 
-    return card;
+    return result;
   }
 }

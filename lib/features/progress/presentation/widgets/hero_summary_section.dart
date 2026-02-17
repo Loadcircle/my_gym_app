@@ -7,6 +7,7 @@ import '../../../../core/providers/locale_provider.dart' show localeNotifierProv
 import '../../../../l10n/app_localizations.dart';
 import '../../providers/progress_providers.dart';
 import 'hero_summary_card.dart';
+import 'progress_detail_sheet.dart';
 
 /// Sección del resumen hero con 4 cards en grid 2x2.
 class HeroSummarySection extends ConsumerWidget {
@@ -50,6 +51,19 @@ class HeroSummarySection extends ConsumerWidget {
         final progressStr = data.bestProgressPercentage > 0
             ? '+${data.bestProgressPercentage.toStringAsFixed(0)}%'
             : '-';
+
+        final bestMuscleStr = data.bestMuscleGroupProgress != null
+            ? MuscleGroups.getLocalizedName(data.bestMuscleGroupProgress!, langCode)
+            : null;
+
+        final bestMusclePctStr = data.bestMuscleGroupProgressPercentage > 0 &&
+                data.bestMuscleGroupProgressPercentage.isFinite
+            ? '+${data.bestMuscleGroupProgressPercentage.toStringAsFixed(0)}%'
+            : (data.bestMuscleGroupProgress != null ? l10n.newLabel : '-');
+
+        final bestMuscleColor = data.bestMuscleGroupProgress != null
+            ? MuscleGroups.getColor(data.bestMuscleGroupProgress!)
+            : AppColors.primary;
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -98,13 +112,111 @@ class HeroSummarySection extends ConsumerWidget {
                   iconColor: AppColors.success,
                   value: progressStr,
                   label: data.bestProgressExerciseName ?? l10n.bestProgress,
-                  tooltip: l10n.bestProgressTooltip,
+                  onTap: () => ProgressDetailSheet.show(context, initialTab: 1),
+                ),
+              ],
+            ),
+            if (bestMuscleStr != null) ...[
+              const SizedBox(height: 12),
+              _MuscleProgressBanner(
+                muscleGroup: bestMuscleStr,
+                percentage: bestMusclePctStr,
+                muscleColor: bestMuscleColor,
+                subtitle: l10n.tapForDetails,
+                onTap: () => ProgressDetailSheet.show(context, initialTab: 0),
+              ),
+            ],
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _MuscleProgressBanner extends StatelessWidget {
+  final String muscleGroup;
+  final String percentage;
+  final Color muscleColor;
+  final String subtitle;
+  final VoidCallback onTap;
+
+  const _MuscleProgressBanner({
+    required this.muscleGroup,
+    required this.percentage,
+    required this.muscleColor,
+    required this.subtitle,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        decoration: BoxDecoration(
+          color: AppColors.cardBackground,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.border),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: muscleColor.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(Icons.show_chart, color: muscleColor, size: 22),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    l10n.bestMuscleProgress,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: AppColors.textSecondary,
+                        ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    muscleGroup,
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          color: AppColors.textPrimary,
+                          fontWeight: FontWeight.bold,
+                        ),
+                  ),
+                ],
+              ),
+            ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Text(
+                  percentage,
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        color: AppColors.success,
+                        fontWeight: FontWeight.bold,
+                      ),
+                ),
+                Text(
+                  subtitle,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: AppColors.textHint,
+                        fontSize: 11,
+                      ),
                 ),
               ],
             ),
           ],
-        );
-      },
+        ),
+      ),
     );
   }
 }

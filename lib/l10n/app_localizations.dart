@@ -2139,6 +2139,96 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Tap a section for details'**
   String get tapChartHint;
+
+  /// No description provided for @bestMuscleProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'Best muscle progress'**
+  String get bestMuscleProgress;
+
+  /// No description provided for @detailedProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'Detailed Progress'**
+  String get detailedProgress;
+
+  /// No description provided for @byMuscleGroup.
+  ///
+  /// In en, this message translates to:
+  /// **'By muscle group'**
+  String get byMuscleGroup;
+
+  /// No description provided for @byExercise.
+  ///
+  /// In en, this message translates to:
+  /// **'By exercise'**
+  String get byExercise;
+
+  /// No description provided for @currentVolume.
+  ///
+  /// In en, this message translates to:
+  /// **'Current'**
+  String get currentVolume;
+
+  /// No description provided for @previousVolume.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous'**
+  String get previousVolume;
+
+  /// No description provided for @newLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'New'**
+  String get newLabel;
+
+  /// No description provided for @noProgressYet.
+  ///
+  /// In en, this message translates to:
+  /// **'Not enough data to compare progress'**
+  String get noProgressYet;
+
+  /// No description provided for @minRecordsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Exercises with 3+ workouts'**
+  String get minRecordsHint;
+
+  /// No description provided for @yourProgressInPeriod.
+  ///
+  /// In en, this message translates to:
+  /// **'Your progress in the last {period}'**
+  String yourProgressInPeriod(String period);
+
+  /// No description provided for @yourProgressAllTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Your all-time progress'**
+  String get yourProgressAllTime;
+
+  /// No description provided for @tapForDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap for details'**
+  String get tapForDetails;
+
+  /// No description provided for @bestMuscleProgressTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Muscle group with the greatest volume increase'**
+  String get bestMuscleProgressTooltip;
+
+  /// No description provided for @vsLastPeriod.
+  ///
+  /// In en, this message translates to:
+  /// **'vs last period'**
+  String get vsLastPeriod;
+
+  /// No description provided for @progressPercentage.
+  ///
+  /// In en, this message translates to:
+  /// **'+{percentage}%'**
+  String progressPercentage(String percentage);
 }
 
 class _AppLocalizationsDelegate

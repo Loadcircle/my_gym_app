@@ -1185,4 +1185,54 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get tapChartHint => 'Tap a section for details';
+
+  @override
+  String get bestMuscleProgress => 'Best muscle progress';
+
+  @override
+  String get detailedProgress => 'Detailed Progress';
+
+  @override
+  String get byMuscleGroup => 'By muscle group';
+
+  @override
+  String get byExercise => 'By exercise';
+
+  @override
+  String get currentVolume => 'Current';
+
+  @override
+  String get previousVolume => 'Previous';
+
+  @override
+  String get newLabel => 'New';
+
+  @override
+  String get noProgressYet => 'Not enough data to compare progress';
+
+  @override
+  String get minRecordsHint => 'Exercises with 3+ workouts';
+
+  @override
+  String yourProgressInPeriod(String period) {
+    return 'Your progress in the last $period';
+  }
+
+  @override
+  String get yourProgressAllTime => 'Your all-time progress';
+
+  @override
+  String get tapForDetails => 'Tap for details';
+
+  @override
+  String get bestMuscleProgressTooltip =>
+      'Muscle group with the greatest volume increase';
+
+  @override
+  String get vsLastPeriod => 'vs last period';
+
+  @override
+  String progressPercentage(String percentage) {
+    return '+$percentage%';
+  }
 }

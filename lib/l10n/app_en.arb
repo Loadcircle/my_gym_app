@@ -431,5 +431,23 @@
   "bestProgressTooltip": "Exercise with the greatest weight increase",
   "volumeLabel": "Volume",
   "setsLabel": "Sets",
-  "tapChartHint": "Tap a section for details"
+  "tapChartHint": "Tap a section for details",
+
+  "bestMuscleProgress": "Best muscle progress",
+  "detailedProgress": "Detailed Progress",
+  "byMuscleGroup": "By muscle group",
+  "byExercise": "By exercise",
+  "currentVolume": "Current",
+  "previousVolume": "Previous",
+  "newLabel": "New",
+  "noProgressYet": "Not enough data to compare progress",
+  "minRecordsHint": "Exercises with 3+ workouts",
+  "yourProgressInPeriod": "Your progress in the last {period}",
+  "@yourProgressInPeriod": { "placeholders": { "period": { "type": "String" } } },
+  "yourProgressAllTime": "Your all-time progress",
+  "tapForDetails": "Tap for details",
+  "bestMuscleProgressTooltip": "Muscle group with the greatest volume increase",
+  "vsLastPeriod": "vs last period",
+  "progressPercentage": "+{percentage}%",
+  "@progressPercentage": { "placeholders": { "percentage": { "type": "String" } } }
 }
