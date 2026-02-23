@@ -2379,6 +2379,84 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Notification permission is required to send reminders'**
   String get notifPermissionRequired;
+
+  /// No description provided for @unsavedSetsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Unsaved changes'**
+  String get unsavedSetsTitle;
+
+  /// No description provided for @unsavedSetsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'You have unsaved changes in your sets. If you leave, they will be lost.'**
+  String get unsavedSetsBody;
+
+  /// No description provided for @leave.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave'**
+  String get leave;
+
+  /// No description provided for @timerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Rest timer'**
+  String get timerTitle;
+
+  /// No description provided for @timerStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Start'**
+  String get timerStart;
+
+  /// No description provided for @timerPause.
+  ///
+  /// In en, this message translates to:
+  /// **'Pause'**
+  String get timerPause;
+
+  /// No description provided for @timerResume.
+  ///
+  /// In en, this message translates to:
+  /// **'Resume'**
+  String get timerResume;
+
+  /// No description provided for @timerStop.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop'**
+  String get timerStop;
+
+  /// No description provided for @timerReset.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset'**
+  String get timerReset;
+
+  /// No description provided for @timerCustom.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom'**
+  String get timerCustom;
+
+  /// No description provided for @timerFinishedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Time\'s up!'**
+  String get timerFinishedTitle;
+
+  /// No description provided for @timerFinishedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Rest is over'**
+  String get timerFinishedBody;
+
+  /// No description provided for @timerNotifBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{remaining} remaining'**
+  String timerNotifBody(String remaining);
 }
 
 class _AppLocalizationsDelegate

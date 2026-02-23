@@ -58,6 +58,8 @@ const int kTrainingReminderId = 1000;
 const int kIncompleteSessionId = 2000;
 const int kProgressMilestoneBaseId = 3000;
 const int kGlobalPushBaseId = 4000;
+const int kTimerActiveNotifId = 5000;
+const int kTimerDoneNotifId = 5001;
 
 // ─── Android Channel IDs ────────────────────────────────────────────────────
 
@@ -72,3 +74,10 @@ const String kProgressMilestoneChannelName = 'Progress Updates';
 
 const String kGlobalPushChannelId = 'global_push';
 const String kGlobalPushChannelName = 'GymVault News';
+
+const String kTimerChannelId = 'timer_channel';
+const String kTimerChannelName = 'Rest Timer';
+
+// Canal silencioso para el countdown del foreground service (sin sonido/vibración).
+const String kTimerRunningChannelId = 'timer_running_channel';
+const String kTimerRunningChannelName = 'Rest Timer Running';

@@ -2,6 +2,7 @@ import '../../data/local/daos/user_preferences_dao.dart';
 import '../../features/notifications/data/models/training_pattern_model.dart';
 import '../constants/notification_constants.dart';
 import '../utils/logger.dart';
+import '../utils/muscle_groups.dart';
 import 'notification_service.dart';
 import 'pattern_detection_service.dart';
 
@@ -12,13 +13,59 @@ class NotificationTexts {
   final String trainingReminderBody;
   final String incompleteSessionTitle;
   final String incompleteSessionBody;
+  final String Function(String muscleGroup) milestoneTitle;
+  final String Function(String muscleGroup, int percentage) milestoneBody;
 
-  const NotificationTexts({
+  NotificationTexts({
     required this.trainingReminderTitle,
     required this.trainingReminderBody,
     required this.incompleteSessionTitle,
     required this.incompleteSessionBody,
+    required this.milestoneTitle,
+    required this.milestoneBody,
   });
+
+  /// Construye textos localizados sin BuildContext, usando el código de idioma.
+  /// Usado en eventos (cambio de idioma, milestone) donde no hay BuildContext.
+  static NotificationTexts forLanguage(String languageCode) {
+    switch (languageCode) {
+      case 'es':
+        return NotificationTexts(
+          trainingReminderTitle: '¿Entrenamos hoy?',
+          trainingReminderBody:
+              'Tu hora habitual de entrenamiento llegó. ¡Vamos!',
+          incompleteSessionTitle: '¿Terminaste tu sesión?',
+          incompleteSessionBody:
+              'Registraste ejercicios antes. ¿Quieres completar tu rutina?',
+          milestoneTitle: (muscle) => '¡$muscle está creciendo!',
+          milestoneBody: (muscle, pct) =>
+              'Tu volumen de $muscle mejoró $pct% este mes. ¡Sigue así!',
+        );
+      case 'pt':
+        return NotificationTexts(
+          trainingReminderTitle: 'Vamos treinar hoje?',
+          trainingReminderBody:
+              'Sua hora habitual de treino chegou. Vamos lá!',
+          incompleteSessionTitle: 'Terminou seu treino?',
+          incompleteSessionBody:
+              'Você registrou exercícios antes. Quer completar sua rotina?',
+          milestoneTitle: (muscle) => '$muscle está crescendo!',
+          milestoneBody: (muscle, pct) =>
+              'Seu volume de $muscle melhorou $pct% este mês. Continue assim!',
+        );
+      default: // 'en'
+        return NotificationTexts(
+          trainingReminderTitle: 'Ready to train?',
+          trainingReminderBody: 'Your usual workout time is here. Let\'s go!',
+          incompleteSessionTitle: 'Finish your session?',
+          incompleteSessionBody:
+              'You logged exercises earlier. Want to complete your routine?',
+          milestoneTitle: (muscle) => '$muscle is growing!',
+          milestoneBody: (muscle, pct) =>
+              'Your $muscle volume improved $pct% this month. Keep it up!',
+        );
+    }
+  }
 }
 
 /// Orquesta la programación y cancelación de notificaciones locales.
@@ -143,6 +190,16 @@ class NotificationScheduler {
     );
     if (!incompleteEnabled) return;
 
+    // No programar si la rutina ya fue completada hoy
+    final alreadyCompleted = await _patternService.hasRoutineCompletionToday(userId);
+    if (alreadyCompleted) {
+      AppLogger.info(
+        'Routine already completed today, skipping incomplete session reminder',
+        tag: 'NotifScheduler',
+      );
+      return;
+    }
+
     final scheduledTime = DateTime.now().add(
       const Duration(minutes: kIncompleteSessionDelayMinutes),
     );
@@ -181,6 +238,82 @@ class NotificationScheduler {
     await _notificationService.cancelAll();
     _cachedTexts = null;
     AppLogger.info('All notifications cancelled', tag: 'NotifScheduler');
+  }
+
+  /// Verifica si hay un hito de progreso y muestra la notificación si corresponde.
+  /// Respeta el cooldown de 7 días y los toggles del usuario.
+  /// Llamar al abrir la app (desde SplashScreen) sin await — corre en background.
+  Future<void> checkAndNotifyMilestone(String userId) async {
+    try {
+      final enabled = await _prefsDao.getBool(kNotificationsEnabled, defaultValue: true);
+      if (!enabled) return;
+
+      final milestoneEnabled = await _prefsDao.getBool(
+        kNotifProgressMilestone,
+        defaultValue: true,
+      );
+      if (!milestoneEnabled) return;
+
+      // Verificar cooldown de 7 días
+      final lastDateStr = await _prefsDao.getValue(kLastMilestoneNotifDate);
+      if (lastDateStr != null) {
+        final lastDate = DateTime.tryParse(lastDateStr);
+        if (lastDate != null) {
+          final daysSinceLast = DateTime.now().difference(lastDate).inDays;
+          if (daysSinceLast < kMilestoneCooldownDays) {
+            AppLogger.info(
+              'Milestone cooldown active ($daysSinceLast days since last). Skipping.',
+              tag: 'NotifScheduler',
+            );
+            return;
+          }
+        }
+      }
+
+      // Detectar hito
+      final milestone = await _patternService.checkProgressMilestone(userId);
+      if (milestone == null) return;
+
+      // Leer idioma del usuario
+      final langCode = await _prefsDao.getValue('app_locale') ?? 'en';
+      final texts = NotificationTexts.forLanguage(langCode);
+
+      // Localizar nombre del grupo muscular
+      final localizedMuscle = MuscleGroups.getLocalizedName(milestone.muscleGroup, langCode);
+      final percentage = milestone.progressPercentage.round();
+
+      // Verificar DND con la hora actual
+      final now = DateTime.now();
+      if (await _isInDndWindow(now.hour, now.minute)) {
+        AppLogger.info(
+          'Milestone notification blocked by DND window',
+          tag: 'NotifScheduler',
+        );
+        return;
+      }
+
+      // Mostrar notificación inmediata
+      await _notificationService.showNotification(
+        id: kProgressMilestoneBaseId,
+        title: texts.milestoneTitle(localizedMuscle),
+        body: texts.milestoneBody(localizedMuscle, percentage),
+        channelId: kProgressMilestoneChannelId,
+        payload: 'progress_milestone',
+      );
+
+      // Guardar fecha de último milestone
+      await _prefsDao.setValue(
+        kLastMilestoneNotifDate,
+        DateTime.now().toIso8601String(),
+      );
+
+      AppLogger.info(
+        'Milestone notification shown: ${milestone.muscleGroup} +$percentage%',
+        tag: 'NotifScheduler',
+      );
+    } catch (e) {
+      AppLogger.error('Error checking milestone: $e', tag: 'NotifScheduler');
+    }
   }
 
   /// Verifica si una hora cae dentro de la ventana de No Molestar.

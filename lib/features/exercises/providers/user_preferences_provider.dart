@@ -16,19 +16,19 @@ final userPreferencesDaoProvider = Provider<UserPreferencesDao>((ref) {
 /// true = modo avanzado (por series), false = modo simple.
 final weightInputModeProvider = StreamProvider<bool>((ref) {
   final dao = ref.watch(userPreferencesDaoProvider);
-  return dao.watchValue(kWeightInputModeKey).map((v) => v == 'true');
+  return dao.watchValue(kWeightInputModeKey).map((v) => v == null ? true : v == 'true');
 });
 
 /// Notifier para cambiar el modo de registro de peso.
 class WeightInputModeNotifier extends StateNotifier<bool> {
   final UserPreferencesDao _dao;
 
-  WeightInputModeNotifier(this._dao) : super(false) {
+  WeightInputModeNotifier(this._dao) : super(true) {
     _loadInitialValue();
   }
 
   Future<void> _loadInitialValue() async {
-    final isAdvanced = await _dao.getBool(kWeightInputModeKey, defaultValue: false);
+    final isAdvanced = await _dao.getBool(kWeightInputModeKey, defaultValue: true);
     if (mounted) {
       state = isAdvanced;
     }

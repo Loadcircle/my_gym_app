@@ -477,5 +477,21 @@
   "@notifMilestoneTitle": { "placeholders": { "muscleGroup": { "type": "String" } } },
   "notifMilestoneBody": "Your {muscleGroup} volume improved {percentage}% this month. Keep it up!",
   "@notifMilestoneBody": { "placeholders": { "muscleGroup": { "type": "String" }, "percentage": { "type": "String" } } },
-  "notifPermissionRequired": "Notification permission is required to send reminders"
+  "notifPermissionRequired": "Notification permission is required to send reminders",
+
+  "unsavedSetsTitle": "Unsaved changes",
+  "unsavedSetsBody": "You have unsaved changes in your sets. If you leave, they will be lost.",
+  "leave": "Leave",
+
+  "timerTitle": "Rest timer",
+  "timerStart": "Start",
+  "timerPause": "Pause",
+  "timerResume": "Resume",
+  "timerStop": "Stop",
+  "timerReset": "Reset",
+  "timerCustom": "Custom",
+  "timerFinishedTitle": "Time's up!",
+  "timerFinishedBody": "Rest is over",
+  "timerNotifBody": "{remaining} remaining",
+  "@timerNotifBody": { "placeholders": { "remaining": { "type": "String" } } }
 }

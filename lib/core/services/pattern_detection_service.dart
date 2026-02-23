@@ -6,6 +6,7 @@ import '../../data/local/daos/user_preferences_dao.dart';
 import '../../features/notifications/data/models/training_pattern_model.dart';
 import '../constants/notification_constants.dart';
 import '../utils/logger.dart';
+import 'progress_calculation_service.dart';
 
 /// Servicio para detectar patrones de entrenamiento del usuario.
 /// Opera completamente offline usando datos de Drift.
@@ -13,11 +14,13 @@ class PatternDetectionService {
   final WeightRecordsDao _weightRecordsDao;
   final RoutineCompletionsDao _completionsDao;
   final UserPreferencesDao _prefsDao;
+  final ProgressCalculationService _progressService;
 
   PatternDetectionService(
     this._weightRecordsDao,
     this._completionsDao,
     this._prefsDao,
+    this._progressService,
   );
 
   /// Analiza los últimos 30 días de actividad para detectar patrones.
@@ -162,6 +165,51 @@ class PatternDetectionService {
       userId: userId,
       exercisesLoggedToday: todayRecords.map((r) => r.exerciseId).toSet().length,
       lastRecordTime: lastRecord.date,
+    );
+  }
+
+  /// Verifica si el usuario ya completó una rutina hoy.
+  /// Usado para evitar programar incomplete session reminders innecesarios.
+  Future<bool> hasRoutineCompletionToday(String userId) async {
+    final today = DateTime.now();
+    final start = DateTime(today.year, today.month, today.day);
+    final end = start.add(const Duration(days: 1));
+    final completions = await _completionsDao.getByDateRange(userId, start, end);
+    return completions.isNotEmpty;
+  }
+
+  /// Detecta el mejor hito de progreso en los últimos 30 días.
+  /// Retorna null si no hay candidatos válidos (>= 10% mejora, no isNew, no infinito).
+  Future<MilestoneInfo?> checkProgressMilestone(String userId) async {
+    final data = await _progressService.calculateDetailedProgress(
+      userId,
+      ProgressTimeRange.days30,
+    );
+
+    // Filtrar grupos musculares con progreso real >= umbral
+    final candidates = data.muscleGroups
+        .where(
+          (g) =>
+              !g.isNew &&
+              !g.progressPercentage.isInfinite &&
+              g.progressPercentage >= kMilestoneProgressThreshold,
+        )
+        .toList();
+
+    if (candidates.isEmpty) return null;
+
+    // Ordenar por porcentaje descendente y tomar el mejor
+    candidates.sort((a, b) => b.progressPercentage.compareTo(a.progressPercentage));
+    final best = candidates.first;
+
+    AppLogger.info(
+      'Milestone detected: ${best.muscleGroup} +${best.progressPercentage.round()}%',
+      tag: 'PatternDetection',
+    );
+
+    return MilestoneInfo(
+      muscleGroup: best.muscleGroup,
+      progressPercentage: best.progressPercentage,
     );
   }
 

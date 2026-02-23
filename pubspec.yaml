@@ -68,6 +68,9 @@ dependencies:
   timezone: ^0.10.0
   flutter_timezone: ^3.0.0
 
+  # Background timer foreground service
+  flutter_foreground_task: ^9.0.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

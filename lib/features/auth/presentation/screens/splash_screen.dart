@@ -57,8 +57,13 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
           trainingReminderBody: l10n.notifTrainingBody,
           incompleteSessionTitle: l10n.notifIncompleteTitle,
           incompleteSessionBody: l10n.notifIncompleteBody,
+          milestoneTitle: (muscle) => l10n.notifMilestoneTitle(muscle),
+          milestoneBody: (muscle, pct) =>
+              l10n.notifMilestoneBody(muscle, pct.toString()),
         ),
       );
+      // Verificar hito de progreso en background (cooldown 7 días previene spam)
+      scheduler.checkAndNotifyMilestone(userId);
     });
   }
 

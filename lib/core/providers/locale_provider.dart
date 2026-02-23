@@ -1,9 +1,13 @@
+import 'dart:async';
 import 'dart:ui';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../data/local/daos/user_preferences_dao.dart';
+import '../../features/auth/providers/auth_provider.dart';
 import '../../features/exercises/providers/user_preferences_provider.dart';
+import '../../features/notifications/providers/notification_providers.dart';
+import '../services/notification_scheduler.dart';
 
 /// Clave para almacenar el idioma seleccionado.
 const kAppLocaleKey = 'app_locale';
@@ -26,8 +30,9 @@ final localeProvider = StreamProvider<Locale>((ref) {
 /// Notifier para cambiar el idioma y persistirlo.
 class LocaleNotifier extends StateNotifier<Locale> {
   final UserPreferencesDao _dao;
+  final Ref _ref;
 
-  LocaleNotifier(this._dao) : super(_getSystemLocale()) {
+  LocaleNotifier(this._dao, this._ref) : super(_getSystemLocale()) {
     _loadInitialValue();
   }
 
@@ -38,11 +43,19 @@ class LocaleNotifier extends StateNotifier<Locale> {
     }
   }
 
-  /// Cambia el idioma y lo persiste.
+  /// Cambia el idioma, lo persiste y reprograma notificaciones con el nuevo texto.
   Future<void> setLocale(String languageCode) async {
     if (!supportedLocaleCodes.contains(languageCode)) return;
     state = Locale(languageCode);
     await _dao.setValue(kAppLocaleKey, languageCode);
+
+    // Reprogramar notificaciones con textos en el nuevo idioma
+    final userId = _ref.read(currentUserProvider)?.uid;
+    if (userId != null) {
+      final scheduler = _ref.read(notificationSchedulerProvider);
+      final texts = NotificationTexts.forLanguage(languageCode);
+      unawaited(scheduler.rescheduleAll(userId, texts));
+    }
   }
 }
 
@@ -50,7 +63,7 @@ class LocaleNotifier extends StateNotifier<Locale> {
 final localeNotifierProvider =
     StateNotifierProvider<LocaleNotifier, Locale>((ref) {
   final dao = ref.watch(userPreferencesDaoProvider);
-  return LocaleNotifier(dao);
+  return LocaleNotifier(dao, ref);
 });
 
 /// Obtiene el locale del sistema con fallback a inglés.

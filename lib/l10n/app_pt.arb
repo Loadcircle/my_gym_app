@@ -420,5 +420,21 @@
   "@notifMilestoneTitle": { "placeholders": { "muscleGroup": { "type": "String" } } },
   "notifMilestoneBody": "Seu volume de {muscleGroup} melhorou {percentage}% este mes. Continue assim!",
   "@notifMilestoneBody": { "placeholders": { "muscleGroup": { "type": "String" }, "percentage": { "type": "String" } } },
-  "notifPermissionRequired": "Permissao de notificacoes necessaria para enviar lembretes"
+  "notifPermissionRequired": "Permissao de notificacoes necessaria para enviar lembretes",
+
+  "unsavedSetsTitle": "Alterações não salvas",
+  "unsavedSetsBody": "Você tem alterações não salvas nas suas séries. Se sair, elas serão perdidas.",
+  "leave": "Sair",
+
+  "timerTitle": "Descanso",
+  "timerStart": "Iniciar",
+  "timerPause": "Pausar",
+  "timerResume": "Retomar",
+  "timerStop": "Parar",
+  "timerReset": "Reiniciar",
+  "timerCustom": "Personalizado",
+  "timerFinishedTitle": "Tempo!",
+  "timerFinishedBody": "Descanso terminado",
+  "timerNotifBody": "{remaining} restante",
+  "@timerNotifBody": { "placeholders": { "remaining": { "type": "String" } } }
 }

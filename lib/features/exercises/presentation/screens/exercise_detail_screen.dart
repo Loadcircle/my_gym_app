@@ -10,6 +10,8 @@ import '../../../../shared/widgets/storage_image.dart';
 import '../../../../shared/widgets/storage_video_player.dart';
 import '../../../../shared/widgets/weight_progress_chart.dart';
 import '../../../routines/presentation/widgets/select_routine_sheet.dart';
+import '../../../timer/presentation/widgets/timer_bottom_sheet.dart';
+import '../../../timer/timer_provider.dart';
 import '../../data/models/exercise_model.dart';
 import '../../data/models/weight_record_model.dart';
 import '../../providers/exercises_provider.dart';
@@ -122,6 +124,24 @@ class _ExerciseDetailScreenState extends ConsumerState<ExerciseDetailScreen> {
                     ),
                   )
                 : null,
+            actions: [
+              Consumer(
+                builder: (ctx, ref, _) {
+                  final timer = ref.watch(timerProvider);
+                  final isActive = timer.isRunning || timer.isPaused;
+                  return IconButton(
+                    tooltip: AppLocalizations.of(ctx).timerTitle,
+                    icon: Icon(
+                      isActive ? Icons.timer : Icons.timer_outlined,
+                      color: timer.isRunning && !timer.isPaused
+                          ? AppColors.primary
+                          : null,
+                    ),
+                    onPressed: () => TimerBottomSheet.show(context),
+                  );
+                },
+              ),
+            ],
           ),
 
           // Content

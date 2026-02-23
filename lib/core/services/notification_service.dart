@@ -85,6 +85,20 @@ class NotificationService {
         kGlobalPushChannelName,
         importance: Importance.high,
       ),
+      AndroidNotificationChannel(
+        kTimerChannelId,
+        kTimerChannelName,
+        importance: Importance.high,
+        playSound: true,
+        enableVibration: true,
+      ),
+      AndroidNotificationChannel(
+        kTimerRunningChannelId,
+        kTimerRunningChannelName,
+        importance: Importance.low,
+        playSound: false,
+        enableVibration: false,
+      ),
     ];
 
     for (final channel in channels) {
@@ -111,12 +125,16 @@ class NotificationService {
     required String body,
     required String channelId,
     String? payload,
+    bool playSound = true,
+    bool enableVibration = false,
   }) async {
     final details = NotificationDetails(
       android: AndroidNotificationDetails(
         channelId,
         _channelName(channelId),
         icon: '@mipmap/ic_launcher',
+        playSound: playSound,
+        enableVibration: enableVibration,
       ),
     );
 
@@ -177,6 +195,10 @@ class NotificationService {
         return kProgressMilestoneChannelName;
       case kGlobalPushChannelId:
         return kGlobalPushChannelName;
+      case kTimerChannelId:
+        return kTimerChannelName;
+      case kTimerRunningChannelId:
+        return kTimerRunningChannelName;
       default:
         return 'GymVault';
     }

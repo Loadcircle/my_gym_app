@@ -18,10 +18,11 @@ NotificationSettingsNotifier → Persiste preferencias del usuario (UserPreferen
    - Crea 4 canales Android de notificación
    - Registra handlers para taps en notificaciones
 
-2. **`splash_screen.dart`**: Al detectar usuario autenticado, llama `NotificationScheduler.rescheduleAll()`
+2. **`splash_screen.dart`**: Al detectar usuario autenticado, llama `NotificationScheduler.rescheduleAll()` y luego `checkAndNotifyMilestone()` (sin await)
    - Analiza patrones de entrenamiento
    - Programa training reminder si está habilitado
    - Cachea textos localizados para uso posterior en hooks de eventos
+   - Verifica hitos de progreso en background (cooldown 7 días)
 
 ## Tipos de Notificación
 
@@ -37,19 +38,23 @@ NotificationSettingsNotifier → Persiste preferencias del usuario (UserPreferen
 ### 2. Incomplete Session Reminder (ID: 2000)
 - **Canal**: `incomplete_session`
 - **Trigger**: 60 minutos después de guardar un WeightRecord, si no hay RoutineCompletion ese día
-- **Lógica**: `PatternDetectionService.checkIncompleteSession()` verifica:
-  - Hay WeightRecords hoy
-  - No hay RoutineCompletion hoy
-  - Último registro fue hace >= 45 minutos
-- **Hook**: `WeightRecordNotifier.saveRecord()` → `scheduler.onWeightRecordSaved()`
+- **Lógica**: `NotificationScheduler.onWeightRecordSaved()` verifica primero con `hasRoutineCompletionToday()`:
+  - Si ya hay completion hoy → no programa (edge case: guardar otro record después de completar la rutina)
+  - Si no hay completion → programa reminder a 60 min
 - **Cancelación**: `RoutineCompletionNotifier.completeRoutine()` → `scheduler.onRoutineCompleted()`
-- **Estado**: Hook instalado, lógica básica funcional (Fase 1). Refinamiento pendiente (Fase 2).
+- **Estado**: Implementado (Fase 1 + 2)
 
 ### 3. Progress Milestone (ID: 3000+)
 - **Canal**: `progress_milestone`
-- **Trigger**: Al abrir la app, máximo 1 vez cada 7 días
-- **Lógica**: Detectar grupo muscular con >10% de mejora en 30 días
-- **Estado**: Infraestructura creada, lógica de detección pendiente (Fase 2)
+- **Trigger**: Al abrir la app (sin await), máximo 1 vez cada 7 días
+- **Lógica**: `PatternDetectionService.checkProgressMilestone()` + `NotificationScheduler.checkAndNotifyMilestone()`:
+  - Usa `ProgressCalculationService.calculateDetailedProgress()` con rango 30 días
+  - Filtra grupos musculares con mejora real >= 10% (excluye isNew e infinito)
+  - Toma el grupo con mayor porcentaje de mejora
+  - Localiza el nombre del grupo con `MuscleGroups.getLocalizedName()`
+  - Respeta DND (hora actual)
+  - Cooldown: 7 días desde `kLastMilestoneNotifDate`
+- **Estado**: Implementado (Fase 2)
 
 ### 4. Global Push (ID: 4000+)
 - **Canal**: `global_push`
@@ -154,10 +159,11 @@ Resultados se cachean en UserPreferences:
 
 | Archivo | Hook |
 |---------|------|
-| `splash_screen.dart` | `scheduler.rescheduleAll()` al detectar auth |
+| `splash_screen.dart` | `scheduler.rescheduleAll()` + `checkAndNotifyMilestone()` al detectar auth |
 | `weight_records_provider.dart` | `scheduler.onWeightRecordSaved()` después de save |
 | `routine_completion_status_provider.dart` | `scheduler.onRoutineCompleted()` después de complete |
 | `settings_screen.dart` | `scheduler.cancelAll()` antes de logout/delete |
+| `locale_provider.dart` | `scheduler.rescheduleAll()` con `NotificationTexts.forLanguage()` al cambiar idioma |
 
 ## Testing (Dev Mode)
 
@@ -188,11 +194,23 @@ dependencies {
 
 ## Roadmap
 
-### Fase 2 (Siguiente Sprint)
-- [ ] Activar lógica completa de incomplete session con pattern check
-- [ ] Implementar progress milestone: check al abrir app, cooldown 7 días, detectar >10% mejora
-- [ ] Refinar pattern detection: más data points, edge cases
-- [ ] Hook en `LocaleNotifier.setLocale()` para reprogramar notificaciones al cambiar idioma
+### ✅ Fase 1 (Completada)
+- [x] Infraestructura: NotificationService, PatternDetectionService, NotificationScheduler
+- [x] Tabla Drift: NotificationLog (schema v12)
+- [x] Training reminder: detección de patrón, programación, DND
+- [x] Incomplete session: hook en WeightRecord save, cancelación en routine complete
+- [x] Pantalla de configuración: toggles, DND con time pickers, debug mode
+- [x] Integración con navegación (`/notification-settings`), Settings screen
+- [x] i18n: ~25 keys en EN/ES/PT para todos los tipos de notificación
+- [x] Permisos Android: POST_NOTIFICATIONS, RECEIVE_BOOT_COMPLETED, SCHEDULE_EXACT_ALARM
+
+### ✅ Fase 2 (Completada)
+- [x] `NotificationTexts.forLanguage()`: factory sin BuildContext para reschedule por código
+- [x] Corrección incomplete session: `hasRoutineCompletionToday()` antes de programar
+- [x] Progress milestone: `checkProgressMilestone()` en PatternDetectionService (usa ProgressCalculationService)
+- [x] `checkAndNotifyMilestone()` en NotificationScheduler: cooldown 7 días, DND, localización
+- [x] Trigger de milestone desde SplashScreen (sin await, background)
+- [x] Hook de cambio de idioma: `LocaleNotifier.setLocale()` → `rescheduleAll()` con textos en nuevo idioma
 
 ### Fase 3 (FCM / Push Remoto)
 - [ ] Token management: obtener/refrescar FCM token
@@ -204,7 +222,7 @@ dependencies {
 
 ### Fase 4 (Pulido)
 - [ ] Centro de notificaciones in-app (lista de NotificationLog, marcar como leído)
-- [ ] Deeplinks: tap training reminder -> tab rutinas, tap milestone -> progreso
+- [ ] Deeplinks: tap training reminder → tab rutinas, tap milestone → pantalla progreso
 - [ ] Limpieza automática de logs >30 días
 - [ ] iOS: APNs, permisos específicos
 - [ ] Analytics de open rate

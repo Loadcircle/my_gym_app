@@ -1323,4 +1323,46 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get notifPermissionRequired =>
       'Se necesita permiso de notificaciones para enviar recordatorios';
+
+  @override
+  String get unsavedSetsTitle => 'Cambios sin guardar';
+
+  @override
+  String get unsavedSetsBody =>
+      'Tienes cambios sin guardar en tus series. Si sales, se perderán.';
+
+  @override
+  String get leave => 'Salir';
+
+  @override
+  String get timerTitle => 'Descanso';
+
+  @override
+  String get timerStart => 'Iniciar';
+
+  @override
+  String get timerPause => 'Pausar';
+
+  @override
+  String get timerResume => 'Reanudar';
+
+  @override
+  String get timerStop => 'Detener';
+
+  @override
+  String get timerReset => 'Reiniciar';
+
+  @override
+  String get timerCustom => 'Personalizado';
+
+  @override
+  String get timerFinishedTitle => '¡Tiempo!';
+
+  @override
+  String get timerFinishedBody => 'Tu descanso terminó';
+
+  @override
+  String timerNotifBody(String remaining) {
+    return '$remaining restante';
+  }
 }

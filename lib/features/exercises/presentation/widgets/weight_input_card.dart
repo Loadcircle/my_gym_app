@@ -52,6 +52,7 @@ class _WeightInputCardState extends ConsumerState<WeightInputCard> {
 
   bool _isSaving = false;
   bool _hasPrefilledWeight = false;
+  bool _isDirty = false;
 
   @override
   void dispose() {
@@ -76,6 +77,7 @@ class _WeightInputCardState extends ConsumerState<WeightInputCard> {
                     reps: entry.reps,
                   ))
               .toList();
+          _isDirty = false;
         });
       } else {
         // Último registro era simple, crear una serie con esos valores
@@ -86,6 +88,7 @@ class _WeightInputCardState extends ConsumerState<WeightInputCard> {
               reps: lastRecord.reps,
             ),
           ];
+          _isDirty = false;
         });
       }
     } else {
@@ -220,10 +223,18 @@ class _WeightInputCardState extends ConsumerState<WeightInputCard> {
         ref.invalidate(lastWeightRecordProvider(widget.exerciseId));
         ref.invalidate(exerciseHistoryProvider(widget.exerciseId));
 
-        // Actualizar también los controllers del modo simple
+        // Actualizar controllers del modo simple
         _weightController.text = _maxWeight.toString();
         _setsController.text = _advancedSets.length.toString();
         _repsController.text = _maxReps.toString();
+
+        // Regenerar IDs de las series para evitar conflicto de PK en el siguiente guardado
+        setState(() {
+          _advancedSets = _advancedSets
+              .map((s) => SetData.create(weight: s.weight, reps: s.reps))
+              .toList();
+          _isDirty = false;
+        });
       }
     } catch (e) {
       if (mounted) {
@@ -253,7 +264,33 @@ class _WeightInputCardState extends ConsumerState<WeightInputCard> {
       _prefillFromLastRecord(lastRecord, isAdvanced);
     });
 
-    return Container(
+    return PopScope(
+      canPop: !isAdvanced || !_isDirty,
+      onPopInvokedWithResult: (bool didPop, Object? result) async {
+        if (didPop) return;
+        final shouldLeave = await showDialog<bool>(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: Text(l10n.unsavedSetsTitle),
+            content: Text(l10n.unsavedSetsBody),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx, false),
+                child: Text(l10n.cancel),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(ctx, true),
+                style: TextButton.styleFrom(foregroundColor: AppColors.error),
+                child: Text(l10n.leave),
+              ),
+            ],
+          ),
+        );
+        if (shouldLeave == true && context.mounted) {
+          Navigator.of(context).pop();
+        }
+      },
+      child: Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: AppColors.cardBackground,
@@ -327,6 +364,7 @@ class _WeightInputCardState extends ConsumerState<WeightInputCard> {
             ),
           ),
         ],
+      ),
       ),
     );
   }
@@ -446,6 +484,7 @@ class _WeightInputCardState extends ConsumerState<WeightInputCard> {
           onSetsChanged: (sets) {
             setState(() {
               _advancedSets = sets;
+              _isDirty = true;
             });
           },
         ),
