@@ -1358,4 +1358,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String timerNotifBody(String remaining) {
     return '$remaining remaining';
   }
+
+  @override
+  String get featureTour => 'Feature tour';
+
+  @override
+  String get featureTourSkip => 'Skip';
 }

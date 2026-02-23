@@ -6,6 +6,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 import '../../core/router/route_names.dart';
 import '../../core/theme/app_colors.dart';
 import '../../features/auth/providers/auth_provider.dart';
+import '../../features/onboarding/tour_provider.dart';
 import '../../features/profile/providers/user_profile_provider.dart';
 import '../../l10n/app_localizations.dart';
 
@@ -65,6 +66,15 @@ class AppDrawer extends ConsumerWidget {
                   },
                 ),
                 const Divider(color: AppColors.border, height: 32),
+                _DrawerItem(
+                  icon: Icons.help_outline,
+                  label: l10n.featureTour,
+                  onTap: () {
+                    Navigator.pop(context);
+                    ref.read(tourNotifierProvider.notifier).resetAllTours();
+                    ref.read(triggerExercisesTourProvider.notifier).state = true;
+                  },
+                ),
                 _DrawerItem(
                   icon: Icons.logout,
                   label: l10n.signOut,

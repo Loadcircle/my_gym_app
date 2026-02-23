@@ -2457,6 +2457,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{remaining} remaining'**
   String timerNotifBody(String remaining);
+
+  /// No description provided for @featureTour.
+  ///
+  /// In en, this message translates to:
+  /// **'Feature tour'**
+  String get featureTour;
+
+  /// No description provided for @featureTourSkip.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip'**
+  String get featureTourSkip;
 }
 
 class _AppLocalizationsDelegate

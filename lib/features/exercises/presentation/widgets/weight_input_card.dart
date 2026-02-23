@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../onboarding/tour_tooltip.dart';
 
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -28,6 +29,12 @@ class WeightInputCard extends ConsumerStatefulWidget {
   /// Fecha override para guardar el registro. Si es null, usa DateTime.now().
   final DateTime? overrideDate;
 
+  /// Showcase key opcional para el switch de modo (usado en el tour de detalle).
+  final GlobalKey? showcaseModeSwitchKey;
+
+  /// Showcase key opcional para el botón de guardar (usado en el tour de detalle).
+  final GlobalKey? showcaseSaveKey;
+
   const WeightInputCard({
     super.key,
     required this.exerciseId,
@@ -35,6 +42,8 @@ class WeightInputCard extends ConsumerStatefulWidget {
     required this.muscleGroup,
     required this.isCustomExercise,
     this.overrideDate,
+    this.showcaseModeSwitchKey,
+    this.showcaseSaveKey,
   });
 
   @override
@@ -309,25 +318,7 @@ class _WeightInputCardState extends ConsumerState<WeightInputCard> {
               ),
               const Spacer(),
               const SizedBox(width: 8),
-              SizedBox(
-                height: 24,
-                child: Switch(
-                  value: isAdvanced,
-                  onChanged: (value) {
-                    ref
-                        .read(weightInputModeNotifierProvider.notifier)
-                        .setAdvancedMode(value);
-                    // Resetear prefill flag para que se actualice con el nuevo modo
-                    _hasPrefilledWeight = false;
-                    // Forzar re-prefill
-                    lastRecordAsync.whenData((lastRecord) {
-                      _prefillFromLastRecord(lastRecord, value);
-                    });
-                  },
-                  activeTrackColor: AppColors.primary,
-                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                ),
-              ),
+              _buildModeSwitch(isAdvanced, lastRecordAsync),
             ],
           ),
           const SizedBox(height: 16),
@@ -345,27 +336,79 @@ class _WeightInputCardState extends ConsumerState<WeightInputCard> {
           const SizedBox(height: 20),
 
           // Botón guardar
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: _isSaving
-                  ? null
-                  : (isAdvanced ? _saveAdvanced : _saveSimple),
-              child: _isSaving
-                  ? const SizedBox(
-                      height: 20,
-                      width: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: AppColors.textPrimary,
-                      ),
-                    )
-                  : Text(l10n.save),
-            ),
-          ),
+          _buildSaveButton(l10n, isAdvanced),
         ],
       ),
       ),
+    );
+  }
+
+  Widget _buildModeSwitch(
+    bool isAdvanced,
+    AsyncValue<dynamic> lastRecordAsync,
+  ) {
+    final switchWidget = SizedBox(
+      height: 24,
+      child: Switch(
+        value: isAdvanced,
+        onChanged: (value) {
+          ref
+              .read(weightInputModeNotifierProvider.notifier)
+              .setAdvancedMode(value);
+          _hasPrefilledWeight = false;
+          lastRecordAsync.whenData((lastRecord) {
+            _prefillFromLastRecord(lastRecord, value);
+          });
+        },
+        activeTrackColor: AppColors.primary,
+        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+      ),
+    );
+
+    final key = widget.showcaseModeSwitchKey;
+    if (key == null) return switchWidget;
+
+    return tourShowcase(
+      showcaseKey: key,
+      title: 'Modo de registro',
+      description:
+          'Apagado: registra peso, series y reps de una sola vez (rápido). '
+          'Encendido: registra cada serie individualmente con su peso y repeticiones.',
+      height: 210,
+      child: switchWidget,
+    );
+  }
+
+  Widget _buildSaveButton(AppLocalizations l10n, bool isAdvanced) {
+    final button = SizedBox(
+      width: double.infinity,
+      child: ElevatedButton(
+        onPressed:
+            _isSaving ? null : (isAdvanced ? _saveAdvanced : _saveSimple),
+        child: _isSaving
+            ? const SizedBox(
+                height: 20,
+                width: 20,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: AppColors.textPrimary,
+                ),
+              )
+            : Text(l10n.save),
+      ),
+    );
+
+    final key = widget.showcaseSaveKey;
+    if (key == null) return button;
+
+    return tourShowcase(
+      showcaseKey: key,
+      title: 'Guardar entrenamiento',
+      description:
+          'Guarda para llevar un seguimiento de tu progreso. '
+          'Con 2+ registros aparece una gráfica de evolución.',
+      height: 170,
+      child: button,
     );
   }
 

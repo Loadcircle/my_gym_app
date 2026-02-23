@@ -436,5 +436,8 @@
   "timerFinishedTitle": "Tempo!",
   "timerFinishedBody": "Descanso terminado",
   "timerNotifBody": "{remaining} restante",
-  "@timerNotifBody": { "placeholders": { "remaining": { "type": "String" } } }
+  "@timerNotifBody": { "placeholders": { "remaining": { "type": "String" } } },
+
+  "featureTour": "Conheça as funções",
+  "featureTourSkip": "Pular"
 }

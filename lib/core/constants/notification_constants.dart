@@ -28,6 +28,14 @@ const String kLastMilestoneNotifDate = 'notif_last_milestone_date';
 /// FCM token.
 const String kFcmToken = 'notif_fcm_token';
 
+// ─── Tour Keys ───────────────────────────────────────────────────────────────
+
+/// Flag for exercises screen feature tour.
+const String kHasSeenExercisesTour = 'has_seen_exercises_tour';
+
+/// Flag for exercise detail screen feature tour.
+const String kHasSeenDetailTour = 'has_seen_detail_tour';
+
 /// Last incomplete session check timestamp.
 const String kLastIncompleteSessionCheck = 'notif_last_incomplete_check';
 

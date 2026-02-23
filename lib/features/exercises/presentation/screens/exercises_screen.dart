@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:showcaseview/showcaseview.dart';
 
 import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -9,6 +10,9 @@ import '../../../../core/config/providers/app_config_provider.dart';
 import '../../../../core/utils/muscle_groups.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/widgets/skeletons/exercise_card_skeleton.dart';
+import '../../../onboarding/tour_keys.dart';
+import '../../../onboarding/tour_provider.dart';
+import '../../../onboarding/tour_tooltip.dart';
 import '../../data/models/exercise_model.dart';
 import '../../data/models/custom_exercise_model.dart';
 import '../../providers/exercises_provider.dart';
@@ -82,6 +86,23 @@ class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
   String _selectedFilter = 'Todos';
   final _searchController = TextEditingController();
   String _searchQuery = '';
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final seen =
+          await ref.read(tourNotifierProvider.notifier).hasSeenExercisesTour();
+      if (!seen && mounted) {
+        final showcaseController = ShowCaseWidget.of(context);
+        Future.delayed(const Duration(milliseconds: 600), () {
+          if (mounted) {
+            showcaseController.startShowCase(ExercisesTourKeys.all);
+          }
+        });
+      }
+    });
+  }
 
   Future<void> _onRefresh() async {
     // Invalidar providers base - los derivados se actualizan automaticamente
@@ -161,6 +182,19 @@ class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
     final l10n = AppLocalizations.of(context);
     final langCode = Localizations.localeOf(context).languageCode;
 
+    // Escuchar trigger manual del tour desde el drawer
+    ref.listen<bool>(triggerExercisesTourProvider, (_, trigger) {
+      if (trigger) {
+        ref.read(triggerExercisesTourProvider.notifier).state = false;
+        final showcaseController = ShowCaseWidget.of(context);
+        Future.delayed(const Duration(milliseconds: 300), () {
+          if (mounted) {
+            showcaseController.startShowCase(ExercisesTourKeys.all);
+          }
+        });
+      }
+    });
+
     // Observar TODOS los ejercicios personalizados para saber si mostrar el filtro
     final allCustomExercisesAsync = ref.watch(customExercisesProvider);
     final hasCustomExercises =
@@ -204,10 +238,16 @@ class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
         title: Text(l10n.exercises),
       ),
       // FAB para agregar ejercicio
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => context.push(RouteNames.addExercise),
-        backgroundColor: AppColors.primary,
-        child: const Icon(Icons.add, color: AppColors.textPrimary),
+      floatingActionButton: tourShowcase(
+        showcaseKey: ExercisesTourKeys.fab,
+        title: 'Ejercicio personalizado',
+        description:
+            '¿No encuentras tu ejercicio? Crea uno con tu propio nombre, músculo e imagen.',
+        child: FloatingActionButton(
+          onPressed: () => context.push(RouteNames.addExercise),
+          backgroundColor: AppColors.primary,
+          child: const Icon(Icons.add, color: AppColors.textPrimary),
+        ),
       ),
       body: Column(
         children: [
@@ -219,7 +259,12 @@ class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
               AppConstants.defaultPadding,
               0,
             ),
-            child: TextField(
+            child: tourShowcase(
+              showcaseKey: ExercisesTourKeys.searchBar,
+              title: 'Buscar ejercicios',
+              description:
+                  'Busca por nombre o músculo. También encuentra ejercicios escribiendo el movimiento.',
+              child: TextField(
               controller: _searchController,
               decoration: InputDecoration(
                 hintText: l10n.searchExercise,
@@ -248,11 +293,18 @@ class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
               onChanged: (value) {
                 setState(() => _searchQuery = value);
               },
+              ),
             ),
           ),
 
           // Filtro de grupos musculares + "Mis ejercicios"
-          Container(
+          tourShowcase(
+            showcaseKey: ExercisesTourKeys.muscleFilter,
+            title: 'Filtrar por músculo',
+            description:
+                'Toca un grupo muscular para ver solo esos ejercicios. Incluye tus ejercicios personalizados.',
+            height: 160,
+            child: Container(
             height: 56,
             padding: const EdgeInsets.symmetric(vertical: 8),
             child: ListView.builder(
@@ -312,6 +364,7 @@ class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
                 );
               },
             ),
+            ),
           ),
 
           // Lista de ejercicios
@@ -360,11 +413,22 @@ class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
         itemCount: combined.length,
         itemBuilder: (context, index) {
           final item = combined[index];
-          return _ExerciseCard(
+          final card = _ExerciseCard(
             item: item,
             muscleGroupColor: MuscleGroups.getColor(item.muscleGroup),
             onTap: () => _navigateToExercise(item),
           );
+          if (index == 0) {
+            return tourShowcase(
+              showcaseKey: ExercisesTourKeys.exerciseCard,
+              title: 'Ver detalle',
+              description:
+                  'Toca un ejercicio para ver instrucciones, video y registrar tu entrenamiento.',
+              height: 160,
+              child: card,
+            );
+          }
+          return card;
         },
       ),
     );

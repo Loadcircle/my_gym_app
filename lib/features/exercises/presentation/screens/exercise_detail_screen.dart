@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:showcaseview/showcaseview.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/constants/app_constants.dart';
@@ -9,6 +10,9 @@ import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/widgets/storage_image.dart';
 import '../../../../shared/widgets/storage_video_player.dart';
 import '../../../../shared/widgets/weight_progress_chart.dart';
+import '../../../onboarding/tour_keys.dart';
+import '../../../onboarding/tour_provider.dart';
+import '../../../onboarding/tour_tooltip.dart';
 import '../../../routines/presentation/widgets/select_routine_sheet.dart';
 import '../../../timer/presentation/widgets/timer_bottom_sheet.dart';
 import '../../../timer/timer_provider.dart';
@@ -34,6 +38,7 @@ class ExerciseDetailScreen extends ConsumerStatefulWidget {
 
 class _ExerciseDetailScreenState extends ConsumerState<ExerciseDetailScreen> {
   bool _detailsExpanded = false;
+  bool _tourTriggered = false;
 
   void _showAddToRoutineSheet(ExerciseModel exercise) {
     SelectRoutineSheet.show(
@@ -85,7 +90,39 @@ class _ExerciseDetailScreenState extends ConsumerState<ExerciseDetailScreen> {
           );
         }
 
-        return _buildContent(context, exercise, historyAsync);
+        return _buildContentWithTour(context, exercise, historyAsync);
+      },
+    );
+  }
+
+  Widget _buildContentWithTour(
+    BuildContext context,
+    ExerciseModel exercise,
+    AsyncValue<List<WeightRecordModel>> historyAsync,
+  ) {
+    return ShowCaseWidget(
+      disableMovingAnimation: true,
+      onFinish: () {
+        ref.read(tourNotifierProvider.notifier).markDetailTourSeen();
+      },
+      builder: (ctx) {
+        // Trigger auto-tour once after data loads
+        if (!_tourTriggered) {
+          _tourTriggered = true;
+          WidgetsBinding.instance.addPostFrameCallback((_) async {
+            final showcaseController = ShowCaseWidget.of(ctx);
+            final seen =
+                await ref.read(tourNotifierProvider.notifier).hasSeenDetailTour();
+            if (!seen && mounted) {
+              Future.delayed(const Duration(milliseconds: 400), () {
+                if (mounted) {
+                  showcaseController.startShowCase(DetailTourKeys.all);
+                }
+              });
+            }
+          });
+        }
+        return _buildContent(ctx, exercise, historyAsync);
       },
     );
   }
@@ -129,15 +166,22 @@ class _ExerciseDetailScreenState extends ConsumerState<ExerciseDetailScreen> {
                 builder: (ctx, ref, _) {
                   final timer = ref.watch(timerProvider);
                   final isActive = timer.isRunning || timer.isPaused;
-                  return IconButton(
-                    tooltip: AppLocalizations.of(ctx).timerTitle,
-                    icon: Icon(
-                      isActive ? Icons.timer : Icons.timer_outlined,
-                      color: timer.isRunning && !timer.isPaused
-                          ? AppColors.primary
-                          : null,
+                  return tourShowcase(
+                    showcaseKey: DetailTourKeys.timer,
+                    title: 'Cronómetro de descanso',
+                    description:
+                        'Configura un temporizador para controlar tu tiempo de descanso entre series.',
+                    height: 160,
+                    child: IconButton(
+                      tooltip: AppLocalizations.of(ctx).timerTitle,
+                      icon: Icon(
+                        isActive ? Icons.timer : Icons.timer_outlined,
+                        color: timer.isRunning && !timer.isPaused
+                            ? AppColors.primary
+                            : null,
+                      ),
+                      onPressed: () => TimerBottomSheet.show(context),
                     ),
-                    onPressed: () => TimerBottomSheet.show(context),
                   );
                 },
               ),
@@ -178,20 +222,34 @@ class _ExerciseDetailScreenState extends ConsumerState<ExerciseDetailScreen> {
                       ),
                       const Spacer(),
                       // Boton agregar a rutina
-                      TextButton.icon(
-                        onPressed: () => _showAddToRoutineSheet(exercise),
-                        icon: const Icon(Icons.playlist_add, size: 20),
-                        label: Text(l10n.routine),
-                        style: TextButton.styleFrom(
-                          foregroundColor: AppColors.primary,
-                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                      tourShowcase(
+                        showcaseKey: DetailTourKeys.addToRoutine,
+                        title: 'Agregar a rutina',
+                        description:
+                            'Guarda este ejercicio en una de tus rutinas para tenerlo siempre a mano.',
+                        height: 155,
+                        child: TextButton.icon(
+                          onPressed: () => _showAddToRoutineSheet(exercise),
+                          icon: const Icon(Icons.playlist_add, size: 20),
+                          label: Text(l10n.routine),
+                          style: TextButton.styleFrom(
+                            foregroundColor: AppColors.primary,
+                            padding:
+                                const EdgeInsets.symmetric(horizontal: 12),
+                          ),
                         ),
                       ),
                     ],
                   ),
 
                   // --- Detalles ocultos por defecto (descripcion + video + instrucciones) ---
-                  Theme(
+                  tourShowcase(
+                    showcaseKey: DetailTourKeys.details,
+                    title: 'Instrucciones',
+                    description:
+                        'Despliega para ver la descripción completa, video de referencia e instrucciones paso a paso.',
+                    height: 170,
+                    child: Theme(
                     data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
                     child: ExpansionTile(
                       initiallyExpanded: _detailsExpanded,
@@ -280,6 +338,7 @@ class _ExerciseDetailScreenState extends ConsumerState<ExerciseDetailScreen> {
                         ],
                       ],
                     ),
+                    ),
                   ),
 
                   // Registro de peso
@@ -288,6 +347,8 @@ class _ExerciseDetailScreenState extends ConsumerState<ExerciseDetailScreen> {
                     exerciseName: exercise.name,
                     muscleGroup: exercise.muscleGroup,
                     isCustomExercise: false,
+                    showcaseModeSwitchKey: DetailTourKeys.modeSwitch,
+                    showcaseSaveKey: DetailTourKeys.saveButton,
                   ),
 
                   // Grafico de evolucion (si hay suficiente historial)

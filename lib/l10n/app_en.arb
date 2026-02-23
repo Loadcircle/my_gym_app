@@ -493,5 +493,8 @@
   "timerFinishedTitle": "Time's up!",
   "timerFinishedBody": "Rest is over",
   "timerNotifBody": "{remaining} remaining",
-  "@timerNotifBody": { "placeholders": { "remaining": { "type": "String" } } }
+  "@timerNotifBody": { "placeholders": { "remaining": { "type": "String" } } },
+
+  "featureTour": "Feature tour",
+  "featureTourSkip": "Skip"
 }

@@ -71,6 +71,9 @@ dependencies:
   # Background timer foreground service
   flutter_foreground_task: ^9.0.0
 
+  # Onboarding tour
+  showcaseview: ^3.0.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

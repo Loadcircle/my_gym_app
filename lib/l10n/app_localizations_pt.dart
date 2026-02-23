@@ -1361,4 +1361,10 @@ class AppLocalizationsPt extends AppLocalizations {
   String timerNotifBody(String remaining) {
     return '$remaining restante';
   }
+
+  @override
+  String get featureTour => 'Conheça as funções';
+
+  @override
+  String get featureTourSkip => 'Pular';
 }
