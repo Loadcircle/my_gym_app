@@ -43,7 +43,7 @@ class HeroSummaryCard extends StatelessWidget {
             ),
             child: Icon(icon, color: iconColor, size: 20),
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 8),
           Text(
             value,
             style: Theme.of(context).textTheme.titleLarge?.copyWith(

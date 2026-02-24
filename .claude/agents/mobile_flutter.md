@@ -81,6 +81,7 @@ Eres un especialista en desarrollo móvil con Flutter (Dart), enfocado en constr
   - Material 3
   - Componentes reutilizables (cards, chips, list tiles)
   - Siempre validar los campos de input cuando sea texto o digito y limitar valores maximos segun el contexto
+  - Siempre que un boton exista en el bottom de la pantalla, se debe asegurar que no quede tapado por los bottom nav del dispositivo, para esto se debe usar un `SafeArea` o un `Padding` con el valor del `MediaQuery` correspondiente, dependiendo del caso
 - **Performance**
   - paginación / lazy loading si catálogo crece
   - caching de imágenes

@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:showcaseview/showcaseview.dart';
 
 import '../../core/theme/app_colors.dart';
+import '../../l10n/app_localizations.dart';
 import '../../features/onboarding/tour_keys.dart';
 import '../../features/onboarding/tour_provider.dart';
 import '../../features/onboarding/tour_tooltip.dart';
@@ -21,6 +22,7 @@ class MainShell extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
     return ShowCaseWidget(
       disableMovingAnimation: true,
       onFinish: () {
@@ -40,20 +42,20 @@ class MainShell extends ConsumerWidget {
           backgroundColor: AppColors.surface,
           indicatorColor: AppColors.primary.withValues(alpha: 0.2),
           destinations: [
-            const NavigationDestination(
-              icon: Icon(Icons.fitness_center_outlined),
-              selectedIcon: Icon(Icons.fitness_center),
-              label: 'Ejercicios',
+            NavigationDestination(
+              icon: const Icon(Icons.fitness_center_outlined),
+              selectedIcon: const Icon(Icons.fitness_center),
+              label: l10n.exercises,
             ),
             tourShowcase(
               showcaseKey: ExercisesTourKeys.routinesTab,
               title: 'Tus rutinas',
               description:
                   'Crea rutinas con tus ejercicios favoritos y sigue tu plan de entrenamiento.',
-              child: const NavigationDestination(
-                icon: Icon(Icons.list_alt_outlined),
-                selectedIcon: Icon(Icons.list_alt),
-                label: 'Rutinas',
+              child: NavigationDestination(
+                icon: const Icon(Icons.list_alt_outlined),
+                selectedIcon: const Icon(Icons.list_alt),
+                label: l10n.routines,
               ),
             ),
             tourShowcase(
@@ -61,10 +63,10 @@ class MainShell extends ConsumerWidget {
               title: 'Historial',
               description:
                   'Aquí puedes revisar el historial completo de todos tus entrenamientos registrados.',
-              child: const NavigationDestination(
-                icon: Icon(Icons.history_outlined),
-                selectedIcon: Icon(Icons.history),
-                label: 'Historial',
+              child: NavigationDestination(
+                icon: const Icon(Icons.history_outlined),
+                selectedIcon: const Icon(Icons.history),
+                label: l10n.history,
               ),
             ),
           ],

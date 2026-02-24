@@ -472,21 +472,24 @@ class _AddExerciseToDayScreenState
         ),
         // Confirm button
         if (_selectedExerciseIds.isNotEmpty)
-          Padding(
-            padding: const EdgeInsets.all(AppConstants.defaultPadding),
-            child: FilledButton.icon(
-              onPressed: _isSaving
-                  ? null
-                  : () => _saveSelectedExercises(allExercises),
-              icon: const Icon(Icons.check),
-              label: Text(
-                _selectedExerciseIds.length == 1
-                    ? l10n.addOneExercise
-                    : l10n.addMultipleExercises(_selectedExerciseIds.length),
-              ),
-              style: FilledButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                minimumSize: const Size(double.infinity, 48),
+          SafeArea(
+            top: false,
+            child: Padding(
+              padding: const EdgeInsets.all(AppConstants.defaultPadding),
+              child: FilledButton.icon(
+                onPressed: _isSaving
+                    ? null
+                    : () => _saveSelectedExercises(allExercises),
+                icon: const Icon(Icons.check),
+                label: Text(
+                  _selectedExerciseIds.length == 1
+                      ? l10n.addOneExercise
+                      : l10n.addMultipleExercises(_selectedExerciseIds.length),
+                ),
+                style: FilledButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  minimumSize: const Size(double.infinity, 48),
+                ),
               ),
             ),
           ),

@@ -191,17 +191,19 @@ class _EditDayScreenState extends ConsumerState<EditDayScreen> {
         error: (error, _) => Center(child: Text(l10n.errorMessage(error.toString()))),
         data: (summary) => _buildContent(context, summary, exercisesMap),
       ),
-      bottomNavigationBar: Padding(
-        padding: const EdgeInsets.all(AppConstants.defaultPadding),
-        child: FilledButton.icon(
-          onPressed: () {
-            context.push(RouteNames.addExerciseToDay, extra: widget.date);
-          },
-          icon: const Icon(Icons.add),
-          label: Text(l10n.addExerciseButton),
-          style: FilledButton.styleFrom(
-            backgroundColor: AppColors.primary,
-            minimumSize: const Size(double.infinity, 48),
+      bottomNavigationBar: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(AppConstants.defaultPadding),
+          child: FilledButton.icon(
+            onPressed: () {
+              context.push(RouteNames.addExerciseToDay, extra: widget.date);
+            },
+            icon: const Icon(Icons.add),
+            label: Text(l10n.addExerciseButton),
+            style: FilledButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              minimumSize: const Size(double.infinity, 48),
+            ),
           ),
         ),
       ),

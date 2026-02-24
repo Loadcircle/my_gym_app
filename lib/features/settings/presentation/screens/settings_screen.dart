@@ -108,6 +108,20 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     }
   }
 
+  String _getPrivacyPolicyUrl() {
+    final locale = ref.read(localeNotifierProvider);
+    return locale.languageCode == 'es'
+        ? 'https://loadcircle.github.io/my_gym_app/privacidad/'
+        : 'https://loadcircle.github.io/my_gym_app/en/privacy/';
+  }
+
+  String _getTermsUrl() {
+    final locale = ref.read(localeNotifierProvider);
+    return locale.languageCode == 'es'
+        ? 'https://loadcircle.github.io/my_gym_app/terminos/'
+        : 'https://loadcircle.github.io/my_gym_app/en/terms/';
+  }
+
   Future<void> _launchUrl(String url) async {
     final uri = Uri.parse(url);
     if (await canLaunchUrl(uri)) {
@@ -381,14 +395,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       leading: const Icon(Icons.privacy_tip_outlined, color: AppColors.textSecondary),
                       title: Text(l10n.privacyPolicy),
                       trailing: const Icon(Icons.open_in_new, size: 18, color: AppColors.textHint),
-                      onTap: () => _launchUrl(AppConstants.privacyPolicyUrl),
+                      onTap: () => _launchUrl(_getPrivacyPolicyUrl()),
                     ),
                     const Divider(height: 1),
                     ListTile(
                       leading: const Icon(Icons.description_outlined, color: AppColors.textSecondary),
                       title: Text(l10n.termsAndConditions),
                       trailing: const Icon(Icons.open_in_new, size: 18, color: AppColors.textHint),
-                      onTap: () => _launchUrl(AppConstants.termsAndConditionsUrl),
+                      onTap: () => _launchUrl(_getTermsUrl()),
                     ),
                   ],
                 ),

@@ -343,14 +343,17 @@ class RoutineCompletionTile extends StatelessWidget {
                   const SizedBox(height: 4),
                   Row(
                     children: [
-                      Text(
-                        l10n.exercisesCompletedCount(
-                          completion.exercisesCompletedCount.toString(),
-                          completion.exerciseCountSnapshot.toString(),
+                      Flexible(
+                        child: Text(
+                          l10n.exercisesCompletedCount(
+                            completion.exercisesCompletedCount.toString(),
+                            completion.exerciseCountSnapshot.toString(),
+                          ),
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                color: AppColors.textSecondary,
+                              ),
+                          overflow: TextOverflow.ellipsis,
                         ),
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: AppColors.textSecondary,
-                            ),
                       ),
                       const SizedBox(width: 8),
                       Text(
