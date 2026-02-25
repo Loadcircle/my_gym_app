@@ -57,9 +57,8 @@ class _MuscleDistributionSectionState
             MuscleDonutChart(
               distribution: data.distribution,
               onSectionTapped: (index) {
-                setState(() {
-                  _selectedIndex = index == _selectedIndex ? -1 : index;
-                });
+                if (index == _selectedIndex) return;
+                setState(() => _selectedIndex = index);
               },
             ),
             const SizedBox(height: 12),

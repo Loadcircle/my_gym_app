@@ -40,6 +40,9 @@ class _ExerciseDetailScreenState extends ConsumerState<ExerciseDetailScreen> {
   bool _detailsExpanded = false;
   bool _tourTriggered = false;
 
+  void _markDetailTourSeen() =>
+      ref.read(tourNotifierProvider.notifier).markDetailTourSeen();
+
   void _showAddToRoutineSheet(ExerciseModel exercise) {
     SelectRoutineSheet.show(
       context,
@@ -102,9 +105,7 @@ class _ExerciseDetailScreenState extends ConsumerState<ExerciseDetailScreen> {
   ) {
     return ShowCaseWidget(
       disableMovingAnimation: true,
-      onFinish: () {
-        ref.read(tourNotifierProvider.notifier).markDetailTourSeen();
-      },
+      onFinish: _markDetailTourSeen,
       builder: (ctx) {
         // Trigger auto-tour once after data loads
         if (!_tourTriggered) {
@@ -172,6 +173,7 @@ class _ExerciseDetailScreenState extends ConsumerState<ExerciseDetailScreen> {
                     description:
                         'Configura un temporizador para controlar tu tiempo de descanso entre series.',
                     height: 160,
+                    onSkip: _markDetailTourSeen,
                     child: IconButton(
                       tooltip: AppLocalizations.of(ctx).timerTitle,
                       icon: Icon(
@@ -228,6 +230,7 @@ class _ExerciseDetailScreenState extends ConsumerState<ExerciseDetailScreen> {
                         description:
                             'Guarda este ejercicio en una de tus rutinas para tenerlo siempre a mano.',
                         height: 155,
+                        onSkip: _markDetailTourSeen,
                         child: TextButton.icon(
                           onPressed: () => _showAddToRoutineSheet(exercise),
                           icon: const Icon(Icons.playlist_add, size: 20),
@@ -249,6 +252,7 @@ class _ExerciseDetailScreenState extends ConsumerState<ExerciseDetailScreen> {
                     description:
                         'Despliega para ver la descripción completa, video de referencia e instrucciones paso a paso.',
                     height: 170,
+                    onSkip: _markDetailTourSeen,
                     child: Theme(
                     data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
                     child: ExpansionTile(
@@ -349,6 +353,7 @@ class _ExerciseDetailScreenState extends ConsumerState<ExerciseDetailScreen> {
                     isCustomExercise: false,
                     showcaseModeSwitchKey: DetailTourKeys.modeSwitch,
                     showcaseSaveKey: DetailTourKeys.saveButton,
+                    onTourSkip: _markDetailTourSeen,
                   ),
 
                   // Grafico de evolucion (si hay suficiente historial)

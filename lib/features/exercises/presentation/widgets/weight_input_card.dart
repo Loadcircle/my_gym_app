@@ -35,6 +35,9 @@ class WeightInputCard extends ConsumerStatefulWidget {
   /// Showcase key opcional para el botón de guardar (usado en el tour de detalle).
   final GlobalKey? showcaseSaveKey;
 
+  /// Callback para marcar el tour como visto al presionar "Omitir".
+  final VoidCallback? onTourSkip;
+
   const WeightInputCard({
     super.key,
     required this.exerciseId,
@@ -44,6 +47,7 @@ class WeightInputCard extends ConsumerStatefulWidget {
     this.overrideDate,
     this.showcaseModeSwitchKey,
     this.showcaseSaveKey,
+    this.onTourSkip,
   });
 
   @override
@@ -375,6 +379,7 @@ class _WeightInputCardState extends ConsumerState<WeightInputCard> {
           'Apagado: registra peso, series y reps de una sola vez (rápido). '
           'Encendido: registra cada serie individualmente con su peso y repeticiones.',
       height: 210,
+      onSkip: widget.onTourSkip,
       child: switchWidget,
     );
   }
@@ -408,6 +413,7 @@ class _WeightInputCardState extends ConsumerState<WeightInputCard> {
           'Guarda para llevar un seguimiento de tu progreso. '
           'Con 2+ registros aparece una gráfica de evolución.',
       height: 170,
+      onSkip: widget.onTourSkip,
       child: button,
     );
   }

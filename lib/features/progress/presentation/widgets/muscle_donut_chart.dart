@@ -20,7 +20,7 @@ class MuscleDonutChart extends StatefulWidget {
 }
 
 class _MuscleDonutChartState extends State<MuscleDonutChart> {
-  int touchedIndex = -1;
+  int _pressedIndex = -1;
 
   @override
   Widget build(BuildContext context) {
@@ -35,15 +35,15 @@ class _MuscleDonutChartState extends State<MuscleDonutChart> {
           sections: widget.distribution.asMap().entries.map((entry) {
             final index = entry.key;
             final data = entry.value;
-            final isTouched = index == touchedIndex;
+            final isPressed = index == _pressedIndex;
             final color = MuscleGroups.getColor(data.muscleGroup);
             return PieChartSectionData(
               color: color,
               value: data.volumePercentage,
               title: '${data.volumePercentage.toStringAsFixed(0)}%',
-              radius: isTouched ? 55 : 45,
+              radius: isPressed ? 55 : 45,
               titleStyle: TextStyle(
-                fontSize: isTouched ? 14 : 11,
+                fontSize: isPressed ? 14 : 11,
                 fontWeight: FontWeight.bold,
                 color: Colors.white,
               ),
@@ -52,16 +52,24 @@ class _MuscleDonutChartState extends State<MuscleDonutChart> {
           }).toList(),
           pieTouchData: PieTouchData(
             touchCallback: (FlTouchEvent event, pieTouchResponse) {
-              if (!event.isInterestedForInteractions ||
-                  pieTouchResponse?.touchedSection == null) {
-                setState(() => touchedIndex = -1);
-                widget.onSectionTapped?.call(-1);
-                return;
+              if (!mounted) return;
+              final section = pieTouchResponse?.touchedSection;
+              final newIndex =
+                  (event.isInterestedForInteractions && section != null)
+                      ? section.touchedSectionIndex
+                      : -1;
+
+              // Feedback visual (sección agrandada mientras se presiona).
+              if (_pressedIndex != newIndex) {
+                setState(() => _pressedIndex = newIndex);
               }
-              final index =
-                  pieTouchResponse!.touchedSection!.touchedSectionIndex;
-              setState(() => touchedIndex = index);
-              widget.onSectionTapped?.call(index);
+
+              // Notifica al padre en cualquier evento interesado con sección válida.
+              // El padre es idempotente (ignora el mismo índice repetido),
+              // así que no importa si fl_chart dispara múltiples eventos.
+              if (newIndex >= 0) {
+                widget.onSectionTapped?.call(newIndex);
+              }
             },
           ),
         ),

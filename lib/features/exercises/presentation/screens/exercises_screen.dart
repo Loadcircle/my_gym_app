@@ -243,6 +243,7 @@ class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
         title: 'Ejercicio personalizado',
         description:
             '¿No encuentras tu ejercicio? Crea uno con tu propio nombre, músculo e imagen.',
+        onSkip: () => ref.read(tourNotifierProvider.notifier).markExercisesTourSeen(),
         child: FloatingActionButton(
           onPressed: () => context.push(RouteNames.addExercise),
           backgroundColor: AppColors.primary,
@@ -264,6 +265,7 @@ class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
               title: 'Buscar ejercicios',
               description:
                   'Busca por nombre o músculo. También encuentra ejercicios escribiendo el movimiento.',
+              onSkip: () => ref.read(tourNotifierProvider.notifier).markExercisesTourSeen(),
               child: TextField(
               controller: _searchController,
               decoration: InputDecoration(
@@ -304,6 +306,7 @@ class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
             description:
                 'Toca un grupo muscular para ver solo esos ejercicios. Incluye tus ejercicios personalizados.',
             height: 160,
+            onSkip: () => ref.read(tourNotifierProvider.notifier).markExercisesTourSeen(),
             child: Container(
             height: 56,
             padding: const EdgeInsets.symmetric(vertical: 8),
@@ -425,6 +428,7 @@ class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
               description:
                   'Toca un ejercicio para ver instrucciones, video y registrar tu entrenamiento.',
               height: 160,
+              onSkip: () => ref.read(tourNotifierProvider.notifier).markExercisesTourSeen(),
               child: card,
             );
           }

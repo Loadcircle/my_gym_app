@@ -23,11 +23,12 @@ class MainShell extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
+    void markExercisesTourSeen() =>
+        ref.read(tourNotifierProvider.notifier).markExercisesTourSeen();
+
     return ShowCaseWidget(
       disableMovingAnimation: true,
-      onFinish: () {
-        ref.read(tourNotifierProvider.notifier).markExercisesTourSeen();
-      },
+      onFinish: markExercisesTourSeen,
       builder: (context) => Scaffold(
         drawer: const AppDrawer(),
         body: navigationShell,
@@ -52,6 +53,7 @@ class MainShell extends ConsumerWidget {
               title: 'Tus rutinas',
               description:
                   'Crea rutinas con tus ejercicios favoritos y sigue tu plan de entrenamiento.',
+              onSkip: markExercisesTourSeen,
               child: NavigationDestination(
                 icon: const Icon(Icons.list_alt_outlined),
                 selectedIcon: const Icon(Icons.list_alt),
@@ -63,6 +65,7 @@ class MainShell extends ConsumerWidget {
               title: 'Historial',
               description:
                   'Aquí puedes revisar el historial completo de todos tus entrenamientos registrados.',
+              onSkip: markExercisesTourSeen,
               child: NavigationDestination(
                 icon: const Icon(Icons.history_outlined),
                 selectedIcon: const Icon(Icons.history),

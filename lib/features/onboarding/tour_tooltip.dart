@@ -17,6 +17,7 @@ class TourTooltip extends StatelessWidget {
   final String description;
   final String skipLabel;
   final ShowCaseWidgetState controller;
+  final VoidCallback? onSkip;
 
   const TourTooltip({
     super.key,
@@ -24,6 +25,7 @@ class TourTooltip extends StatelessWidget {
     required this.description,
     required this.skipLabel,
     required this.controller,
+    this.onSkip,
   });
 
   @override
@@ -94,7 +96,10 @@ class TourTooltip extends StatelessWidget {
                 // Botón skip — GestureDetector propio para absorber el tap
                 GestureDetector(
                   behavior: HitTestBehavior.opaque,
-                  onTap: () => controller.dismiss(),
+                  onTap: () {
+                    onSkip?.call();
+                    controller.dismiss();
+                  },
                   child: Padding(
                     padding: const EdgeInsets.symmetric(
                       vertical: 4,
@@ -140,6 +145,7 @@ Widget tourShowcase({
   required Widget child,
   double height = kTourTooltipHeight,
   double width = kTourTooltipWidth,
+  VoidCallback? onSkip,
 }) {
   return Builder(
     builder: (context) {
@@ -156,6 +162,7 @@ Widget tourShowcase({
           description: description,
           skipLabel: skipLabel,
           controller: controller,
+          onSkip: onSkip,
         ),
         child: child,
       );
