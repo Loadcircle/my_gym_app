@@ -15,6 +15,7 @@ import '../../../onboarding/tour_provider.dart';
 import '../../../onboarding/tour_tooltip.dart';
 import '../../../routines/presentation/widgets/select_routine_sheet.dart';
 import '../../../timer/presentation/widgets/timer_bottom_sheet.dart';
+import '../../../timer/presentation/widgets/timer_mini_bar.dart';
 import '../../../timer/timer_provider.dart';
 import '../../data/models/exercise_model.dart';
 import '../../data/models/weight_record_model.dart';
@@ -176,9 +177,19 @@ class _ExerciseDetailScreenState extends ConsumerState<ExerciseDetailScreen>
     final mediaHelper = ref.watch(mediaUrlHelperProvider);
     final hasImage = mediaHelper.isValidUrl(exercise.imageUrl);
 
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      body: CustomScrollView(
+    return Consumer(
+      builder: (ctx, ref, child) {
+        final timerMinimized = ref.watch(
+          timerProvider.select((t) => t.isMinimized),
+        );
+        debugPrint('[ExerciseDetail] Consumer rebuild — timerMinimized=$timerMinimized');
+        return Scaffold(
+          backgroundColor: AppColors.background,
+          bottomSheet: timerMinimized ? const TimerMiniBar() : null,
+          body: child!,
+        );
+      },
+      child: CustomScrollView(
         slivers: [
           // App Bar (expandido solo si hay imagen)
           SliverAppBar(

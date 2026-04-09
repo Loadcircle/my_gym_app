@@ -11,6 +11,7 @@ import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/widgets/weight_progress_chart.dart';
 import '../../../routines/presentation/widgets/select_routine_sheet.dart';
 import '../../../timer/presentation/widgets/timer_bottom_sheet.dart';
+import '../../../timer/presentation/widgets/timer_mini_bar.dart';
 import '../../../timer/timer_provider.dart';
 import '../../data/models/custom_exercise_model.dart';
 import '../../data/models/weight_record_model.dart';
@@ -227,8 +228,10 @@ class _CustomExerciseDetailScreenState
     final localizedMuscleGroup =
         MuscleGroups.getLocalizedName(exercise.muscleGroup, langCode);
 
+    final timerMinimized = ref.watch(timerProvider.select((t) => t.isMinimized));
     return Scaffold(
       backgroundColor: AppColors.background,
+      bottomSheet: timerMinimized ? const TimerMiniBar() : null,
       body: CustomScrollView(
         slivers: [
           // App Bar con imagen

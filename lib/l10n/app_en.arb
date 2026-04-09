@@ -492,6 +492,9 @@
   "timerCustom": "Custom",
   "timerFinishedTitle": "Time's up!",
   "timerFinishedBody": "Rest is over",
+  "timerFinished": "Time's up!",
+  "timerPaused": "Paused",
+  "timerRunning": "Running",
   "timerNotifBody": "{remaining} remaining",
   "@timerNotifBody": { "placeholders": { "remaining": { "type": "String" } } },
 

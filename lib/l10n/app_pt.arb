@@ -435,6 +435,9 @@
   "timerCustom": "Personalizado",
   "timerFinishedTitle": "Tempo!",
   "timerFinishedBody": "Descanso terminado",
+  "timerFinished": "Tempo esgotado!",
+  "timerPaused": "Pausado",
+  "timerRunning": "Correndo",
   "timerNotifBody": "{remaining} restante",
   "@timerNotifBody": { "placeholders": { "remaining": { "type": "String" } } },
 

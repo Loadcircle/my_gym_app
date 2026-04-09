@@ -10,6 +10,8 @@ import '../../features/onboarding/tour_keys.dart';
 import '../../features/onboarding/tour_provider.dart';
 import '../../features/onboarding/tour_tooltip.dart';
 import '../../features/timer/presentation/widgets/timer_bottom_sheet.dart';
+import '../../features/timer/presentation/widgets/timer_mini_bar.dart';
+import '../../features/timer/timer_provider.dart';
 import 'app_drawer.dart';
 
 /// Shell principal de la aplicación con bottom navigation y drawer.
@@ -67,10 +69,17 @@ class _MainShellState extends ConsumerState<MainShell> {
     return ShowCaseWidget(
       disableMovingAnimation: true,
       onFinish: markExercisesTourSeen,
-      builder: (context) => Scaffold(
+      builder: (context) {
+        final timer = ref.watch(timerProvider);
+        final showMiniBar = timer.isMinimized;
+        return Scaffold(
         drawer: const AppDrawer(),
         body: widget.navigationShell,
-        bottomNavigationBar: NavigationBar(
+        bottomNavigationBar: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (showMiniBar) const TimerMiniBar(),
+            NavigationBar(
           selectedIndex: widget.navigationShell.currentIndex,
           onDestinationSelected: (index) {
             widget.navigationShell.goBranch(
@@ -112,7 +121,10 @@ class _MainShellState extends ConsumerState<MainShell> {
             ),
           ],
         ),
-      ),
+          ],
+        ),
+        );
+      },
     );
   }
 }

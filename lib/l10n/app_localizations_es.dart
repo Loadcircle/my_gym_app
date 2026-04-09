@@ -1362,6 +1362,15 @@ class AppLocalizationsEs extends AppLocalizations {
   String get timerFinishedBody => 'Tu descanso terminó';
 
   @override
+  String get timerFinished => '¡Tiempo!';
+
+  @override
+  String get timerPaused => 'Pausado';
+
+  @override
+  String get timerRunning => 'Corriendo';
+
+  @override
   String timerNotifBody(String remaining) {
     return '$remaining restante';
   }

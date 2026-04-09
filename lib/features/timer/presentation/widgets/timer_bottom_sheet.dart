@@ -38,6 +38,10 @@ class _TimerBottomSheetState extends ConsumerState<TimerBottomSheet> {
     final total = ref.read(timerProvider).totalSeconds;
     _minutesController = FixedExtentScrollController(initialItem: total ~/ 60);
     _secondsController = FixedExtentScrollController(initialItem: total % 60);
+    // Al abrir el sheet, quitamos el estado minimizado
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(timerProvider.notifier).unminimize();
+    });
   }
 
   @override
@@ -63,9 +67,18 @@ class _TimerBottomSheetState extends ConsumerState<TimerBottomSheet> {
     final showPicker = !timer.isRunning && !timer.isFinished;
     final showCircular = timer.isRunning || timer.isFinished;
 
-    return Padding(
-      padding: EdgeInsets.only(bottom: bottomPad),
-      child: Column(
+    return PopScope(
+      canPop: true,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) return;
+        final t = ref.read(timerProvider);
+        if (t.isRunning || t.isPaused) {
+          ref.read(timerProvider.notifier).minimize();
+        }
+      },
+      child: Padding(
+        padding: EdgeInsets.only(bottom: bottomPad),
+        child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           // Handle
@@ -235,6 +248,7 @@ class _TimerBottomSheetState extends ConsumerState<TimerBottomSheet> {
             ),
           ),
         ],
+      ),
       ),
     );
   }

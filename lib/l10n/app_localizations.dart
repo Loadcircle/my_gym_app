@@ -2452,6 +2452,24 @@ abstract class AppLocalizations {
   /// **'Rest is over'**
   String get timerFinishedBody;
 
+  /// No description provided for @timerFinished.
+  ///
+  /// In en, this message translates to:
+  /// **'Time\'s up!'**
+  String get timerFinished;
+
+  /// No description provided for @timerPaused.
+  ///
+  /// In en, this message translates to:
+  /// **'Paused'**
+  String get timerPaused;
+
+  /// No description provided for @timerRunning.
+  ///
+  /// In en, this message translates to:
+  /// **'Running'**
+  String get timerRunning;
+
   /// No description provided for @timerNotifBody.
   ///
   /// In en, this message translates to:

@@ -435,6 +435,9 @@
   "timerCustom": "Personalizado",
   "timerFinishedTitle": "¡Tiempo!",
   "timerFinishedBody": "Tu descanso terminó",
+  "timerFinished": "¡Tiempo!",
+  "timerPaused": "Pausado",
+  "timerRunning": "Corriendo",
   "timerNotifBody": "{remaining} restante",
   "@timerNotifBody": { "placeholders": { "remaining": { "type": "String" } } },
 

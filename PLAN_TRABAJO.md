@@ -15,7 +15,7 @@ Basado en `BUGS_Y_MEJORAS.md`. Organizado por prioridad con propuesta de resoluc
 | [x] | 5 | Timer en pantalla de ejercicios personalizados | 3 | Baja | Bajo |
 | [x] | 6 | Gráfico de peso: detalle completo al tocar un punto | 4 | Media | Bajo |
 | [x] | 7 | Timer: tap en notificación abre pop-up | 4 | Media | Medio |
-| [ ] | 8 | Timer: barra minimizada en parte inferior | 4 | Media | Medio |
+| [x] | 8 | Timer: barra minimizada en parte inferior | 4 | Media | Medio |
 | [x] | 9 | Nudge: efecto "shining" en botón timer al agregar serie | 4 | Baja | Bajo |
 | [ ] | 10 | RIR por serie + Break time (migración BD v13) | 5 | Alta | Medio |
 

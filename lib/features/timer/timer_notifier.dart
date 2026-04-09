@@ -82,7 +82,21 @@ class TimerNotifier extends StateNotifier<TimerState> {
       isRunning: true,
       isPaused: false,
       isFinished: false,
+      isMinimized: false,
     );
+  }
+
+  /// Minimiza el timer: oculta el sheet y muestra la barra pequeña.
+  void minimize() {
+    AppLogger.info('minimize() — isRunning=${state.isRunning} isPaused=${state.isPaused}', tag: 'TimerNotifier');
+    state = state.copyWith(isMinimized: true);
+    AppLogger.info('state.isMinimized=${state.isMinimized}', tag: 'TimerNotifier');
+  }
+
+  /// Quita el estado minimizado (llamado al abrir el sheet).
+  void unminimize() {
+    AppLogger.info('unminimize()', tag: 'TimerNotifier');
+    state = state.copyWith(isMinimized: false);
   }
 
   /// Actualiza el tiempo total sin iniciar el timer.
@@ -143,6 +157,7 @@ class TimerNotifier extends StateNotifier<TimerState> {
       isRunning: false,
       isPaused: false,
       isFinished: true,
+      isMinimized: false,
     );
 
     // Notificación de "¡Tiempo!" con sonido y vibración (canal HIGH)

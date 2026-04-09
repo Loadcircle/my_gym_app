@@ -6,6 +6,7 @@ class TimerState {
   final bool isRunning;
   final bool isPaused;
   final bool isFinished;
+  final bool isMinimized;
 
   const TimerState({
     this.totalSeconds = 180,
@@ -13,6 +14,7 @@ class TimerState {
     this.isRunning = false,
     this.isPaused = false,
     this.isFinished = false,
+    this.isMinimized = false,
   });
 
   TimerState copyWith({
@@ -21,6 +23,7 @@ class TimerState {
     bool? isRunning,
     bool? isPaused,
     bool? isFinished,
+    bool? isMinimized,
   }) {
     return TimerState(
       totalSeconds: totalSeconds ?? this.totalSeconds,
@@ -28,6 +31,7 @@ class TimerState {
       isRunning: isRunning ?? this.isRunning,
       isPaused: isPaused ?? this.isPaused,
       isFinished: isFinished ?? this.isFinished,
+      isMinimized: isMinimized ?? this.isMinimized,
     );
   }
 
@@ -39,7 +43,8 @@ class TimerState {
           remainingSeconds == other.remainingSeconds &&
           isRunning == other.isRunning &&
           isPaused == other.isPaused &&
-          isFinished == other.isFinished;
+          isFinished == other.isFinished &&
+          isMinimized == other.isMinimized;
 
   @override
   int get hashCode => Object.hash(
@@ -48,5 +53,6 @@ class TimerState {
         isRunning,
         isPaused,
         isFinished,
+        isMinimized,
       );
 }

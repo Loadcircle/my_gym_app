@@ -7,6 +7,7 @@ import 'timer_state.dart';
 /// Provider global del cronómetro de descanso.
 /// [keepAlive: true] para que el timer siga corriendo aunque no haya widgets observándolo.
 final timerProvider = StateNotifierProvider<TimerNotifier, TimerState>((ref) {
+  ref.keepAlive();
   final notifService = ref.watch(notificationServiceProvider);
   return TimerNotifier(notifService);
 });
