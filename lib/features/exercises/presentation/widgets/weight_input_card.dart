@@ -127,21 +127,22 @@ class _WeightInputCardState extends ConsumerState<WeightInputCard> {
 
   double get _maxWeight {
     if (_advancedSets.isEmpty) return 0;
-    return _advancedSets.map((s) => s.weight).reduce((a, b) => a > b ? a : b);
+    final weights = _advancedSets.map((s) => s.weight ?? 0.0);
+    return weights.reduce((a, b) => a > b ? a : b);
   }
 
   int get _maxReps {
     if (_advancedSets.isEmpty) return 0;
     final maxW = _maxWeight;
     return _advancedSets
-        .where((s) => s.weight == maxW)
+        .where((s) => (s.weight ?? 0.0) == maxW)
         .map((s) => s.reps)
         .reduce((a, b) => a > b ? a : b);
   }
 
   bool get _isAdvancedValid {
     return _advancedSets.isNotEmpty &&
-        _advancedSets.every((s) => s.weight > 0 && s.reps >= 1);
+        _advancedSets.every((s) => s.weight != null && s.reps >= 1);
   }
 
   Future<void> _saveSimple() async {
@@ -228,7 +229,7 @@ class _WeightInputCardState extends ConsumerState<WeightInputCard> {
         return SetEntryModel(
           id: e.value.id,
           setNumber: e.key + 1,
-          weight: e.value.weight,
+          weight: e.value.weight ?? 0.0,
           reps: e.value.reps,
         );
       }).toList();

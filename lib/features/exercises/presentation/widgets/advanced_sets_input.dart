@@ -10,7 +10,7 @@ const _uuid = Uuid();
 /// Datos de una serie individual.
 class SetData {
   final String id;
-  final double weight;
+  final double? weight; // null = campo vacío (no válido), 0.0 = explícitamente cero
   final int reps;
 
   SetData({
@@ -19,14 +19,16 @@ class SetData {
     required this.reps,
   });
 
-  SetData copyWith({double? weight, int? reps}) => SetData(
+  SetData copyWith({int? reps}) => SetData(
         id: id,
-        weight: weight ?? this.weight,
+        weight: weight,
         reps: reps ?? this.reps,
       );
 
+  SetData withWeight(double? w) => SetData(id: id, weight: w, reps: reps);
+
   /// Crea un nuevo SetData con ID único.
-  factory SetData.create({double weight = 0, int reps = 10}) {
+  factory SetData.create({double? weight, int reps = 0}) {
     return SetData(id: _uuid.v4(), weight: weight, reps: reps);
   }
 }
@@ -94,6 +96,7 @@ class _AdvancedSetsInputState extends State<AdvancedSetsInput> {
           _initControllersForSet(i, _sets[i].weight, _sets[i].reps);
         }
         setState(() {});
+
       }
     }
   }
@@ -117,14 +120,14 @@ class _AdvancedSetsInputState extends State<AdvancedSetsInput> {
     super.dispose();
   }
 
-  void _initControllersForSet(int index, double weight, int reps) {
+  void _initControllersForSet(int index, double? weight, int reps) {
     while (_weightControllers.length <= index) {
       _weightControllers.add(TextEditingController());
       _repsControllers.add(TextEditingController());
       _weightFocusNodes.add(FocusNode());
     }
     // Formatear peso sin decimales innecesarios (60.0 → "60", 60.5 → "60.5")
-    _weightControllers[index].text = weight > 0 ? _formatWeight(weight) : '';
+    _weightControllers[index].text = weight != null ? _formatWeight(weight) : '';
     _repsControllers[index].text = reps > 0 ? reps.toString() : '';
   }
 
@@ -138,7 +141,7 @@ class _AdvancedSetsInputState extends State<AdvancedSetsInput> {
   void _addSet() {
     final last = _sets.isNotEmpty ? _sets.last : null;
     final newIndex = _sets.length;
-    final newWeight = last?.weight ?? 0;
+    final newWeight = last?.weight; // null si el último set estaba vacío
     final newReps = 0;
 
     setState(() {
@@ -168,17 +171,17 @@ class _AdvancedSetsInputState extends State<AdvancedSetsInput> {
       // Actualizar controllers restantes
       for (int i = 0; i < _sets.length; i++) {
         _weightControllers[i].text =
-            _sets[i].weight > 0 ? _formatWeight(_sets[i].weight) : '';
+            _sets[i].weight != null ? _formatWeight(_sets[i].weight!) : '';
         _repsControllers[i].text = _sets[i].reps.toString();
       }
       widget.onSetsChanged(_sets);
     }
   }
 
-  void _updateWeight(int index, double weight) {
+  void _updateWeight(int index, double? weight) {
     setState(() {
       final newSets = List<SetData>.from(_sets);
-      newSets[index] = newSets[index].copyWith(weight: weight);
+      newSets[index] = newSets[index].withWeight(weight);
       _sets = newSets;
     });
     widget.onSetsChanged(_sets);
@@ -211,7 +214,7 @@ class _AdvancedSetsInputState extends State<AdvancedSetsInput> {
                 index < _repsControllers.length ? _repsControllers[index] : null,
             weightFocusNode:
                 index < _weightFocusNodes.length ? _weightFocusNodes[index] : null,
-            onWeightChanged: (v) => _updateWeight(index, v),
+            onWeightChanged: (v) => _updateWeight(index, v), // double?
             onRepsChanged: (v) => _updateReps(index, v),
             onDelete: () => _removeSet(index),
           );
@@ -241,7 +244,7 @@ class _SetRow extends StatelessWidget {
   final TextEditingController? weightController;
   final TextEditingController? repsController;
   final FocusNode? weightFocusNode;
-  final ValueChanged<double> onWeightChanged;
+  final ValueChanged<double?> onWeightChanged;
   final ValueChanged<int> onRepsChanged;
   final VoidCallback onDelete;
 
@@ -303,7 +306,7 @@ class _SetRow extends StatelessWidget {
                 isDense: true,
                 contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 10),
               ),
-              onChanged: (v) => onWeightChanged(double.tryParse(v) ?? 0),
+              onChanged: (v) => onWeightChanged(v.isEmpty ? null : double.tryParse(v)),
             ),
           ),
 
