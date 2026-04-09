@@ -39,10 +39,14 @@ class AdvancedSetsInput extends StatefulWidget {
   /// Callback cuando cambian las series.
   final ValueChanged<List<SetData>> onSetsChanged;
 
+  /// Callback cuando se agrega una nueva serie.
+  final VoidCallback? onSetAdded;
+
   const AdvancedSetsInput({
     super.key,
     required this.initialSets,
     required this.onSetsChanged,
+    this.onSetAdded,
   });
 
   @override
@@ -146,6 +150,7 @@ class _AdvancedSetsInputState extends State<AdvancedSetsInput> {
 
     _initControllersForSet(newIndex, newWeight, newReps);
     widget.onSetsChanged(_sets);
+    widget.onSetAdded?.call();
 
     // Focus en el campo de peso del nuevo set
     WidgetsBinding.instance.addPostFrameCallback((_) {

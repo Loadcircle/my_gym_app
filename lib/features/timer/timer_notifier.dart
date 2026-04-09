@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/constants/notification_constants.dart';
 import '../../core/services/notification_service.dart';
+import '../../core/services/notification_signal.dart';
+import '../../core/utils/logger.dart';
 import 'timer_state.dart';
 import 'timer_task_handler.dart';
 
@@ -127,6 +129,9 @@ class TimerNotifier extends StateNotifier<TimerState> {
     } else if (data == 'stop') {
       _stopService();
       state = TimerState(totalSeconds: state.totalSeconds);
+    } else if (data == 'open_timer') {
+      AppLogger.info('open_timer received — setting pendingNotificationPayload', tag: 'TimerNotifier');
+      pendingNotificationPayload.value = 'open_timer';
     }
   }
 
@@ -148,6 +153,7 @@ class TimerNotifier extends StateNotifier<TimerState> {
       channelId: kTimerChannelId,
       playSound: true,
       enableVibration: true,
+      payload: 'timer_done',
     );
   }
 

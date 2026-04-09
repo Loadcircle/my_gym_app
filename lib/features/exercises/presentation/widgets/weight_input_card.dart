@@ -38,6 +38,9 @@ class WeightInputCard extends ConsumerStatefulWidget {
   /// Callback para marcar el tour como visto al presionar "Omitir".
   final VoidCallback? onTourSkip;
 
+  /// Callback cuando se agrega una nueva serie (modo avanzado).
+  final VoidCallback? onSetAdded;
+
   const WeightInputCard({
     super.key,
     required this.exerciseId,
@@ -48,6 +51,7 @@ class WeightInputCard extends ConsumerStatefulWidget {
     this.showcaseModeSwitchKey,
     this.showcaseSaveKey,
     this.onTourSkip,
+    this.onSetAdded,
   });
 
   @override
@@ -616,6 +620,7 @@ class _WeightInputCardState extends ConsumerState<WeightInputCard> {
               _isDirty = true;
             });
           },
+          onSetAdded: widget.onSetAdded,
         ),
       ],
     );

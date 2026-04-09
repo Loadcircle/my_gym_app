@@ -13,10 +13,10 @@ Basado en `BUGS_Y_MEJORAS.md`. Organizado por prioridad con propuesta de resoluc
 | [x] | 3 | Reactivar campo de notas (UI ya existe en BD/modelo) | 3 | Baja | Bajo |
 | [x] | 4 | Timer: cambiar default a 3 minutos | 3 | Muy baja | Nulo |
 | [x] | 5 | Timer en pantalla de ejercicios personalizados | 3 | Baja | Bajo |
-| [ ] | 6 | Gráfico de peso: detalle completo al tocar un punto | 4 | Media | Bajo |
-| [ ] | 7 | Timer: tap en notificación abre pop-up | 4 | Media | Medio |
+| [x] | 6 | Gráfico de peso: detalle completo al tocar un punto | 4 | Media | Bajo |
+| [x] | 7 | Timer: tap en notificación abre pop-up | 4 | Media | Medio |
 | [ ] | 8 | Timer: barra minimizada en parte inferior | 4 | Media | Medio |
-| [ ] | 9 | Nudge: efecto "shining" en botón timer al agregar serie | 4 | Baja | Bajo |
+| [x] | 9 | Nudge: efecto "shining" en botón timer al agregar serie | 4 | Baja | Bajo |
 | [ ] | 10 | RIR por serie + Break time (migración BD v13) | 5 | Alta | Medio |
 
 ---
@@ -129,7 +129,7 @@ Basado en `BUGS_Y_MEJORAS.md`. Organizado por prioridad con propuesta de resoluc
 
 ---
 
-### [ ] MEJ-04: Gráfico de peso — detalle completo al tocar punto
+### [x] MEJ-04: Gráfico de peso — detalle completo al tocar punto
 
 **Contexto:** Actualmente el tooltip del gráfico muestra solo `peso + reps`. El `WeightRecordModel` tiene todos los datos necesarios (sets, notes, mode, setEntries, date).
 
@@ -150,7 +150,7 @@ Basado en `BUGS_Y_MEJORAS.md`. Organizado por prioridad con propuesta de resoluc
 
 ---
 
-### [ ] MEJ-05: Timer — tap en notificación abre el pop-up
+### [x] MEJ-05: Timer — tap en notificación abre el pop-up
 
 **Contexto:** Cuando el timer termina, se muestra una notificación local. Al tocarla, debe abrir la app y mostrar directamente el pop-up del timer. Actualmente el callback `onNotificationTapped` **no está conectado** en `main_common.dart`.
 
@@ -250,3 +250,5 @@ Basado en `BUGS_Y_MEJORAS.md`. Organizado por prioridad con propuesta de resoluc
 - iOS (APNs para notificaciones)
 - Drag & drop en rutinas
 - FCM push remoto (Fase 3 notificaciones)
+
+- **Adicionales: Cambiar texto en timer segun estado del timer, cambiar sonido de alarma del timer**

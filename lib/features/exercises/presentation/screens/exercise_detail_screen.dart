@@ -36,9 +36,40 @@ class ExerciseDetailScreen extends ConsumerStatefulWidget {
   ConsumerState<ExerciseDetailScreen> createState() => _ExerciseDetailScreenState();
 }
 
-class _ExerciseDetailScreenState extends ConsumerState<ExerciseDetailScreen> {
+class _ExerciseDetailScreenState extends ConsumerState<ExerciseDetailScreen>
+    with SingleTickerProviderStateMixin {
   bool _detailsExpanded = false;
   bool _tourTriggered = false;
+
+  late final AnimationController _nudgeController;
+  late final Animation<double> _nudgeScale;
+
+  @override
+  void initState() {
+    super.initState();
+    _nudgeController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1300), // 650ms × 2 pulsos
+    );
+    _nudgeScale = TweenSequence([
+      TweenSequenceItem(tween: Tween(begin: 1.0, end: 1.4), weight: 15),
+      TweenSequenceItem(tween: Tween(begin: 1.4, end: 1.0), weight: 35),
+      TweenSequenceItem(tween: Tween(begin: 1.0, end: 1.4), weight: 15),
+      TweenSequenceItem(tween: Tween(begin: 1.4, end: 1.0), weight: 35),
+    ]).animate(_nudgeController);
+  }
+
+  @override
+  void dispose() {
+    _nudgeController.dispose();
+    super.dispose();
+  }
+
+  void _triggerTimerNudge() {
+    Future.delayed(const Duration(seconds: 2), () {
+      if (mounted) _nudgeController.forward(from: 0);
+    });
+  }
 
   void _markDetailTourSeen() =>
       ref.read(tourNotifierProvider.notifier).markDetailTourSeen();
@@ -163,27 +194,38 @@ class _ExerciseDetailScreenState extends ConsumerState<ExerciseDetailScreen> {
                   )
                 : null,
             actions: [
-              Consumer(
-                builder: (ctx, ref, _) {
-                  final timer = ref.watch(timerProvider);
-                  final isActive = timer.isRunning || timer.isPaused;
-                  return tourShowcase(
-                    showcaseKey: DetailTourKeys.timer,
-                    title: 'Cronómetro de descanso',
-                    description:
-                        'Configura un temporizador para controlar tu tiempo de descanso entre series.',
-                    height: 160,
-                    onSkip: _markDetailTourSeen,
-                    child: IconButton(
-                      tooltip: AppLocalizations.of(ctx).timerTitle,
-                      icon: Icon(
-                        isActive ? Icons.timer : Icons.timer_outlined,
-                        color: timer.isRunning && !timer.isPaused
-                            ? AppColors.primary
-                            : null,
-                      ),
-                      onPressed: () => TimerBottomSheet.show(context),
-                    ),
+              AnimatedBuilder(
+                animation: _nudgeScale,
+                builder: (context, child) {
+                  final isFlashing = _nudgeScale.value > 1.001;
+                  return Consumer(
+                    builder: (ctx, ref, _) {
+                      final timer = ref.watch(timerProvider);
+                      final isActive = timer.isRunning || timer.isPaused;
+                      return Transform.scale(
+                        scale: _nudgeScale.value,
+                        child: tourShowcase(
+                          showcaseKey: DetailTourKeys.timer,
+                          title: 'Cronómetro de descanso',
+                          description:
+                              'Configura un temporizador para controlar tu tiempo de descanso entre series.',
+                          height: 160,
+                          onSkip: _markDetailTourSeen,
+                          child: IconButton(
+                            tooltip: AppLocalizations.of(ctx).timerTitle,
+                            icon: Icon(
+                              isActive ? Icons.timer : Icons.timer_outlined,
+                              color: isFlashing
+                                  ? AppColors.primary
+                                  : (timer.isRunning && !timer.isPaused
+                                      ? AppColors.primary
+                                      : null),
+                            ),
+                            onPressed: () => TimerBottomSheet.show(context),
+                          ),
+                        ),
+                      );
+                    },
                   );
                 },
               ),
@@ -354,6 +396,7 @@ class _ExerciseDetailScreenState extends ConsumerState<ExerciseDetailScreen> {
                     showcaseModeSwitchKey: DetailTourKeys.modeSwitch,
                     showcaseSaveKey: DetailTourKeys.saveButton,
                     onTourSkip: _markDetailTourSeen,
+                    onSetAdded: _triggerTimerNudge,
                   ),
 
                   // Grafico de evolucion (si hay suficiente historial)

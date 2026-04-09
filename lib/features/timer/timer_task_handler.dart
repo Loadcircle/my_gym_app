@@ -76,7 +76,10 @@ class TimerTaskHandler extends TaskHandler {
   }
 
   @override
-  void onNotificationPressed() {}
+  void onNotificationPressed() {
+    print('[TimerTaskHandler] onNotificationPressed fired — sending open_timer');
+    FlutterForegroundTask.sendDataToMain('open_timer');
+  }
 
   String _formatTime(int seconds) {
     final m = seconds ~/ 60;

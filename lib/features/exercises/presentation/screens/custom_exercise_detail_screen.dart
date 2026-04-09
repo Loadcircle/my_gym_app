@@ -34,8 +34,39 @@ class CustomExerciseDetailScreen extends ConsumerStatefulWidget {
 }
 
 class _CustomExerciseDetailScreenState
-    extends ConsumerState<CustomExerciseDetailScreen> {
+    extends ConsumerState<CustomExerciseDetailScreen>
+    with SingleTickerProviderStateMixin {
   bool _notesExpanded = false;
+
+  late final AnimationController _nudgeController;
+  late final Animation<double> _nudgeScale;
+
+  @override
+  void initState() {
+    super.initState();
+    _nudgeController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1300),
+    );
+    _nudgeScale = TweenSequence([
+      TweenSequenceItem(tween: Tween(begin: 1.0, end: 1.4), weight: 15),
+      TweenSequenceItem(tween: Tween(begin: 1.4, end: 1.0), weight: 35),
+      TweenSequenceItem(tween: Tween(begin: 1.0, end: 1.4), weight: 15),
+      TweenSequenceItem(tween: Tween(begin: 1.4, end: 1.0), weight: 35),
+    ]).animate(_nudgeController);
+  }
+
+  @override
+  void dispose() {
+    _nudgeController.dispose();
+    super.dispose();
+  }
+
+  void _triggerTimerNudge() {
+    Future.delayed(const Duration(seconds: 2), () {
+      if (mounted) _nudgeController.forward(from: 0);
+    });
+  }
 
   Future<void> _showDeleteDialog(CustomExerciseModel exercise) async {
     final l10n = AppLocalizations.of(context);
@@ -207,19 +238,30 @@ class _CustomExerciseDetailScreenState
             backgroundColor: AppColors.background,
             actions: [
               // Boton timer
-              Consumer(
-                builder: (ctx, ref, _) {
-                  final timer = ref.watch(timerProvider);
-                  final isActive = timer.isRunning || timer.isPaused;
-                  return IconButton(
-                    tooltip: AppLocalizations.of(ctx).timerTitle,
-                    icon: Icon(
-                      isActive ? Icons.timer : Icons.timer_outlined,
-                      color: timer.isRunning && !timer.isPaused
-                          ? AppColors.primary
-                          : null,
-                    ),
-                    onPressed: () => TimerBottomSheet.show(ctx),
+              AnimatedBuilder(
+                animation: _nudgeScale,
+                builder: (context, child) {
+                  final isFlashing = _nudgeScale.value > 1.001;
+                  return Consumer(
+                    builder: (ctx, ref, _) {
+                      final timer = ref.watch(timerProvider);
+                      final isActive = timer.isRunning || timer.isPaused;
+                      return Transform.scale(
+                        scale: _nudgeScale.value,
+                        child: IconButton(
+                          tooltip: AppLocalizations.of(ctx).timerTitle,
+                          icon: Icon(
+                            isActive ? Icons.timer : Icons.timer_outlined,
+                            color: isFlashing
+                                ? AppColors.primary
+                                : (timer.isRunning && !timer.isPaused
+                                    ? AppColors.primary
+                                    : null),
+                          ),
+                          onPressed: () => TimerBottomSheet.show(ctx),
+                        ),
+                      );
+                    },
                   );
                 },
               ),
@@ -372,6 +414,7 @@ class _CustomExerciseDetailScreenState
                     exerciseName: exercise.name,
                     muscleGroup: exercise.muscleGroup,
                     isCustomExercise: true,
+                    onSetAdded: _triggerTimerNudge,
                   ),
                   const SizedBox(height: 24),
 
