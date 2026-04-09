@@ -16,7 +16,7 @@ class TimerTaskHandler extends TaskHandler {
   @override
   Future<void> onStart(DateTime timestamp, TaskStarter starter) async {
     _remaining =
-        await FlutterForegroundTask.getData<int>(key: 'remaining') ?? 120;
+        await FlutterForegroundTask.getData<int>(key: 'remaining') ?? 180;
   }
 
   /// Llamado cada 1 segundo (según ForegroundTaskOptions.eventAction).
@@ -76,7 +76,10 @@ class TimerTaskHandler extends TaskHandler {
   }
 
   @override
-  void onNotificationPressed() {}
+  void onNotificationPressed() {
+    print('[TimerTaskHandler] onNotificationPressed fired — sending open_timer');
+    FlutterForegroundTask.sendDataToMain('open_timer');
+  }
 
   String _formatTime(int seconds) {
     final m = seconds ~/ 60;

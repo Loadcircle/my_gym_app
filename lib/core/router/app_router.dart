@@ -37,7 +37,9 @@ final _isAuthInitializingProvider = Provider<bool>((ref) {
 });
 
 /// Keys para las ramas de navegacion.
-final _rootNavigatorKey = GlobalKey<NavigatorState>();
+/// [appNavigatorKey] es publico para que handlers externos (ej: notificaciones) puedan navegar.
+final appNavigatorKey = GlobalKey<NavigatorState>();
+final _rootNavigatorKey = appNavigatorKey;
 final _shellNavigatorKeyExercises = GlobalKey<NavigatorState>(debugLabel: 'exercises');
 final _shellNavigatorKeyRoutines = GlobalKey<NavigatorState>(debugLabel: 'routines');
 final _shellNavigatorKeyHistory = GlobalKey<NavigatorState>(debugLabel: 'history');

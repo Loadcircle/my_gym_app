@@ -3,16 +3,20 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:showcaseview/showcaseview.dart';
 
+import '../../core/services/notification_signal.dart';
 import '../../core/theme/app_colors.dart';
 import '../../l10n/app_localizations.dart';
 import '../../features/onboarding/tour_keys.dart';
 import '../../features/onboarding/tour_provider.dart';
 import '../../features/onboarding/tour_tooltip.dart';
+import '../../features/timer/presentation/widgets/timer_bottom_sheet.dart';
+import '../../features/timer/presentation/widgets/timer_mini_bar.dart';
+import '../../features/timer/timer_provider.dart';
 import 'app_drawer.dart';
 
 /// Shell principal de la aplicación con bottom navigation y drawer.
 /// Envuelve las pantallas principales (Ejercicios, Rutinas, Historial).
-class MainShell extends ConsumerWidget {
+class MainShell extends ConsumerStatefulWidget {
   final StatefulNavigationShell navigationShell;
 
   const MainShell({
@@ -21,7 +25,43 @@ class MainShell extends ConsumerWidget {
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<MainShell> createState() => _MainShellState();
+}
+
+class _MainShellState extends ConsumerState<MainShell> {
+  bool _isTimerSheetOpen = false;
+
+  @override
+  void initState() {
+    super.initState();
+    pendingNotificationPayload.addListener(_onNotificationSignal);
+  }
+
+  @override
+  void dispose() {
+    pendingNotificationPayload.removeListener(_onNotificationSignal);
+    super.dispose();
+  }
+
+  void _onNotificationSignal() {
+    final payload = pendingNotificationPayload.value;
+    debugPrint('[MainShell] _onNotificationSignal fired, payload=$payload, mounted=$mounted');
+    if (payload == null) return;
+    pendingNotificationPayload.value = null;
+
+    if (payload == 'timer_done' || payload == 'open_timer') {
+      debugPrint('[MainShell] Showing TimerBottomSheet...');
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && !_isTimerSheetOpen) {
+          _isTimerSheetOpen = true;
+          TimerBottomSheet.show(context).then((_) => _isTimerSheetOpen = false);
+        }
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     void markExercisesTourSeen() =>
         ref.read(tourNotifierProvider.notifier).markExercisesTourSeen();
@@ -29,15 +69,22 @@ class MainShell extends ConsumerWidget {
     return ShowCaseWidget(
       disableMovingAnimation: true,
       onFinish: markExercisesTourSeen,
-      builder: (context) => Scaffold(
+      builder: (context) {
+        final timer = ref.watch(timerProvider);
+        final showMiniBar = timer.isMinimized;
+        return Scaffold(
         drawer: const AppDrawer(),
-        body: navigationShell,
-        bottomNavigationBar: NavigationBar(
-          selectedIndex: navigationShell.currentIndex,
+        body: widget.navigationShell,
+        bottomNavigationBar: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (showMiniBar) const TimerMiniBar(),
+            NavigationBar(
+          selectedIndex: widget.navigationShell.currentIndex,
           onDestinationSelected: (index) {
-            navigationShell.goBranch(
+            widget.navigationShell.goBranch(
               index,
-              initialLocation: index == navigationShell.currentIndex,
+              initialLocation: index == widget.navigationShell.currentIndex,
             );
           },
           backgroundColor: AppColors.surface,
@@ -74,7 +121,10 @@ class MainShell extends ConsumerWidget {
             ),
           ],
         ),
-      ),
+          ],
+        ),
+        );
+      },
     );
   }
 }

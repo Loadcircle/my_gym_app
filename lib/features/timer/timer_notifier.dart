@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/constants/notification_constants.dart';
 import '../../core/services/notification_service.dart';
+import '../../core/services/notification_signal.dart';
+import '../../core/utils/logger.dart';
 import 'timer_state.dart';
 import 'timer_task_handler.dart';
 
@@ -80,7 +82,21 @@ class TimerNotifier extends StateNotifier<TimerState> {
       isRunning: true,
       isPaused: false,
       isFinished: false,
+      isMinimized: false,
     );
+  }
+
+  /// Minimiza el timer: oculta el sheet y muestra la barra pequeña.
+  void minimize() {
+    AppLogger.info('minimize() — isRunning=${state.isRunning} isPaused=${state.isPaused}', tag: 'TimerNotifier');
+    state = state.copyWith(isMinimized: true);
+    AppLogger.info('state.isMinimized=${state.isMinimized}', tag: 'TimerNotifier');
+  }
+
+  /// Quita el estado minimizado (llamado al abrir el sheet).
+  void unminimize() {
+    AppLogger.info('unminimize()', tag: 'TimerNotifier');
+    state = state.copyWith(isMinimized: false);
   }
 
   /// Actualiza el tiempo total sin iniciar el timer.
@@ -127,6 +143,9 @@ class TimerNotifier extends StateNotifier<TimerState> {
     } else if (data == 'stop') {
       _stopService();
       state = TimerState(totalSeconds: state.totalSeconds);
+    } else if (data == 'open_timer') {
+      AppLogger.info('open_timer received — setting pendingNotificationPayload', tag: 'TimerNotifier');
+      pendingNotificationPayload.value = 'open_timer';
     }
   }
 
@@ -138,6 +157,7 @@ class TimerNotifier extends StateNotifier<TimerState> {
       isRunning: false,
       isPaused: false,
       isFinished: true,
+      isMinimized: false,
     );
 
     // Notificación de "¡Tiempo!" con sonido y vibración (canal HIGH)
@@ -148,6 +168,7 @@ class TimerNotifier extends StateNotifier<TimerState> {
       channelId: kTimerChannelId,
       playSound: true,
       enableVibration: true,
+      payload: 'timer_done',
     );
   }
 

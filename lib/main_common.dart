@@ -16,6 +16,7 @@ import 'core/router/app_router.dart';
 import 'core/providers/locale_provider.dart';
 import 'core/utils/logger.dart';
 import 'core/services/notification_service.dart';
+import 'core/services/notification_signal.dart';
 
 /// Entry point comun para todos los flavors.
 /// Recibe el entorno como parametro desde main_dev.dart o main_prod.dart.
@@ -122,6 +123,7 @@ Future<void> _initializeFirebase() async {
 Future<void> _initializeNotifications() async {
   try {
     final notificationService = NotificationService();
+    notificationService.onNotificationTapped = _onNotificationTapped;
     await notificationService.initialize();
     AppLogger.info('Notificaciones inicializadas', tag: 'Main');
   } catch (e, stackTrace) {
@@ -131,6 +133,16 @@ Future<void> _initializeNotifications() async {
       error: e,
       stackTrace: stackTrace,
     );
+  }
+}
+
+/// Maneja el tap del usuario en una notificación local.
+/// Usa [pendingNotificationPayload] para señalar al UI (MainShell) que reaccione
+/// cuando ya tenga context disponible.
+void _onNotificationTapped(String? payload) {
+  AppLogger.info('onNotificationTapped: payload=$payload', tag: 'Main');
+  if (payload != null) {
+    pendingNotificationPayload.value = payload;
   }
 }
 

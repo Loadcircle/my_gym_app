@@ -10,6 +10,9 @@ import '../../../../core/utils/muscle_groups.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/widgets/weight_progress_chart.dart';
 import '../../../routines/presentation/widgets/select_routine_sheet.dart';
+import '../../../timer/presentation/widgets/timer_bottom_sheet.dart';
+import '../../../timer/presentation/widgets/timer_mini_bar.dart';
+import '../../../timer/timer_provider.dart';
 import '../../data/models/custom_exercise_model.dart';
 import '../../data/models/weight_record_model.dart';
 import '../../providers/custom_exercises_provider.dart';
@@ -32,8 +35,39 @@ class CustomExerciseDetailScreen extends ConsumerStatefulWidget {
 }
 
 class _CustomExerciseDetailScreenState
-    extends ConsumerState<CustomExerciseDetailScreen> {
+    extends ConsumerState<CustomExerciseDetailScreen>
+    with SingleTickerProviderStateMixin {
   bool _notesExpanded = false;
+
+  late final AnimationController _nudgeController;
+  late final Animation<double> _nudgeScale;
+
+  @override
+  void initState() {
+    super.initState();
+    _nudgeController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1300),
+    );
+    _nudgeScale = TweenSequence([
+      TweenSequenceItem(tween: Tween(begin: 1.0, end: 1.4), weight: 15),
+      TweenSequenceItem(tween: Tween(begin: 1.4, end: 1.0), weight: 35),
+      TweenSequenceItem(tween: Tween(begin: 1.0, end: 1.4), weight: 15),
+      TweenSequenceItem(tween: Tween(begin: 1.4, end: 1.0), weight: 35),
+    ]).animate(_nudgeController);
+  }
+
+  @override
+  void dispose() {
+    _nudgeController.dispose();
+    super.dispose();
+  }
+
+  void _triggerTimerNudge() {
+    Future.delayed(const Duration(seconds: 2), () {
+      if (mounted) _nudgeController.forward(from: 0);
+    });
+  }
 
   Future<void> _showDeleteDialog(CustomExerciseModel exercise) async {
     final l10n = AppLocalizations.of(context);
@@ -194,8 +228,10 @@ class _CustomExerciseDetailScreenState
     final localizedMuscleGroup =
         MuscleGroups.getLocalizedName(exercise.muscleGroup, langCode);
 
+    final timerMinimized = ref.watch(timerProvider.select((t) => t.isMinimized));
     return Scaffold(
       backgroundColor: AppColors.background,
+      bottomSheet: timerMinimized ? const TimerMiniBar() : null,
       body: CustomScrollView(
         slivers: [
           // App Bar con imagen
@@ -204,21 +240,67 @@ class _CustomExerciseDetailScreenState
             pinned: true,
             backgroundColor: AppColors.background,
             actions: [
-              // Boton editar
-              IconButton(
-                icon: const Icon(Icons.edit_outlined),
-                onPressed: () {
-                  context.push(
-                    '${RouteNames.editCustomExercise}/${exercise.id}',
+              // Boton timer
+              AnimatedBuilder(
+                animation: _nudgeScale,
+                builder: (context, child) {
+                  final isFlashing = _nudgeScale.value > 1.001;
+                  return Consumer(
+                    builder: (ctx, ref, _) {
+                      final timer = ref.watch(timerProvider);
+                      final isActive = timer.isRunning || timer.isPaused;
+                      return Transform.scale(
+                        scale: _nudgeScale.value,
+                        child: IconButton(
+                          tooltip: AppLocalizations.of(ctx).timerTitle,
+                          icon: Icon(
+                            isActive ? Icons.timer : Icons.timer_outlined,
+                            color: isFlashing
+                                ? AppColors.primary
+                                : (timer.isRunning && !timer.isPaused
+                                    ? AppColors.primary
+                                    : null),
+                          ),
+                          onPressed: () => TimerBottomSheet.show(ctx),
+                        ),
+                      );
+                    },
                   );
                 },
-                tooltip: l10n.edit,
               ),
-              // Boton eliminar
-              IconButton(
-                icon: const Icon(Icons.delete_outline),
-                onPressed: () => _showDeleteDialog(exercise),
-                tooltip: l10n.delete,
+              // Menu editar / eliminar
+              PopupMenuButton<String>(
+                onSelected: (value) {
+                  if (value == 'edit') {
+                    context.push(
+                      '${RouteNames.editCustomExercise}/${exercise.id}',
+                    );
+                  } else if (value == 'delete') {
+                    _showDeleteDialog(exercise);
+                  }
+                },
+                itemBuilder: (context) => [
+                  PopupMenuItem(
+                    value: 'edit',
+                    child: Row(
+                      children: [
+                        const Icon(Icons.edit_outlined, size: 20),
+                        const SizedBox(width: 12),
+                        Text(l10n.edit),
+                      ],
+                    ),
+                  ),
+                  PopupMenuItem(
+                    value: 'delete',
+                    child: Row(
+                      children: [
+                        const Icon(Icons.delete_outline, size: 20, color: AppColors.error),
+                        const SizedBox(width: 12),
+                        Text(l10n.delete, style: const TextStyle(color: AppColors.error)),
+                      ],
+                    ),
+                  ),
+                ],
               ),
             ],
             flexibleSpace: FlexibleSpaceBar(
@@ -335,6 +417,7 @@ class _CustomExerciseDetailScreenState
                     exerciseName: exercise.name,
                     muscleGroup: exercise.muscleGroup,
                     isCustomExercise: true,
+                    onSetAdded: _triggerTimerNudge,
                   ),
                   const SizedBox(height: 24),
 

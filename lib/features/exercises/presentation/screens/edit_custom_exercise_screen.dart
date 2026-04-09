@@ -1,12 +1,8 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:image_picker/image_picker.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/constants/app_constants.dart';
-import '../../../../core/config/providers/app_config_provider.dart';
 import '../../../../core/utils/muscle_groups.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../auth/providers/auth_provider.dart';
@@ -33,9 +29,6 @@ class _EditCustomExerciseScreenState
   final _nameController = TextEditingController();
   final _notesController = TextEditingController();
   String _selectedMuscleGroup = 'Pecho';
-  File? _selectedImage;
-  String? _currentImageUrl;
-  bool _removeCurrentImage = false;
   bool _isLoading = false;
   bool _isInitialized = false;
 
@@ -52,115 +45,7 @@ class _EditCustomExerciseScreenState
     _nameController.text = exercise.name;
     _notesController.text = exercise.notes ?? '';
     _selectedMuscleGroup = exercise.muscleGroup;
-    _currentImageUrl = exercise.imageUrl;
     _isInitialized = true;
-  }
-
-  Future<void> _showImagePickerOptions() async {
-    final result = await showModalBottomSheet<ImageSource?>(
-      context: context,
-      backgroundColor: AppColors.cardBackground,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(
-          top: Radius.circular(AppConstants.cardBorderRadius),
-        ),
-      ),
-      builder: (context) {
-        final sheetL10n = AppLocalizations.of(context);
-        return SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 40,
-                  height: 4,
-                  margin: const EdgeInsets.only(bottom: 16),
-                  decoration: BoxDecoration(
-                    color: AppColors.textHint,
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-                Text(
-                  sheetL10n.changeImage,
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-                const SizedBox(height: 16),
-                ListTile(
-                  leading: const Icon(
-                    Icons.camera_alt_outlined,
-                    color: AppColors.primary,
-                  ),
-                  title: Text(sheetL10n.takePhoto),
-                  onTap: () => Navigator.pop(context, ImageSource.camera),
-                ),
-                ListTile(
-                  leading: const Icon(
-                    Icons.photo_library_outlined,
-                    color: AppColors.primary,
-                  ),
-                  title: Text(sheetL10n.chooseFromGallery),
-                  onTap: () => Navigator.pop(context, ImageSource.gallery),
-                ),
-                if (_selectedImage != null ||
-                    (_currentImageUrl != null && !_removeCurrentImage))
-                  ListTile(
-                    leading: const Icon(
-                      Icons.delete_outline,
-                      color: AppColors.error,
-                    ),
-                    title: Text(
-                      sheetL10n.removeImage,
-                      style: const TextStyle(color: AppColors.error),
-                    ),
-                    onTap: () {
-                      setState(() {
-                        _selectedImage = null;
-                        _removeCurrentImage = true;
-                      });
-                      Navigator.pop(context);
-                    },
-                  ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-
-    if (result != null) {
-      await _pickImage(result);
-    }
-  }
-
-  Future<void> _pickImage(ImageSource source) async {
-    try {
-      final picker = ImagePicker();
-      final pickedFile = await picker.pickImage(
-        source: source,
-        maxWidth: 1024,
-        maxHeight: 1024,
-        imageQuality: 85,
-      );
-
-      if (pickedFile != null) {
-        setState(() {
-          _selectedImage = File(pickedFile.path);
-          _removeCurrentImage = false;
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        final l10n = AppLocalizations.of(context);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(l10n.errorSelectingImage(e.toString())),
-            backgroundColor: AppColors.error,
-          ),
-        );
-      }
-    }
   }
 
   Future<void> _updateExercise(CustomExerciseModel currentExercise) async {
@@ -181,54 +66,12 @@ class _EditCustomExerciseScreenState
     setState(() => _isLoading = true);
 
     try {
-      String? newImageUrl = currentExercise.imageUrl;
-      final storageService = ref.read(storageServiceProvider);
-
-      // Si se selecciono nueva imagen, subirla
-      if (_selectedImage != null) {
-        // Eliminar imagen anterior si existe
-        if (currentExercise.imageUrl != null) {
-          await storageService.deleteUserImage(
-            userId: authState.user!.uid,
-            imagePath: currentExercise.imageUrl!,
-          );
-        }
-
-        // Subir nueva imagen
-        newImageUrl = await storageService.uploadUserImage(
-          userId: authState.user!.uid,
-          imageFile: _selectedImage!,
-        );
-
-        if (newImageUrl == null) {
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(l10n.errorUploadingImage),
-                backgroundColor: AppColors.error,
-              ),
-            );
-          }
-          setState(() => _isLoading = false);
-          return;
-        }
-      } else if (_removeCurrentImage && currentExercise.imageUrl != null) {
-        // Si se solicito eliminar la imagen actual
-        await storageService.deleteUserImage(
-          userId: authState.user!.uid,
-          imagePath: currentExercise.imageUrl!,
-        );
-        newImageUrl = null;
-      }
-
-      // Actualizar el ejercicio
       final updatedExercise = currentExercise.copyWith(
         name: _nameController.text.trim(),
         muscleGroup: _selectedMuscleGroup,
         notes: _notesController.text.trim().isNotEmpty
             ? _notesController.text.trim()
             : null,
-        imageUrl: newImageUrl,
         updatedAt: DateTime.now(),
       );
 
@@ -338,8 +181,6 @@ class _EditCustomExerciseScreenState
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                _buildImageSelector(exercise),
-                const SizedBox(height: 24),
                 _buildMuscleGroupSelector(),
                 const SizedBox(height: 20),
                 _buildNameField(),
@@ -352,165 +193,6 @@ class _EditCustomExerciseScreenState
           ),
         ),
       ),
-    );
-  }
-
-  Widget _buildImageSelector(CustomExerciseModel exercise) {
-    final hasNewImage = _selectedImage != null;
-    final hasCurrentImage =
-        _currentImageUrl != null && !_removeCurrentImage && !hasNewImage;
-
-    return GestureDetector(
-      onTap: _isLoading ? null : _showImagePickerOptions,
-      child: Container(
-        height: 200,
-        decoration: BoxDecoration(
-          color: AppColors.cardBackground,
-          borderRadius: BorderRadius.circular(AppConstants.cardBorderRadius),
-          border: Border.all(color: AppColors.border),
-        ),
-        child: hasNewImage
-            ? _buildNewImagePreview()
-            : hasCurrentImage
-                ? _buildCurrentImagePreview()
-                : _buildImagePlaceholder(),
-      ),
-    );
-  }
-
-  Widget _buildNewImagePreview() {
-    return Stack(
-      fit: StackFit.expand,
-      children: [
-        ClipRRect(
-          borderRadius: BorderRadius.circular(
-            AppConstants.cardBorderRadius - 1,
-          ),
-          child: Image.file(
-            _selectedImage!,
-            fit: BoxFit.cover,
-          ),
-        ),
-        _buildEditImageButton(),
-      ],
-    );
-  }
-
-  Widget _buildCurrentImagePreview() {
-    final imageUrlAsync = ref.watch(userImageUrlProvider(_currentImageUrl!));
-
-    return imageUrlAsync.when(
-      loading: () => Stack(
-        fit: StackFit.expand,
-        children: [
-          Container(
-            decoration: BoxDecoration(
-              color: AppColors.surfaceVariant,
-              borderRadius: BorderRadius.circular(
-                AppConstants.cardBorderRadius - 1,
-              ),
-            ),
-            child: const Center(
-              child: CircularProgressIndicator(
-                color: AppColors.primary,
-                strokeWidth: 2,
-              ),
-            ),
-          ),
-          _buildEditImageButton(),
-        ],
-      ),
-      error: (error, stack) => _buildImagePlaceholder(),
-      data: (imageUrl) {
-        if (imageUrl == null) {
-          return _buildImagePlaceholder();
-        }
-        return Stack(
-          fit: StackFit.expand,
-          children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(
-                AppConstants.cardBorderRadius - 1,
-              ),
-              child: Image.network(
-                imageUrl,
-                fit: BoxFit.cover,
-                loadingBuilder: (context, child, loadingProgress) {
-                  if (loadingProgress == null) return child;
-                  return Container(
-                    color: AppColors.surfaceVariant,
-                    child: const Center(
-                      child: CircularProgressIndicator(
-                        color: AppColors.primary,
-                        strokeWidth: 2,
-                      ),
-                    ),
-                  );
-                },
-                errorBuilder: (context, error, stackTrace) =>
-                    _buildImagePlaceholder(),
-              ),
-            ),
-            _buildEditImageButton(),
-          ],
-        );
-      },
-    );
-  }
-
-  Widget _buildEditImageButton() {
-    return Positioned(
-      top: 8,
-      right: 8,
-      child: Container(
-        decoration: BoxDecoration(
-          color: AppColors.background.withAlpha(179),
-          shape: BoxShape.circle,
-        ),
-        child: IconButton(
-          icon: const Icon(
-            Icons.edit,
-            color: AppColors.textPrimary,
-            size: 20,
-          ),
-          onPressed: _isLoading ? null : _showImagePickerOptions,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildImagePlaceholder() {
-    final l10n = AppLocalizations.of(context);
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: AppColors.primary.withAlpha(26),
-            shape: BoxShape.circle,
-          ),
-          child: const Icon(
-            Icons.add_a_photo_outlined,
-            size: 40,
-            color: AppColors.primary,
-          ),
-        ),
-        const SizedBox(height: 12),
-        Text(
-          l10n.addPhoto,
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                color: AppColors.primary,
-              ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          l10n.optionalTapToSelect,
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: AppColors.textHint,
-              ),
-        ),
-      ],
     );
   }
 
