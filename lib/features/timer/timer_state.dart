@@ -8,8 +8,8 @@ class TimerState {
   final bool isFinished;
 
   const TimerState({
-    this.totalSeconds = 120,
-    this.remainingSeconds = 120,
+    this.totalSeconds = 180,
+    this.remainingSeconds = 180,
     this.isRunning = false,
     this.isPaused = false,
     this.isFinished = false,

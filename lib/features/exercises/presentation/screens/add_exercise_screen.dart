@@ -1,12 +1,8 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:image_picker/image_picker.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/constants/app_constants.dart';
-import '../../../../core/config/providers/app_config_provider.dart';
 import '../../../../core/utils/muscle_groups.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../auth/providers/auth_provider.dart';
@@ -26,7 +22,6 @@ class _AddExerciseScreenState extends ConsumerState<AddExerciseScreen> {
   final _nameController = TextEditingController();
   final _notesController = TextEditingController();
   String _selectedMuscleGroup = 'Pecho';
-  File? _selectedImage;
   bool _isLoading = false;
 
   @override
@@ -34,111 +29,6 @@ class _AddExerciseScreenState extends ConsumerState<AddExerciseScreen> {
     _nameController.dispose();
     _notesController.dispose();
     super.dispose();
-  }
-
-  /// Muestra opciones para seleccionar imagen (camara o galeria).
-  Future<void> _showImagePickerOptions() async {
-    final l10n = AppLocalizations.of(context);
-    final result = await showModalBottomSheet<ImageSource>(
-      context: context,
-      backgroundColor: AppColors.cardBackground,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(
-          top: Radius.circular(AppConstants.cardBorderRadius),
-        ),
-      ),
-      builder: (context) {
-        final sheetL10n = AppLocalizations.of(context);
-        return SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 40,
-                  height: 4,
-                  margin: const EdgeInsets.only(bottom: 16),
-                  decoration: BoxDecoration(
-                    color: AppColors.textHint,
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-                Text(
-                  sheetL10n.selectImage,
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-                const SizedBox(height: 16),
-                ListTile(
-                  leading: const Icon(
-                    Icons.camera_alt_outlined,
-                    color: AppColors.primary,
-                  ),
-                  title: Text(sheetL10n.takePhoto),
-                  onTap: () => Navigator.pop(context, ImageSource.camera),
-                ),
-                ListTile(
-                  leading: const Icon(
-                    Icons.photo_library_outlined,
-                    color: AppColors.primary,
-                  ),
-                  title: Text(sheetL10n.chooseFromGallery),
-                  onTap: () => Navigator.pop(context, ImageSource.gallery),
-                ),
-                if (_selectedImage != null)
-                  ListTile(
-                    leading: const Icon(
-                      Icons.delete_outline,
-                      color: AppColors.error,
-                    ),
-                    title: Text(
-                      sheetL10n.removeImage,
-                      style: const TextStyle(color: AppColors.error),
-                    ),
-                    onTap: () {
-                      setState(() => _selectedImage = null);
-                      Navigator.pop(context);
-                    },
-                  ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-
-    if (result != null) {
-      await _pickImage(result);
-    }
-  }
-
-  /// Selecciona una imagen usando ImagePicker.
-  Future<void> _pickImage(ImageSource source) async {
-    try {
-      final picker = ImagePicker();
-      final pickedFile = await picker.pickImage(
-        source: source,
-        maxWidth: 1024,
-        maxHeight: 1024,
-        imageQuality: 85,
-      );
-
-      if (pickedFile != null) {
-        setState(() {
-          _selectedImage = File(pickedFile.path);
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        final l10n = AppLocalizations.of(context);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(l10n.errorSelectingImage(e.toString())),
-            backgroundColor: AppColors.error,
-          ),
-        );
-      }
-    }
   }
 
   /// Crea el ejercicio personalizado.
@@ -160,38 +50,13 @@ class _AddExerciseScreenState extends ConsumerState<AddExerciseScreen> {
     setState(() => _isLoading = true);
 
     try {
-      String? imagePath;
-
-      // Si hay imagen seleccionada, subirla a Storage
-      if (_selectedImage != null) {
-        final storageService = ref.read(storageServiceProvider);
-        imagePath = await storageService.uploadUserImage(
-          userId: authState.user!.uid,
-          imageFile: _selectedImage!,
-        );
-
-        if (imagePath == null) {
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(l10n.errorUploadingImage),
-                backgroundColor: AppColors.error,
-              ),
-            );
-          }
-          setState(() => _isLoading = false);
-          return;
-        }
-      }
-
-      // Crear el ejercicio
       final exercise = await ref.read(customExerciseNotifierProvider.notifier).create(
         name: _nameController.text.trim(),
         muscleGroup: _selectedMuscleGroup,
         notes: _notesController.text.trim().isNotEmpty
             ? _notesController.text.trim()
             : null,
-        imageUrl: imagePath,
+        imageUrl: null,
       );
 
       if (exercise != null && mounted) {
@@ -247,108 +112,17 @@ class _AddExerciseScreenState extends ConsumerState<AddExerciseScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // Imagen preview / selector
-                _buildImageSelector(),
-                const SizedBox(height: 24),
-
-                // Grupo muscular
                 _buildMuscleGroupSelector(),
                 const SizedBox(height: 20),
-
-                // Nombre del ejercicio
                 _buildNameField(),
                 const SizedBox(height: 20),
-
-                // Notas
                 _buildNotesField(),
                 const SizedBox(height: 32),
-
-                // Botones
                 _buildActionButtons(),
               ],
             ),
           ),
         ),
-      ),
-    );
-  }
-
-  /// Construye el selector de imagen con preview.
-  Widget _buildImageSelector() {
-    final l10n = AppLocalizations.of(context);
-    return GestureDetector(
-      onTap: _isLoading ? null : _showImagePickerOptions,
-      child: Container(
-        height: 200,
-        decoration: BoxDecoration(
-          color: AppColors.cardBackground,
-          borderRadius: BorderRadius.circular(AppConstants.cardBorderRadius),
-          border: Border.all(color: AppColors.border),
-        ),
-        child: _selectedImage != null
-            ? Stack(
-                fit: StackFit.expand,
-                children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(
-                      AppConstants.cardBorderRadius - 1,
-                    ),
-                    child: Image.file(
-                      _selectedImage!,
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                  Positioned(
-                    top: 8,
-                    right: 8,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: AppColors.background.withAlpha(179),
-                        shape: BoxShape.circle,
-                      ),
-                      child: IconButton(
-                        icon: const Icon(
-                          Icons.edit,
-                          color: AppColors.textPrimary,
-                          size: 20,
-                        ),
-                        onPressed: _isLoading ? null : _showImagePickerOptions,
-                      ),
-                    ),
-                  ),
-                ],
-              )
-            : Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: AppColors.primary.withAlpha(26),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.add_a_photo_outlined,
-                      size: 40,
-                      color: AppColors.primary,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    l10n.addPhoto,
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          color: AppColors.primary,
-                        ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    l10n.optionalTapToSelect,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: AppColors.textHint,
-                        ),
-                  ),
-                ],
-              ),
       ),
     );
   }
@@ -492,7 +266,6 @@ class _AddExerciseScreenState extends ConsumerState<AddExerciseScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        // Boton principal - Crear
         ElevatedButton(
           onPressed: _isLoading ? null : _createExercise,
           child: _isLoading
@@ -507,8 +280,6 @@ class _AddExerciseScreenState extends ConsumerState<AddExerciseScreen> {
               : Text(l10n.createExercise),
         ),
         const SizedBox(height: 12),
-
-        // Boton secundario - Cancelar
         TextButton(
           onPressed: _isLoading ? null : () => Navigator.pop(context),
           child: Text(l10n.cancel),

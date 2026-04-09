@@ -59,6 +59,7 @@ class _WeightInputCardState extends ConsumerState<WeightInputCard> {
   final _weightController = TextEditingController();
   final _setsController = TextEditingController(text: '3');
   final _repsController = TextEditingController(text: '10');
+  final _notesController = TextEditingController();
 
   // Estado para modo avanzado
   List<SetData> _advancedSets = [SetData.create()];
@@ -66,12 +67,14 @@ class _WeightInputCardState extends ConsumerState<WeightInputCard> {
   bool _isSaving = false;
   bool _hasPrefilledWeight = false;
   bool _isDirty = false;
+  bool _showNotes = false;
 
   @override
   void dispose() {
     _weightController.dispose();
     _setsController.dispose();
     _repsController.dispose();
+    _notesController.dispose();
     super.dispose();
   }
 
@@ -109,6 +112,12 @@ class _WeightInputCardState extends ConsumerState<WeightInputCard> {
       _weightController.text = lastRecord.weight.toString();
       _setsController.text = lastRecord.sets.toString();
       _repsController.text = lastRecord.reps.toString();
+    }
+
+    // Pre-llenar notas del último registro si existen
+    if (lastRecord.notes != null && lastRecord.notes!.isNotEmpty) {
+      _notesController.text = lastRecord.notes!;
+      setState(() => _showNotes = true);
     }
   }
 
@@ -155,12 +164,17 @@ class _WeightInputCardState extends ConsumerState<WeightInputCard> {
     setState(() => _isSaving = true);
 
     try {
+      final notes = _notesController.text.trim().isEmpty
+          ? null
+          : _notesController.text.trim();
+
       final record =
           await ref.read(weightRecordNotifierProvider.notifier).saveRecord(
                 exerciseId: widget.exerciseId,
                 weight: weight,
                 sets: sets,
                 reps: reps,
+                notes: notes,
                 date: widget.overrideDate,
               );
 
@@ -215,11 +229,16 @@ class _WeightInputCardState extends ConsumerState<WeightInputCard> {
         );
       }).toList();
 
+      final notes = _notesController.text.trim().isEmpty
+          ? null
+          : _notesController.text.trim();
+
       final record = await ref
           .read(weightRecordNotifierProvider.notifier)
           .saveAdvancedRecord(
             exerciseId: widget.exerciseId,
             setEntries: entries,
+            notes: notes,
             date: widget.overrideDate,
           );
 
@@ -247,6 +266,7 @@ class _WeightInputCardState extends ConsumerState<WeightInputCard> {
               .map((s) => SetData.create(weight: s.weight, reps: s.reps))
               .toList();
           _isDirty = false;
+          _showNotes = false;
         });
       }
     } catch (e) {
@@ -337,6 +357,11 @@ class _WeightInputCardState extends ConsumerState<WeightInputCard> {
             secondChild: _buildAdvancedContent(),
           ),
 
+          const SizedBox(height: 12),
+
+          // Notas opcionales
+          _buildNotesSection(l10n),
+
           const SizedBox(height: 20),
 
           // Botón guardar
@@ -344,6 +369,61 @@ class _WeightInputCardState extends ConsumerState<WeightInputCard> {
         ],
       ),
       ),
+    );
+  }
+
+  Widget _buildNotesSection(AppLocalizations l10n) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        GestureDetector(
+          onTap: () => setState(() => _showNotes = !_showNotes),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                _showNotes ? Icons.notes : Icons.add_comment_outlined,
+                size: 16,
+                color: AppColors.textSecondary,
+              ),
+              const SizedBox(width: 6),
+              Text(
+                l10n.personalNotes,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: AppColors.textSecondary,
+                    ),
+              ),
+              const SizedBox(width: 4),
+              Icon(
+                _showNotes ? Icons.expand_less : Icons.expand_more,
+                size: 16,
+                color: AppColors.textSecondary,
+              ),
+            ],
+          ),
+        ),
+        AnimatedCrossFade(
+          duration: const Duration(milliseconds: 200),
+          crossFadeState:
+              _showNotes ? CrossFadeState.showSecond : CrossFadeState.showFirst,
+          firstChild: const SizedBox.shrink(),
+          secondChild: Padding(
+            padding: const EdgeInsets.only(top: 10),
+            child: TextField(
+              controller: _notesController,
+              maxLines: 3,
+              textCapitalization: TextCapitalization.sentences,
+              decoration: InputDecoration(
+                hintText: l10n.personalNotesHint,
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 10,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 

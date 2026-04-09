@@ -33,6 +33,14 @@ class _RoutineDetailScreenState extends ConsumerState<RoutineDetailScreen> {
   @override
   void initState() {
     super.initState();
+    // Triggear sync inicial desde Firestore cuando la BD local está vacía.
+    // routineItemsStreamProvider solo observa local; routineItemsProvider
+    // sí llama a _syncItemsFromFirestore si no hay items locales.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        ref.read(routineItemsProvider(widget.routineId).future);
+      }
+    });
   }
 
   Future<void> _onRefresh() async {

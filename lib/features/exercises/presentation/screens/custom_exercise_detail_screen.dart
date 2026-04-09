@@ -10,6 +10,8 @@ import '../../../../core/utils/muscle_groups.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/widgets/weight_progress_chart.dart';
 import '../../../routines/presentation/widgets/select_routine_sheet.dart';
+import '../../../timer/presentation/widgets/timer_bottom_sheet.dart';
+import '../../../timer/timer_provider.dart';
 import '../../data/models/custom_exercise_model.dart';
 import '../../data/models/weight_record_model.dart';
 import '../../providers/custom_exercises_provider.dart';
@@ -204,21 +206,56 @@ class _CustomExerciseDetailScreenState
             pinned: true,
             backgroundColor: AppColors.background,
             actions: [
-              // Boton editar
-              IconButton(
-                icon: const Icon(Icons.edit_outlined),
-                onPressed: () {
-                  context.push(
-                    '${RouteNames.editCustomExercise}/${exercise.id}',
+              // Boton timer
+              Consumer(
+                builder: (ctx, ref, _) {
+                  final timer = ref.watch(timerProvider);
+                  final isActive = timer.isRunning || timer.isPaused;
+                  return IconButton(
+                    tooltip: AppLocalizations.of(ctx).timerTitle,
+                    icon: Icon(
+                      isActive ? Icons.timer : Icons.timer_outlined,
+                      color: timer.isRunning && !timer.isPaused
+                          ? AppColors.primary
+                          : null,
+                    ),
+                    onPressed: () => TimerBottomSheet.show(ctx),
                   );
                 },
-                tooltip: l10n.edit,
               ),
-              // Boton eliminar
-              IconButton(
-                icon: const Icon(Icons.delete_outline),
-                onPressed: () => _showDeleteDialog(exercise),
-                tooltip: l10n.delete,
+              // Menu editar / eliminar
+              PopupMenuButton<String>(
+                onSelected: (value) {
+                  if (value == 'edit') {
+                    context.push(
+                      '${RouteNames.editCustomExercise}/${exercise.id}',
+                    );
+                  } else if (value == 'delete') {
+                    _showDeleteDialog(exercise);
+                  }
+                },
+                itemBuilder: (context) => [
+                  PopupMenuItem(
+                    value: 'edit',
+                    child: Row(
+                      children: [
+                        const Icon(Icons.edit_outlined, size: 20),
+                        const SizedBox(width: 12),
+                        Text(l10n.edit),
+                      ],
+                    ),
+                  ),
+                  PopupMenuItem(
+                    value: 'delete',
+                    child: Row(
+                      children: [
+                        const Icon(Icons.delete_outline, size: 20, color: AppColors.error),
+                        const SizedBox(width: 12),
+                        Text(l10n.delete, style: const TextStyle(color: AppColors.error)),
+                      ],
+                    ),
+                  ),
+                ],
               ),
             ],
             flexibleSpace: FlexibleSpaceBar(
