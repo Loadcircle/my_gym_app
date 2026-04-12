@@ -86,6 +86,10 @@ const String kGlobalPushChannelName = 'GymVault News';
 const String kTimerChannelId = 'timer_channel';
 const String kTimerChannelName = 'Rest Timer';
 
+// Canal para la notificación de fin de timer con sonido de alarma custom.
+const String kTimerDoneChannelId = 'timer_done_channel';
+const String kTimerDoneChannelName = 'Rest Timer Done';
+
 // Canal silencioso para el countdown del foreground service (sin sonido/vibración).
 const String kTimerRunningChannelId = 'timer_running_channel';
 const String kTimerRunningChannelName = 'Rest Timer Running';

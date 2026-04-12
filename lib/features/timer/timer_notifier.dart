@@ -1,24 +1,22 @@
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/constants/notification_constants.dart';
+import '../../core/providers/locale_provider.dart';
 import '../../core/services/notification_service.dart';
 import '../../core/services/notification_signal.dart';
 import '../../core/utils/logger.dart';
 import 'timer_state.dart';
 import 'timer_task_handler.dart';
 
-const List<NotificationButton> _kTimerButtons = [
-  NotificationButton(id: 'btn_pause', text: 'Pause'),
-  NotificationButton(id: 'btn_stop', text: 'Stop'),
-];
-
 /// StateNotifier que gestiona el estado del cronómetro de descanso.
 /// Se comunica con [TimerTaskHandler] vía el sistema de puertos de flutter_foreground_task.
 class TimerNotifier extends StateNotifier<TimerState> {
   final NotificationService _notifService;
+  final Ref _ref;
 
-  TimerNotifier(this._notifService) : super(const TimerState()) {
+  TimerNotifier(this._notifService, this._ref) : super(const TimerState()) {
     _initForegroundTask();
     _connectCommunicationPort();
     _reconnectIfRunning();
@@ -66,12 +64,15 @@ class TimerNotifier extends StateNotifier<TimerState> {
   Future<void> start(int seconds) async {
     await _stopService();
 
+    final lang = _ref.read(localeNotifierProvider).languageCode;
+
     await FlutterForegroundTask.saveData(key: 'remaining', value: seconds);
+    await FlutterForegroundTask.saveData(key: 'lang', value: lang);
 
     await FlutterForegroundTask.startService(
       notificationTitle: 'GymVault',
       notificationText: '${_formatTime(seconds)} remaining',
-      notificationButtons: _kTimerButtons,
+      notificationButtons: _buildTimerButtons(lang, isPaused: false),
       callback: startTimerCallback,
     );
 
@@ -160,14 +161,15 @@ class TimerNotifier extends StateNotifier<TimerState> {
       isMinimized: false,
     );
 
-    // Notificación de "¡Tiempo!" con sonido y vibración (canal HIGH)
+    // Notificación de "¡Tiempo!" con sonido de alarma custom
     await _notifService.showNotification(
       id: kTimerDoneNotifId,
       title: '⏰ Time\'s up!',
       body: 'Rest is over',
-      channelId: kTimerChannelId,
+      channelId: kTimerDoneChannelId,
       playSound: true,
       enableVibration: true,
+      sound: const RawResourceAndroidNotificationSound('timer_alarm'),
       payload: 'timer_done',
     );
   }
@@ -180,6 +182,28 @@ class TimerNotifier extends StateNotifier<TimerState> {
     final m = seconds ~/ 60;
     final s = seconds % 60;
     return '${m.toString().padLeft(2, '0')}:${s.toString().padLeft(2, '0')}';
+  }
+
+  static List<NotificationButton> _buildTimerButtons(String lang, {required bool isPaused}) {
+    final pauseLabel = switch (lang) {
+      'es' => 'Pausar',
+      'pt' => 'Pausar',
+      _ => 'Pause',
+    };
+    final resumeLabel = switch (lang) {
+      'es' => 'Reanudar',
+      'pt' => 'Retomar',
+      _ => 'Resume',
+    };
+    final stopLabel = switch (lang) {
+      'es' => 'Detener',
+      'pt' => 'Parar',
+      _ => 'Stop',
+    };
+    return [
+      NotificationButton(id: 'btn_pause', text: isPaused ? resumeLabel : pauseLabel),
+      NotificationButton(id: 'btn_stop', text: stopLabel),
+    ];
   }
 
   @override

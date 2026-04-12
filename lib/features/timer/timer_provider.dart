@@ -9,7 +9,7 @@ import 'timer_state.dart';
 final timerProvider = StateNotifierProvider<TimerNotifier, TimerState>((ref) {
   ref.keepAlive();
   final notifService = ref.watch(notificationServiceProvider);
-  return TimerNotifier(notifService);
+  return TimerNotifier(notifService, ref);
 });
 
 /// Presets en segundos para el selector rápido del bottom sheet.

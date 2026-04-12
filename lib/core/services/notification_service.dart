@@ -93,6 +93,14 @@ class NotificationService {
         enableVibration: true,
       ),
       AndroidNotificationChannel(
+        kTimerDoneChannelId,
+        kTimerDoneChannelName,
+        importance: Importance.high,
+        playSound: true,
+        enableVibration: true,
+        sound: RawResourceAndroidNotificationSound('timer_alarm'),
+      ),
+      AndroidNotificationChannel(
         kTimerRunningChannelId,
         kTimerRunningChannelName,
         importance: Importance.low,
@@ -127,6 +135,7 @@ class NotificationService {
     String? payload,
     bool playSound = true,
     bool enableVibration = false,
+    AndroidNotificationSound? sound,
   }) async {
     final details = NotificationDetails(
       android: AndroidNotificationDetails(
@@ -135,6 +144,7 @@ class NotificationService {
         icon: '@mipmap/ic_launcher',
         playSound: playSound,
         enableVibration: enableVibration,
+        sound: sound,
       ),
     );
 
@@ -197,6 +207,8 @@ class NotificationService {
         return kGlobalPushChannelName;
       case kTimerChannelId:
         return kTimerChannelName;
+      case kTimerDoneChannelId:
+        return kTimerDoneChannelName;
       case kTimerRunningChannelId:
         return kTimerRunningChannelName;
       default:

@@ -12,11 +12,42 @@ void startTimerCallback() {
 class TimerTaskHandler extends TaskHandler {
   int _remaining = 0;
   bool _isPaused = false;
+  String _lang = 'en';
+
+  String get _pauseLabel => switch (_lang) {
+        'es' => 'Pausar',
+        'pt' => 'Pausar',
+        _ => 'Pause',
+      };
+
+  String get _resumeLabel => switch (_lang) {
+        'es' => 'Reanudar',
+        'pt' => 'Retomar',
+        _ => 'Resume',
+      };
+
+  String get _stopLabel => switch (_lang) {
+        'es' => 'Detener',
+        'pt' => 'Parar',
+        _ => 'Stop',
+      };
+
+  String get _pausedPrefix => switch (_lang) {
+        'es' => 'Pausado',
+        'pt' => 'Pausado',
+        _ => 'Paused',
+      };
+
+  String get _remainingSuffix => switch (_lang) {
+        'es' => 'restante',
+        'pt' => 'restante',
+        _ => 'remaining',
+      };
 
   @override
   Future<void> onStart(DateTime timestamp, TaskStarter starter) async {
-    _remaining =
-        await FlutterForegroundTask.getData<int>(key: 'remaining') ?? 180;
+    _remaining = await FlutterForegroundTask.getData<int>(key: 'remaining') ?? 180;
+    _lang = await FlutterForegroundTask.getData<String>(key: 'lang') ?? 'en';
   }
 
   /// Llamado cada 1 segundo (según ForegroundTaskOptions.eventAction).
@@ -27,7 +58,7 @@ class TimerTaskHandler extends TaskHandler {
     if (_remaining > 0) {
       _remaining--;
       FlutterForegroundTask.updateService(
-        notificationText: '${_formatTime(_remaining)} remaining',
+        notificationText: '${_formatTime(_remaining)} $_remainingSuffix',
       );
       FlutterForegroundTask.sendDataToMain(_remaining);
     } else {
@@ -44,12 +75,20 @@ class TimerTaskHandler extends TaskHandler {
     if (data == 'pause') {
       _isPaused = true;
       FlutterForegroundTask.updateService(
-        notificationText: 'Paused · ${_formatTime(_remaining)}',
+        notificationText: '$_pausedPrefix · ${_formatTime(_remaining)}',
+        notificationButtons: [
+          NotificationButton(id: 'btn_pause', text: _resumeLabel),
+          NotificationButton(id: 'btn_stop', text: _stopLabel),
+        ],
       );
     } else if (data == 'resume') {
       _isPaused = false;
       FlutterForegroundTask.updateService(
-        notificationText: '${_formatTime(_remaining)} remaining',
+        notificationText: '${_formatTime(_remaining)} $_remainingSuffix',
+        notificationButtons: [
+          NotificationButton(id: 'btn_pause', text: _pauseLabel),
+          NotificationButton(id: 'btn_stop', text: _stopLabel),
+        ],
       );
     }
   }
@@ -60,12 +99,20 @@ class TimerTaskHandler extends TaskHandler {
       _isPaused = !_isPaused;
       if (_isPaused) {
         FlutterForegroundTask.updateService(
-          notificationText: 'Paused · ${_formatTime(_remaining)}',
+          notificationText: '$_pausedPrefix · ${_formatTime(_remaining)}',
+          notificationButtons: [
+            NotificationButton(id: 'btn_pause', text: _resumeLabel),
+            NotificationButton(id: 'btn_stop', text: _stopLabel),
+          ],
         );
         FlutterForegroundTask.sendDataToMain('paused');
       } else {
         FlutterForegroundTask.updateService(
-          notificationText: '${_formatTime(_remaining)} remaining',
+          notificationText: '${_formatTime(_remaining)} $_remainingSuffix',
+          notificationButtons: [
+            NotificationButton(id: 'btn_pause', text: _pauseLabel),
+            NotificationButton(id: 'btn_stop', text: _stopLabel),
+          ],
         );
         FlutterForegroundTask.sendDataToMain('resumed');
       }
