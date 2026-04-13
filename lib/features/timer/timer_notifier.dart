@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/constants/notification_constants.dart';
 import '../../core/providers/locale_provider.dart';
+import '../../core/services/analytics_service.dart';
 import '../../core/services/notification_service.dart';
 import '../../core/services/notification_signal.dart';
 import '../../core/utils/logger.dart';
@@ -62,6 +63,7 @@ class TimerNotifier extends StateNotifier<TimerState> {
 
   /// Inicia el timer con [seconds] segundos.
   Future<void> start(int seconds) async {
+    AnalyticsService.logTimerStarted(seconds: seconds);
     await _stopService();
 
     final lang = _ref.read(localeNotifierProvider).languageCode;

@@ -28,6 +28,7 @@ import '../../features/settings/presentation/screens/settings_screen.dart';
 import '../../features/notifications/presentation/screens/notification_settings_screen.dart';
 import '../../shared/widgets/main_shell.dart';
 import '../../l10n/app_localizations.dart';
+import '../services/analytics_service.dart';
 
 /// Provider que indica si el estado de auth aun esta inicializando.
 /// Usado por el router para saber si debe esperar.
@@ -56,6 +57,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     navigatorKey: _rootNavigatorKey,
     initialLocation: RouteNames.splash,
     debugLogDiagnostics: true,
+    observers: [AnalyticsService.observer],
 
     // Redirect basado en estado de autenticacion
     redirect: (context, state) {

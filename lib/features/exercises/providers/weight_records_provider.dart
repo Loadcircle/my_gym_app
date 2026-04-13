@@ -6,6 +6,7 @@ import '../data/models/set_entry_model.dart';
 import '../data/repositories/weight_records_repository.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../../../core/services/notification_scheduler.dart';
+import '../../../core/services/analytics_service.dart';
 import '../../notifications/providers/notification_providers.dart';
 
 /// Provider del repositorio de registros de peso (Firestore directo - legacy).
@@ -97,6 +98,11 @@ class WeightRecordNotifier extends StateNotifier<AsyncValue<void>> {
       state = const AsyncValue.data(null);
       // Notificar al scheduler para recordatorio de sesión incompleta
       _notificationScheduler.onWeightRecordSaved(_userId);
+      AnalyticsService.logWorkoutLogged(
+        exerciseId: exerciseId,
+        mode: 'simple',
+        sets: sets,
+      );
       return record;
     } catch (e, st) {
       state = AsyncValue.error(e, st);
@@ -122,6 +128,11 @@ class WeightRecordNotifier extends StateNotifier<AsyncValue<void>> {
       state = const AsyncValue.data(null);
       // Notificar al scheduler para recordatorio de sesión incompleta
       _notificationScheduler.onWeightRecordSaved(_userId);
+      AnalyticsService.logWorkoutLogged(
+        exerciseId: exerciseId,
+        mode: 'advanced',
+        sets: setEntries.length,
+      );
       return record;
     } catch (e, st) {
       state = AsyncValue.error(e, st);

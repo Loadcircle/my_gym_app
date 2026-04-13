@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 import '../../../data/repositories/offline_routine_completions_repository.dart';
+import '../../../core/services/analytics_service.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../../notifications/providers/notification_providers.dart';
 import '../../exercises/providers/today_weight_records_provider.dart';
@@ -197,6 +198,12 @@ class RoutineCompletionNotifier extends StateNotifier<AsyncValue<void>> {
 
       final created = await _repository.createCompletion(completion);
       state = const AsyncValue.data(null);
+
+      AnalyticsService.logRoutineCompleted(
+        routineId: routineId,
+        exerciseCount: totalExercises,
+        completedCount: completedExercises,
+      );
 
       // Invalidar providers relacionados
       _ref.invalidate(todayRoutineCompletionProvider(routineId));

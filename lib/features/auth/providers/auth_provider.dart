@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 import '../../../core/utils/logger.dart';
+import '../../../core/services/analytics_service.dart';
 import '../../../data/local/database.dart';
 import '../data/auth_repository.dart';
 import '../data/models/user_model.dart';
@@ -95,6 +96,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
 
       state = AuthState.authenticated(user);
       AppLogger.info('Login exitoso', tag: _tag);
+      AnalyticsService.logLogin(method: 'email');
     } on AuthException catch (e) {
       AppLogger.warning('Error en login: ${e.message}', tag: _tag);
       state = state.copyWith(
@@ -131,6 +133,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
 
       state = AuthState.authenticated(user);
       AppLogger.info('Registro exitoso', tag: _tag);
+      AnalyticsService.logSignUp(method: 'email');
     } on AuthException catch (e) {
       AppLogger.warning('Error en registro: ${e.message}', tag: _tag);
       state = state.copyWith(
@@ -207,6 +210,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
 
       state = AuthState.authenticated(user);
       AppLogger.info('Google Sign-In exitoso', tag: _tag);
+      AnalyticsService.logLogin(method: 'google');
       return true;
     } on AuthException catch (e) {
       AppLogger.warning('Error en Google Sign-In: ${e.message}', tag: _tag);
