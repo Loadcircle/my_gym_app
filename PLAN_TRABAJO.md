@@ -245,7 +245,7 @@ Basado en `BUGS_Y_MEJORAS.md`. Organizado por prioridad con propuesta de resoluc
 
 - **Verificar fix BUG-01 (routine sync):** Instalar build en dispositivo nuevo → iniciar sesión → entrar al detalle de una rutina → confirmar que los ejercicios aparecen.
 
-- **BUG: Agregar ejercicio a rutina (falla intermitente)** — ya fue intentado múltiples veces sin éxito. Se debugeará en conjunto antes de cualquier implementación.
+- **BUG: Agregar ejercicio a rutina (falla intermitente)** — fix aplicado: `exercisesProvider.valueOrNull` retornaba null cuando el provider no había sido cargado aún (navegación directa a Rutinas sin pasar por pestaña Ejercicios). Corregido con `await ref.read(exercisesProvider.future)`. Pendiente validación con uso diario.
 - Revisar errores de Crashlytics
 - iOS (APNs para notificaciones)
 - Drag & drop en rutinas

@@ -57,9 +57,11 @@ class _AddExercisesToRoutineScreenState
     setState(() => _isLoading = true);
     final l10n = AppLocalizations.of(context);
 
-    // Obtener los ejercicios para construir los datos
-    final globalExercises = ref.read(exercisesProvider).valueOrNull ?? [];
-    final customExercises = ref.read(customExercisesProvider).valueOrNull ?? [];
+    // Obtener los ejercicios para construir los datos.
+    // Usamos .future para garantizar que los datos estén cargados
+    // independientemente del estado del provider al momento del tap.
+    final globalExercises = await ref.read(exercisesProvider.future);
+    final customExercises = await ref.read(customExercisesProvider.future);
 
     final exercisesToAdd = <({
       String exerciseId,
