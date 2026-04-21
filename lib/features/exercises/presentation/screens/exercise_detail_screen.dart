@@ -177,6 +177,8 @@ class _ExerciseDetailScreenState extends ConsumerState<ExerciseDetailScreen>
     final mediaHelper = ref.watch(mediaUrlHelperProvider);
     final hasImage = mediaHelper.isValidUrl(exercise.imageUrl);
 
+    final systemNavHeight = MediaQuery.of(context).viewPadding.bottom;
+
     return Consumer(
       builder: (ctx, ref, child) {
         final timerMinimized = ref.watch(
@@ -185,7 +187,9 @@ class _ExerciseDetailScreenState extends ConsumerState<ExerciseDetailScreen>
         debugPrint('[ExerciseDetail] Consumer rebuild — timerMinimized=$timerMinimized');
         return Scaffold(
           backgroundColor: AppColors.background,
-          bottomSheet: timerMinimized ? const TimerMiniBar() : null,
+          bottomSheet: timerMinimized
+              ? TimerMiniBar(bottomInset: systemNavHeight)
+              : null,
           body: child!,
         );
       },

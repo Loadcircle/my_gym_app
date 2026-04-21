@@ -12,7 +12,11 @@ import 'timer_circular_display.dart';
 class TimerBottomSheet extends ConsumerStatefulWidget {
   const TimerBottomSheet({super.key});
 
+  static bool _isShowing = false;
+
   static Future<void> show(BuildContext context) {
+    if (_isShowing) return Future.value();
+    _isShowing = true;
     return showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -22,7 +26,7 @@ class TimerBottomSheet extends ConsumerStatefulWidget {
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (_) => const TimerBottomSheet(),
-    );
+    ).whenComplete(() => _isShowing = false);
   }
 
   @override
