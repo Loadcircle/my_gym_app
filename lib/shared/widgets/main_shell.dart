@@ -78,7 +78,7 @@ class _MainShellState extends ConsumerState<MainShell> {
         bottomNavigationBar: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            if (showMiniBar) const TimerMiniBar(),
+            if (showMiniBar) const TimerMiniBar(addBottomPadding: false),
             NavigationBar(
           selectedIndex: widget.navigationShell.currentIndex,
           onDestinationSelected: (index) {

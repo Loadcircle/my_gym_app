@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../l10n/app_localizations.dart';
+import '../../../notifications/providers/notification_providers.dart';
 import '../../timer_notifier.dart';
 import '../../timer_provider.dart';
 import 'timer_circular_display.dart';
@@ -219,10 +220,18 @@ class _TimerBottomSheetState extends ConsumerState<TimerBottomSheet> {
                     ),
                     onPressed: !timer.isRunning && timer.totalSeconds == 0
                         ? null
-                        : () {
+                        : () async {
                             if (timer.isRunning) {
                               notifier.togglePause();
                             } else {
+                              final notifService =
+                                  ref.read(notificationServiceProvider);
+                              final enabled =
+                                  await notifService.areNotificationsEnabled();
+                              if (!enabled) {
+                                await notifService.requestPermission();
+                              }
+                              if (!mounted) return;
                               notifier.start(timer.totalSeconds);
                             }
                           },

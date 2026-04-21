@@ -126,6 +126,16 @@ class NotificationService {
     return granted ?? false;
   }
 
+  /// Verifica si las notificaciones están habilitadas sin mostrar diálogo.
+  Future<bool> areNotificationsEnabled() async {
+    final androidPlugin =
+        _plugin.resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin>();
+    if (androidPlugin == null) return true;
+
+    return await androidPlugin.areNotificationsEnabled() ?? false;
+  }
+
   /// Muestra una notificación inmediata.
   Future<void> showNotification({
     required int id,
