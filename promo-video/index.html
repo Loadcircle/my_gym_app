@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="es">
+<!-- GYMVAULT PROMO — 1080x1920 (9:16) — 26s -->
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=1080, height=1920" />
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      width: 1080px;
+      height: 1920px;
+      overflow: hidden;
+      background: #0D0D0D;
+      font-family: 'DM Sans', sans-serif;
+    }
+
+    #root {
+      position: relative;
+      width: 1080px;
+      height: 1920px;
+      overflow: hidden;
+    }
+
+    .scene {
+      position: absolute;
+      top: 0; left: 0;
+      width: 1080px; height: 1920px;
+      overflow: hidden;
+    }
+
+    #s2, #s3, #s4, #s5, #s6, #s7 { opacity: 0; }
+
+    #s1 { z-index: 1; background: #0D0D0D; }
+    #s2 { z-index: 2; }
+    #s3 { z-index: 3; }
+    #s4 { z-index: 4; }
+    #s5 { z-index: 5; }
+    #s6 { z-index: 6; }
+    #s7 { z-index: 7; background: #0D0D0D; }
+
+    .bg-img {
+      position: absolute;
+      top: 0; left: 0;
+      width: 1080px; height: 1920px;
+      object-fit: cover;
+    }
+
+    .ov-top {
+      position: absolute;
+      top: 0; left: 0;
+      width: 1080px; height: 480px;
+      background: linear-gradient(to bottom, rgba(13,13,13,0.85) 0%, transparent 100%);
+      pointer-events: none;
+    }
+    .ov-bottom {
+      position: absolute;
+      bottom: 0; left: 0;
+      width: 1080px; height: 760px;
+      background: linear-gradient(to top, rgba(13,13,13,0.97) 0%, rgba(13,13,13,0.72) 42%, transparent 100%);
+      pointer-events: none;
+    }
+
+    /* Caption zone — lower third, safe from overflow */
+    .cap-zone {
+      position: absolute;
+      bottom: 185px;
+      left: 60px; right: 60px;
+      text-align: center;
+    }
+
+    /* Main caption — DM Sans ExtraBold */
+    .cap {
+      display: block;
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 900;
+      font-size: 108px;
+      line-height: 1.0;
+      color: #F0EDE8;
+      letter-spacing: -0.03em;
+      white-space: nowrap;
+    }
+    .cap.orange { color: #FF5E14; }
+
+    .cap-sub {
+      display: block;
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 500;
+      font-size: 36px;
+      color: rgba(240,237,232,0.55);
+      letter-spacing: 0.10em;
+      text-transform: uppercase;
+      margin-top: 18px;
+      white-space: nowrap;
+    }
+
+    /* ── SCENE 1: HOOK ── */
+    .s1-glow {
+      position: absolute;
+      top: 50%; left: 50%;
+      width: 880px; height: 880px;
+      margin: -440px 0 0 -440px;
+      background: radial-gradient(ellipse, rgba(255,94,20,0.20) 0%, transparent 68%);
+      border-radius: 50%;
+    }
+    .s1-ghost {
+      position: absolute;
+      bottom: -120px; right: -80px;
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 900;
+      font-size: 520px;
+      color: rgba(255,94,20,0.030);
+      letter-spacing: -0.06em;
+      line-height: 1;
+      user-select: none;
+    }
+    .s1-content {
+      position: absolute;
+      top: 0; left: 0;
+      width: 1080px; height: 1920px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 120px 80px;
+    }
+    .s1-pre {
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 500;
+      font-size: 42px;
+      color: rgba(240,237,232,0.48);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      text-align: center;
+      margin-bottom: 52px;
+      max-width: 880px;
+    }
+    .s1-word {
+      display: block;
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 900;
+      font-size: 145px;
+      line-height: 0.92;
+      color: #F0EDE8;
+      text-align: center;
+      letter-spacing: -0.04em;
+      white-space: nowrap;
+    }
+    .s1-word.orange { color: #FF5E14; }
+    .s1-accent {
+      width: 80px; height: 6px;
+      background: #FF5E14;
+      border-radius: 3px;
+      margin: 44px auto 0;
+    }
+
+    /* ── SCENE 3: badge ── */
+    .s3-badge {
+      position: absolute;
+      top: 268px;
+      right: 56px;
+      background: #FF5E14;
+      color: #0D0D0D;
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 900;
+      font-size: 46px;
+      letter-spacing: 0.01em;
+      padding: 14px 24px 10px;
+      border-radius: 12px;
+      white-space: nowrap;
+    }
+
+    /* ── SCENE 4: progress stat ── */
+    .s4-stat {
+      position: absolute;
+      top: 220px;
+      left: 60px;
+    }
+    .s4-pct {
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 900;
+      font-size: 170px;
+      line-height: 1;
+      color: #FF5E14;
+      letter-spacing: -0.05em;
+      white-space: nowrap;
+    }
+    .s4-pct-label {
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 500;
+      font-size: 42px;
+      color: rgba(240,237,232,0.68);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-top: 8px;
+    }
+
+    /* ── SCENE 7: CTA ── */
+    .s7-glow {
+      position: absolute;
+      top: 36%; left: 50%;
+      width: 980px; height: 980px;
+      margin: -490px 0 0 -490px;
+      background: radial-gradient(ellipse, rgba(255,94,20,0.26) 0%, transparent 64%);
+      border-radius: 50%;
+    }
+    .s7-ghost {
+      position: absolute;
+      bottom: -100px; right: -80px;
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 900;
+      font-size: 500px;
+      color: rgba(255,94,20,0.035);
+      letter-spacing: -0.06em;
+      line-height: 1;
+      user-select: none;
+    }
+    .s7-content {
+      position: absolute;
+      top: 0; left: 0;
+      width: 1080px; height: 1920px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 80px;
+    }
+    .s7-logo {
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 900;
+      font-size: 170px;
+      color: #FF5E14;
+      letter-spacing: -0.04em;
+      line-height: 1;
+      text-align: center;
+      white-space: nowrap;
+    }
+    .s7-tagline {
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 400;
+      font-size: 40px;
+      color: rgba(240,237,232,0.55);
+      letter-spacing: 0.20em;
+      text-transform: uppercase;
+      text-align: center;
+      margin-top: 26px;
+    }
+    .s7-cta {
+      margin-top: 88px;
+      background: #FF5E14;
+      color: #0D0D0D;
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 900;
+      font-size: 62px;
+      letter-spacing: 0.02em;
+      padding: 26px 72px 22px;
+      border-radius: 16px;
+      text-align: center;
+      white-space: nowrap;
+    }
+    .s7-rule {
+      width: 110px; height: 5px;
+      background: rgba(240,237,232,0.15);
+      border-radius: 3px;
+      margin-top: 60px;
+    }
+  </style>
+</head>
+<body>
+  <div id="root"
+    data-composition-id="gymvault-promo"
+    data-width="1080"
+    data-height="1920"
+    data-start="0"
+    data-duration="26">
+
+    <!-- ── NARRATION ── -->
+    <audio class="clip" id="narr"
+      src="assets/narration.wav"
+      data-start="0"
+      data-duration="20"
+      data-track-index="1"
+      data-volume="1.0"></audio>
+
+    <!-- ── MUSIC (drop gym track at assets/music.mp3) ── -->
+    <audio class="clip" id="music"
+      src="assets/music.mp3"
+      data-start="0"
+      data-duration="26"
+      data-track-index="2"
+      data-volume="0.35"></audio>
+
+    <!-- ── SFX: transitions (whoosh=zoom-through, slam=push-left) ── -->
+    <audio class="clip" id="sfx1" src="assets/sfx_whoosh.wav" data-start="3.10"  data-duration="0.28" data-track-index="10" data-volume="0.7"></audio>
+    <audio class="clip" id="sfx2" src="assets/sfx_slam.wav"   data-start="8.10"  data-duration="0.20" data-track-index="11" data-volume="0.7"></audio>
+    <audio class="clip" id="sfx3" src="assets/sfx_whoosh.wav" data-start="10.75" data-duration="0.28" data-track-index="12" data-volume="0.7"></audio>
+    <audio class="clip" id="sfx4" src="assets/sfx_slam.wav"   data-start="12.10" data-duration="0.20" data-track-index="13" data-volume="0.7"></audio>
+    <audio class="clip" id="sfx5" src="assets/sfx_whoosh.wav" data-start="15.20" data-duration="0.28" data-track-index="14" data-volume="0.7"></audio>
+    <audio class="clip" id="sfx6" src="assets/sfx_slam.wav"   data-start="18.20" data-duration="0.20" data-track-index="15" data-volume="0.7"></audio>
+
+    <!-- ══════════════════════════════════════ -->
+    <!-- S1 — HOOK  0–3.2 s                   -->
+    <!-- ══════════════════════════════════════ -->
+    <div id="s1" class="scene">
+      <div class="s1-glow"></div>
+      <div class="s1-ghost">GV</div>
+      <div class="s1-content">
+        <div id="s1-pre" class="s1-pre">¿Entrenas sin anotar tus pesos?</div>
+        <span id="s1-w1" class="s1-word">ESTÁS</span>
+        <span id="s1-w2" class="s1-word">DEJANDO</span>
+        <span id="s1-w3" class="s1-word orange">GANANCIAS</span>
+        <div id="s1-acc" class="s1-accent"></div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════ -->
+    <!-- S2 — BIBLIOTECA  3.2–8.2 s           -->
+    <!-- ══════════════════════════════════════ -->
+    <div id="s2" class="scene">
+      <img class="bg-img" src="assets/screen_01_exercises.png" alt=""
+        style="object-position: center top;" />
+      <div class="ov-top"></div>
+      <div class="ov-bottom"></div>
+      <div class="cap-zone">
+        <span id="s2-c1" class="cap">BIBLIOTECA</span>
+        <span id="s2-c2" class="cap orange">COMPLETA</span>
+        <span id="s2-c3" class="cap-sub">Ejercicios · Guías · Instrucciones</span>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════ -->
+    <!-- S3 — REGISTRA  8.2–10.85 s           -->
+    <!-- ══════════════════════════════════════ -->
+    <div id="s3" class="scene">
+      <img class="bg-img" src="assets/screen_03_biceps.png" alt=""
+        style="object-position: center 8%;" />
+      <div class="ov-top"></div>
+      <div class="ov-bottom"></div>
+      <div id="s3-badge" class="s3-badge">MAX: 25 KG</div>
+      <div class="cap-zone">
+        <span id="s3-c1" class="cap">REGISTRA</span>
+        <span id="s3-c2" class="cap">CADA</span>
+        <span id="s3-c3" class="cap orange">KILO</span>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════ -->
+    <!-- S4 — PROGRESO  10.85–12.2 s          -->
+    <!-- ══════════════════════════════════════ -->
+    <div id="s4" class="scene">
+      <img class="bg-img" src="assets/screen_04_chart.png" alt=""
+        style="object-position: center 82%;" />
+      <div class="ov-top"
+        style="height:680px; background:linear-gradient(to bottom,rgba(13,13,13,0.94) 0%,rgba(13,13,13,0.55) 58%,transparent 100%);"></div>
+      <div class="ov-bottom" style="height:460px;"></div>
+      <div class="s4-stat">
+        <div id="s4-pct" class="s4-pct">+66.7%</div>
+        <div id="s4-label" class="s4-pct-label">De progreso</div>
+      </div>
+      <div class="cap-zone">
+        <span id="s4-c1" class="cap">VE CÓMO</span>
+        <span id="s4-c2" class="cap orange">CRECES</span>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════ -->
+    <!-- S5 — RUTINAS  12.2–15.3 s            -->
+    <!-- ══════════════════════════════════════ -->
+    <div id="s5" class="scene">
+      <img class="bg-img" src="assets/screen_05_routines.png" alt=""
+        style="object-position: center top;" />
+      <div class="ov-top"></div>
+      <div class="ov-bottom"></div>
+      <div class="cap-zone">
+        <span id="s5-c1" class="cap">TUS RUTINAS</span>
+        <span id="s5-c2" class="cap orange">ORGANIZADAS</span>
+        <span id="s5-c3" class="cap-sub">Funciona Offline · Siempre</span>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════ -->
+    <!-- S6 — HISTORIAL  15.3–18.3 s          -->
+    <!-- ══════════════════════════════════════ -->
+    <div id="s6" class="scene">
+      <img class="bg-img" src="assets/screen_06_history.png" alt=""
+        style="object-position: center top;" />
+      <div class="ov-top"></div>
+      <div class="ov-bottom"></div>
+      <div class="cap-zone">
+        <span id="s6-c1" class="cap">HISTORIAL</span>
+        <span id="s6-c2" class="cap orange">COMPLETO</span>
+        <span id="s6-c3" class="cap-sub">Cada entreno. Cada día.</span>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════ -->
+    <!-- S7 — CTA  18.3–26 s                  -->
+    <!-- ══════════════════════════════════════ -->
+    <div id="s7" class="scene">
+      <div class="s7-glow"></div>
+      <div class="s7-ghost">GV</div>
+      <div class="s7-content">
+        <div id="s7-logo" class="s7-logo">GYMVAULT</div>
+        <div id="s7-tag"  class="s7-tagline">Registra · Progresa · Domina</div>
+        <div id="s7-cta"  class="s7-cta">DESCÁRGALO GRATIS</div>
+        <div id="s7-rule" class="s7-rule"></div>
+      </div>
+    </div>
+
+    <script>
+      window.__timelines = window.__timelines || {};
+      var tl = gsap.timeline({ paused: true });
+
+      /* AMBIENT GLOW */
+      tl.to(".s1-glow", { scale: 1.16, duration: 2.8, ease: "sine.inOut" }, 0);
+      tl.to(".s7-glow", { scale: 1.20, duration: 1.8, ease: "sine.inOut" }, 18.3);
+
+      /* ─────────────────────────────────────── */
+      /* S1  0→3.2s  — synced to narration      */
+      /* ─────────────────────────────────────── */
+      tl.from("#s1-pre", { y: 40, opacity: 0, duration: 0.42, ease: "power3.out" }, 0.15);
+      /* narrator says "Estás" at 1.72s, "dejando" 1.98s, "ganancias" 2.34s */
+      tl.from("#s1-w1", { y: -100, scale: 0.58, opacity: 0, duration: 0.20, ease: "back.out(2.8)" }, 1.72);
+      tl.from("#s1-w2", { y: -100, scale: 0.58, opacity: 0, duration: 0.20, ease: "back.out(2.5)" }, 1.98);
+      tl.from("#s1-w3", { y: -100, scale: 0.58, opacity: 0, duration: 0.20, ease: "back.out(3.2)" }, 2.34);
+      tl.from("#s1-acc", { scaleX: 0, opacity: 0, duration: 0.32, ease: "expo.out" }, 2.75);
+
+      /* TRANSITION 1→2  zoom-through at 3.1s */
+      tl.to("#s1", { scale: 1.08, opacity: 0, duration: 0.26, ease: "power2.in" }, 3.10);
+      tl.set("#s2", { opacity: 1 }, 3.10);
+
+      /* ─────────────────────────────────────── */
+      /* S2  3.2→8.2s  — synced to narration    */
+      /* ─────────────────────────────────────── */
+      tl.from("#s2 .bg-img", { scale: 1.05, duration: 5.3, ease: "power1.out" }, 3.2);
+      /* narrator: "biblioteca" 4.52s, "completa" 5.12s, "de" 5.46s */
+      tl.from("#s2-c1", { y: 80, scale: 0.60, opacity: 0, duration: 0.24, ease: "back.out(2.5)" }, 4.52);
+      tl.from("#s2-c2", { y: 80, scale: 0.60, opacity: 0, duration: 0.24, ease: "back.out(2.8)" }, 5.12);
+      tl.from("#s2-c3", { y: 30, opacity: 0, duration: 0.36, ease: "power2.out" }, 5.46);
+
+      /* TRANSITION 2→3  push-left at 8.1s */
+      tl.to("#s2", { x: -80, opacity: 0, duration: 0.26, ease: "power3.in" }, 8.10);
+      tl.set("#s3", { opacity: 1 }, 8.10);
+
+      /* ─────────────────────────────────────── */
+      /* S3  8.2→10.85s  — synced to narration  */
+      /* ─────────────────────────────────────── */
+      tl.from("#s3 .bg-img", { scale: 1.05, duration: 2.8, ease: "power1.out" }, 8.2);
+      tl.from("#s3-badge",   { x: 80, opacity: 0, duration: 0.26, ease: "back.out(2.0)" }, 8.20);
+      /* narrator: "Registra" 8.38s, "cada" 8.82s, "kilo" 9.70s */
+      tl.from("#s3-c1", { y: 80, scale: 0.60, opacity: 0, duration: 0.22, ease: "back.out(2.5)" }, 8.38);
+      tl.from("#s3-c2", { y: 80, scale: 0.60, opacity: 0, duration: 0.22, ease: "back.out(2.5)" }, 8.82);
+      tl.from("#s3-c3", { y: 80, scale: 0.60, opacity: 0, duration: 0.22, ease: "back.out(3.0)" }, 9.70);
+
+      /* TRANSITION 3→4  zoom-through at 10.75s */
+      tl.to("#s3", { scale: 1.08, opacity: 0, duration: 0.26, ease: "power2.in" }, 10.75);
+      tl.set("#s4", { opacity: 1 }, 10.75);
+
+      /* ─────────────────────────────────────── */
+      /* S4  10.85→12.2s  — punchy stat scene   */
+      /* ─────────────────────────────────────── */
+      tl.from("#s4 .bg-img", { scale: 1.04, duration: 1.5, ease: "power1.out" }, 10.85);
+      /* narrator: "Ve" 10.98s, "progreso" 11.14s */
+      tl.from("#s4-pct",   { x: -70, scale: 0.78, opacity: 0, duration: 0.30, ease: "back.out(1.8)" }, 10.85);
+      tl.from("#s4-label", { x: -50, opacity: 0, duration: 0.28, ease: "power3.out" }, 11.20);
+      tl.from("#s4-c1",    { y: 80, scale: 0.60, opacity: 0, duration: 0.22, ease: "back.out(2.5)" }, 10.98);
+      tl.from("#s4-c2",    { y: 80, scale: 0.60, opacity: 0, duration: 0.22, ease: "back.out(3.0)" }, 11.14);
+
+      /* TRANSITION 4→5  push-left at 12.1s */
+      tl.to("#s4", { x: -80, opacity: 0, duration: 0.26, ease: "power3.in" }, 12.10);
+      tl.set("#s5", { opacity: 1 }, 12.10);
+
+      /* ─────────────────────────────────────── */
+      /* S5  12.2→15.3s  — synced to narration  */
+      /* ─────────────────────────────────────── */
+      tl.from("#s5 .bg-img", { scale: 1.05, duration: 3.3, ease: "power1.out" }, 12.2);
+      /* narrator: "organiza" 12.34s, "rutinas" 12.96s, "Funcionas" 13.8s */
+      tl.from("#s5-c1", { y: 80, scale: 0.60, opacity: 0, duration: 0.24, ease: "back.out(2.5)" }, 12.34);
+      tl.from("#s5-c2", { y: 80, scale: 0.60, opacity: 0, duration: 0.24, ease: "back.out(2.8)" }, 12.96);
+      tl.from("#s5-c3", { y: 30, opacity: 0, duration: 0.36, ease: "power2.out" }, 13.80);
+
+      /* TRANSITION 5→6  zoom-through at 15.2s */
+      tl.to("#s5", { scale: 1.08, opacity: 0, duration: 0.26, ease: "power2.in" }, 15.20);
+      tl.set("#s6", { opacity: 1 }, 15.20);
+
+      /* ─────────────────────────────────────── */
+      /* S6  15.3→18.3s  — synced to narration  */
+      /* ─────────────────────────────────────── */
+      tl.from("#s6 .bg-img", { scale: 1.05, duration: 3.3, ease: "power1.out" }, 15.3);
+      /* narrator: "historial" 15.54s, "completo" 15.96s, "de" 16.28s */
+      tl.from("#s6-c1", { y: 80, scale: 0.60, opacity: 0, duration: 0.24, ease: "back.out(2.5)" }, 15.54);
+      tl.from("#s6-c2", { y: 80, scale: 0.60, opacity: 0, duration: 0.24, ease: "back.out(2.8)" }, 15.96);
+      tl.from("#s6-c3", { y: 30, opacity: 0, duration: 0.36, ease: "power2.out" }, 16.28);
+
+      /* TRANSITION 6→7  push-left at 18.2s */
+      tl.to("#s6", { x: -80, opacity: 0, duration: 0.26, ease: "power3.in" }, 18.20);
+      tl.set("#s7", { opacity: 1 }, 18.20);
+
+      /* ─────────────────────────────────────── */
+      /* S7  18.3→26s  — CTA + final fade       */
+      /* ─────────────────────────────────────── */
+      /* narrator: "GymVault" ~18.36s, "descarga" 19.04s, "gratis" 19.54s */
+      tl.from("#s7-logo", { y: -80, scale: 0.60, opacity: 0, duration: 0.36, ease: "back.out(2.2)" }, 18.36);
+      tl.from("#s7-tag",  { y: 40,  opacity: 0,  duration: 0.36, ease: "power3.out" }, 18.82);
+      tl.from("#s7-cta",  { y: 65,  scale: 0.70, opacity: 0, duration: 0.32, ease: "back.out(1.8)" }, 19.04);
+      tl.from("#s7-rule", { scaleX: 0, opacity: 0, duration: 0.38, ease: "expo.out" }, 19.60);
+
+      /* Final fade to black (last scene — exit allowed) */
+      tl.to("#s7", { opacity: 0, duration: 0.55, ease: "power1.in" }, 25.45);
+
+      window.__timelines["gymvault-promo"] = tl;
+
+      /* Dynamic font sizing to prevent overflow — runs after framework ready */
+      var hf = window.__hyperframes;
+      if (hf && hf.fitTextFontSize) {
+        var W = 920;
+        function fit(sel, max) {
+          document.querySelectorAll(sel).forEach(function(el) {
+            var t = el.textContent.trim();
+            if (!t) return;
+            var sz = hf.fitTextFontSize(t, { maxWidth: W, fontFamily: 'DM Sans', fontWeight: '900' });
+            el.style.fontSize = Math.min(sz * 0.94, max) + 'px';
+          });
+        }
+        fit('.cap',      108);
+        fit('.s1-word',  145);
+        fit('.s7-logo',  170);
+        fit('.s7-cta',    62);
+      }
+    </script>
+  </div>
+</body>
+</html>
