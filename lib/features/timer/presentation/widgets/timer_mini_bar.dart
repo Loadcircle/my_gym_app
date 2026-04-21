@@ -8,8 +8,16 @@ import 'timer_bottom_sheet.dart';
 
 /// Barra minimizada del cronómetro, visible encima del bottom nav
 /// cuando el timer está corriendo o ha terminado.
+///
+/// [bottomInset] es el padding inferior que se añade para no quedar
+/// detrás de la barra de navegación del sistema. Debe leerse con
+/// MediaQuery.of(context).viewPadding.bottom desde un contexto FUERA
+/// del Scaffold que contiene esta barra (el Scaffold consume el valor).
+/// En MainShell se pasa 0 porque el NavigationBar de abajo ya lo maneja.
 class TimerMiniBar extends ConsumerWidget {
-  const TimerMiniBar({super.key});
+  final double bottomInset;
+
+  const TimerMiniBar({super.key, this.bottomInset = 0});
 
   String _formatTime(int seconds) {
     final m = seconds ~/ 60;
@@ -35,27 +43,23 @@ class TimerMiniBar extends ConsumerWidget {
         : 0.0;
 
     final timeStr = _formatTime(timer.remainingSeconds);
-
     final l10n = AppLocalizations.of(context);
 
     return GestureDetector(
       onTap: () => TimerBottomSheet.show(context),
       child: Container(
-        height: 52,
         color: AppColors.surface,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Línea de progreso en la parte superior
             LinearProgressIndicator(
               value: progress,
               minHeight: 3,
               backgroundColor: AppColors.border,
               valueColor: AlwaysStoppedAnimation<Color>(accentColor),
             ),
-
-            // Contenido
-            Expanded(
+            SizedBox(
+              height: 49,
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Row(
@@ -96,6 +100,7 @@ class TimerMiniBar extends ConsumerWidget {
                 ),
               ),
             ),
+            if (bottomInset > 0) SizedBox(height: bottomInset),
           ],
         ),
       ),

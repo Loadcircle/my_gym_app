@@ -29,8 +29,6 @@ class MainShell extends ConsumerStatefulWidget {
 }
 
 class _MainShellState extends ConsumerState<MainShell> {
-  bool _isTimerSheetOpen = false;
-
   @override
   void initState() {
     super.initState();
@@ -52,10 +50,7 @@ class _MainShellState extends ConsumerState<MainShell> {
     if (payload == 'timer_done' || payload == 'open_timer') {
       debugPrint('[MainShell] Showing TimerBottomSheet...');
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted && !_isTimerSheetOpen) {
-          _isTimerSheetOpen = true;
-          TimerBottomSheet.show(context).then((_) => _isTimerSheetOpen = false);
-        }
+        if (mounted) TimerBottomSheet.show(context);
       });
     }
   }

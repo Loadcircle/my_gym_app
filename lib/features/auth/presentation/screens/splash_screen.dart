@@ -36,6 +36,8 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
     final authState = ref.read(authStateProvider);
 
     if (authState.status == AuthStatus.authenticated) {
+      await ref.read(notificationServiceProvider).requestPermission();
+      if (!mounted) return;
       _scheduleNotifications(authState.user!.uid);
       context.go(RouteNames.exercises);
     } else {
@@ -74,6 +76,8 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
     // Escuchar cambios en el estado de auth para navegacion reactiva
     ref.listen<AuthState>(authStateProvider, (previous, next) {
       if (next.status == AuthStatus.authenticated) {
+        // Fire-and-forget: el diálogo aparecerá aunque naveguemos antes
+        ref.read(notificationServiceProvider).requestPermission();
         _scheduleNotifications(next.user!.uid);
         context.go(RouteNames.exercises);
       } else if (next.status == AuthStatus.unauthenticated) {

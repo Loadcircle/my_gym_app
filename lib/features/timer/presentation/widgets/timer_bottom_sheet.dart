@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../l10n/app_localizations.dart';
+import '../../../notifications/providers/notification_providers.dart';
 import '../../timer_notifier.dart';
 import '../../timer_provider.dart';
 import 'timer_circular_display.dart';
@@ -11,7 +12,11 @@ import 'timer_circular_display.dart';
 class TimerBottomSheet extends ConsumerStatefulWidget {
   const TimerBottomSheet({super.key});
 
+  static bool _isShowing = false;
+
   static Future<void> show(BuildContext context) {
+    if (_isShowing) return Future.value();
+    _isShowing = true;
     return showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -21,7 +26,7 @@ class TimerBottomSheet extends ConsumerStatefulWidget {
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (_) => const TimerBottomSheet(),
-    );
+    ).whenComplete(() => _isShowing = false);
   }
 
   @override
@@ -219,10 +224,18 @@ class _TimerBottomSheetState extends ConsumerState<TimerBottomSheet> {
                     ),
                     onPressed: !timer.isRunning && timer.totalSeconds == 0
                         ? null
-                        : () {
+                        : () async {
                             if (timer.isRunning) {
                               notifier.togglePause();
                             } else {
+                              final notifService =
+                                  ref.read(notificationServiceProvider);
+                              final enabled =
+                                  await notifService.areNotificationsEnabled();
+                              if (!enabled) {
+                                await notifService.requestPermission();
+                              }
+                              if (!mounted) return;
                               notifier.start(timer.totalSeconds);
                             }
                           },

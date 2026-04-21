@@ -228,10 +228,13 @@ class _CustomExerciseDetailScreenState
     final localizedMuscleGroup =
         MuscleGroups.getLocalizedName(exercise.muscleGroup, langCode);
 
+    final systemNavHeight = MediaQuery.of(context).viewPadding.bottom;
     final timerMinimized = ref.watch(timerProvider.select((t) => t.isMinimized));
     return Scaffold(
       backgroundColor: AppColors.background,
-      bottomSheet: timerMinimized ? const TimerMiniBar() : null,
+      bottomSheet: timerMinimized
+          ? TimerMiniBar(bottomInset: systemNavHeight)
+          : null,
       body: CustomScrollView(
         slivers: [
           // App Bar con imagen
